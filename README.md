@@ -9,11 +9,13 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 ### Getting Started
 
 [Try it out using CodeSandbox](#example-applications)
+
 [Learn how to integrate with your JavaScript application](#guide)
 
 ### Example Applications
 
 [Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-ib9tqt?file=/src/App.js)
+
 [Using Vue3](https://codesandbox.io/s/perawallet-connect-vue-demo-m8q3sl?file=/src/App.vue)
 
 ### Guide
