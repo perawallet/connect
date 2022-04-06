@@ -33,7 +33,9 @@
   },
   "dependencies": {
     "@hipo/react-ui-toolkit": "^1.0.0-beta",
+    "@json-rpc-tools/utils": "^1.7.6",
     "@walletconnect/client": "^1.7.7",
+    "algosdk": "^1.15.0",
     "buffer": "^6.0.3",
     "react": "^17.0.02",
     "react-dom": "^17.0.2",

@@ -17,7 +17,9 @@ export default [
       "react-dom",
       "@walletconnect/client",
       "@hipo/react-ui-toolkit",
-      "react-qr-code"
+      "react-qr-code",
+      "@json-rpc-tools/utils/dist/cjs/format",
+      "algosdk"
     ],
     plugins: [
       reactSvg(),

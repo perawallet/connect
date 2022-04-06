@@ -8,6 +8,8 @@ import {Button} from "@hipo/react-ui-toolkit";
 import QRCode from "react-qr-code";
 
 import {isLargeScreen} from "../util/screen/screenSizeUtils";
+import {PERA_WALLET_APP_DEEP_LINK} from "../util/peraWalletConstants";
+import {isMobile} from "../util/device/deviceUtils";
 
 interface PeraWalletConnectModalProps {
   uri: string;
@@ -15,7 +17,7 @@ interface PeraWalletConnectModalProps {
 }
 
 function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
-  const [isQRCodeVisible, setQRCodeVisibility] = useState(isLargeScreen());
+  const [isQRCodeVisible, setQRCodeVisibility] = useState(!isMobile());
   const [isSpinnerVisible, setSpinnerVisibility] = useState(false);
 
   return (
@@ -53,12 +55,11 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
   function renderActionButtons() {
     return (
       <>
-        {!isLargeScreen() && (
+        {isMobile() && (
           <a
             onClick={handleToggleSpinnerVisibility}
             className={"pera-wallet-connect-modal__launch-pera-wallet-button"}
-            // TODO: Fix the deeplink for Android devices
-            href={`algorand-wc://wc?uri=${encodeURIComponent(uri)}`}
+            href={`${PERA_WALLET_APP_DEEP_LINK}wc?uri=${encodeURIComponent(uri)}`}
             rel={"noopener noreferrer"}
             target={"_blank"}>
             {"Launch Pera Wallet"}

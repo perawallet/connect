@@ -1,4 +1,5 @@
 import WalletConnect from "@walletconnect/client";
+import {formatJsonRpcRequest} from "@json-rpc-tools/utils/dist/cjs/format";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
@@ -11,6 +12,13 @@ import {
 } from "./util/storage/storageUtils";
 import {assignBridgeURL} from "./util/api/peraWalletConnectApi";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
+import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
+import {
+  base64ToUint8Array,
+  encodeUnsignedTransactionInBase64
+} from "./util/transaction/transactionUtils";
+import {isMobile} from "./util/device/deviceUtils";
+import {PERA_WALLET_APP_DEEP_LINK} from "./util/peraWalletConstants";
 
 interface PeraWalletConnectOptions {
   bridge: string;
@@ -119,6 +127,70 @@ class PeraWalletConnect {
     resetWalletDetailsFromStorage();
 
     return killPromise;
+  }
+
+  signTransaction(
+    txGroups: SignerTransaction[][],
+    signerAddress?: string
+  ): Promise<Uint8Array[]> {
+    if (!this.connector) {
+      throw new Error("PeraWalletConnect was not initialized correctly.");
+    }
+
+    const signTxnRequestParams = txGroups.flatMap((txGroup) =>
+      txGroup.map<PeraWalletTransaction>((txGroupDetail) => {
+        let signers: PeraWalletTransaction["signers"];
+
+        if (signerAddress && !(txGroupDetail.signers || []).includes(signerAddress)) {
+          signers = [];
+        }
+
+        const txnRequestParams: PeraWalletTransaction = {
+          txn: encodeUnsignedTransactionInBase64(txGroupDetail.txn)
+        };
+
+        if (Array.isArray(signers)) {
+          txnRequestParams.signers = signers;
+        }
+
+        return txnRequestParams;
+      })
+    );
+
+    const formattedSignTxnRequest = formatJsonRpcRequest("algo_signTxn", [
+      signTxnRequestParams
+    ]);
+
+    if (isMobile()) {
+      // This is to automatically open the wallet app when trying to sign with it.
+      window.open(PERA_WALLET_APP_DEEP_LINK, "_blank");
+    }
+
+    return this.connector
+      .sendCustomRequest(formattedSignTxnRequest)
+      .then((response: (string | null | Uint8Array)[]): Uint8Array[] => {
+        // We send the full txn group to the mobile wallet.
+        // Therefore, we first filter out txns that were not signed by the wallet.
+        // These are received as `null`.
+        const nonNullResponse = response.filter(Boolean) as (string | number[])[];
+
+        // android returns a response Uint8Array[]
+        // ios returns base64String[]
+        return typeof nonNullResponse[0] === "string"
+          ? (nonNullResponse as string[]).map(base64ToUint8Array)
+          : (nonNullResponse as number[][]).map((item) => Uint8Array.from(item));
+      })
+      .catch((error) =>
+        Promise.reject(
+          new PeraWalletConnectError(
+            {
+              type: "SIGN_TRANSACTIONS",
+              detail: error
+            },
+            error.message || "Failed to sign transaction"
+          )
+        )
+      );
   }
 }
 
