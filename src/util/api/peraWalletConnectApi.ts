@@ -23,6 +23,7 @@ async function assignBridgeURL() {
   const response = await fetcher<{
     servers: string[];
   }>(
+    // TODO: Fix the url -> https://wc.perawallet.app/servers.json
     "https://gist.githubusercontent.com/mucahit/5d580a56a6254b9ca3a18400601a42e2/raw/a071334eb9ca0e0a75f254f86970f3c0ee1c3674/servers.json"
   );
 
