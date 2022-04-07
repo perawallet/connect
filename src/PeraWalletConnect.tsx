@@ -29,10 +29,6 @@ const peraWalletConnectModalActions = {
   close: closePeraWalletConnectModal
 };
 
-(async function () {
-  await assignBridgeURL();
-})();
-
 class PeraWalletConnect {
   bridge: string;
   connector: WalletConnect | null;
@@ -55,9 +51,15 @@ class PeraWalletConnect {
           await this.connector.killSession();
         }
 
+        let bridgeURL = "";
+
+        if (!this.bridge) {
+          bridgeURL = await assignBridgeURL();
+        }
+
         // Create Connector instance
         this.connector = new WalletConnect({
-          bridge: this.bridge,
+          bridge: this.bridge || bridgeURL,
           qrcodeModal: peraWalletConnectModalActions
         });
 

@@ -4,7 +4,6 @@ import PeraWalletLogo from "../asset/icon/PeraWallet.svg";
 import "./_pera-wallet-connect-modal.scss";
 
 import React, {useState} from "react";
-import {Button} from "@hipo/react-ui-toolkit";
 import QRCode from "react-qr-code";
 
 import {isLargeScreen} from "../util/screen/screenSizeUtils";
@@ -28,25 +27,25 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
             <PeraWalletLogo />
           </div>
 
-          <Button
-            customClassName={
+          <button
+            className={
               "pera-wallet-connect-button pera-wallet-connect-modal__close-button"
             }
             onClick={onClose}>
             <CloseIcon />
-          </Button>
+          </button>
         </div>
 
         {isSpinnerVisible ? renderPendingMessage() : renderActionButtons()}
 
         {isSpinnerVisible && (
-          <Button
-            customClassName={
+          <button
+            className={
               "pera-wallet-connect-button pera-wallet-connect-modal__cancel-button"
             }
             onClick={handleToggleSpinnerVisibility}>
             {"Cancel"}
-          </Button>
+          </button>
         )}
       </div>
     </div>
@@ -69,13 +68,13 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
         {isQRCodeVisible && renderQRCode()}
 
         {!isQRCodeVisible && (
-          <Button
-            customClassName={
+          <button
+            className={
               "pera-wallet-connect-button pera-wallet-connect-modal__display-qr-code-button"
             }
             onClick={handleToggleQRCodeVisibility}>
             {"Display QR Code"}
-          </Button>
+          </button>
         )}
       </>
     );
