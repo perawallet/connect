@@ -7,8 +7,8 @@ import React, {useState} from "react";
 import QRCode from "react-qr-code";
 
 import {isLargeScreen} from "../util/screen/screenSizeUtils";
-import {PERA_WALLET_APP_DEEP_LINK} from "../util/peraWalletConstants";
 import {isMobile} from "../util/device/deviceUtils";
+import {generatePeraWalletDeeplink} from "../util/peraWalletUtils";
 
 interface PeraWalletConnectModalProps {
   uri: string;
@@ -58,7 +58,7 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
           <a
             onClick={handleToggleSpinnerVisibility}
             className={"pera-wallet-connect-modal__launch-pera-wallet-button"}
-            href={`${PERA_WALLET_APP_DEEP_LINK}wc?uri=${encodeURIComponent(uri)}`}
+            href={generatePeraWalletDeeplink(uri)}
             rel={"noopener noreferrer"}
             target={"_blank"}>
             {"Launch Pera Wallet"}

@@ -69,3 +69,12 @@ function App() {
   }
 }
 ```
+
+### Your app name on Pera Wallet
+By default, the connect wallet drawer on Pera Wallet gets the app name from `document.title`. 
+
+In some cases, you may want to customize it. You can achieve this by adding a meta tag to your HTML between the `head` tag.
+
+```html
+<meta name="name" content="My dApp" />
+```
