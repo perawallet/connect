@@ -10,7 +10,7 @@ import {
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage
 } from "./util/storage/storageUtils";
-import {assignBridgeURL} from "./util/api/peraWalletConnectApi";
+import {assignBridgeURL, listBridgeServers} from "./util/api/peraWalletConnectApi";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
@@ -96,6 +96,16 @@ class PeraWalletConnect {
     return new Promise<string[]>((resolve, reject) => {
       try {
         if (!this.connector && this.bridge) {
+          // Fetch the active bridge servers
+          // If the bridge is not active, then disconnect
+          listBridgeServers().then((response) => {
+            if (!response.servers.includes(this.bridge)) {
+              console.error("The bridge is not active, disconnecting...");
+
+              this.disconnect();
+            }
+          });
+
           this.connector = new WalletConnect({
             bridge: this.bridge,
             qrcodeModal: peraWalletConnectModalActions
