@@ -124,8 +124,11 @@
 }
 
 .pera-wallet-connect-modal__qr-code {
+  cursor: none;
+
   text-align: center;
 }
+
 .pera-wallet-connect-modal__qr-code__text {
   margin-bottom: 15px;
 }
