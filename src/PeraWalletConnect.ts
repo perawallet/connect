@@ -95,25 +95,31 @@ class PeraWalletConnect {
   reconnectSession() {
     return new Promise<string[]>((resolve, reject) => {
       try {
-        if (!this.connector && this.bridge) {
+        if (this.connector) {
+          resolve(this.connector.accounts || []);
+        } else {
           // Fetch the active bridge servers
           // If the bridge is not active, then disconnect
           listBridgeServers().then((response) => {
-            if (!response.servers.includes(this.bridge)) {
-              console.error("The bridge is not active, disconnecting...");
+            if (response.servers.includes(this.bridge)) {
+              this.connector = new WalletConnect({
+                bridge: this.bridge,
+                qrcodeModal: peraWalletConnectModalActions
+              });
 
-              this.disconnect();
+              resolve(this.connector?.accounts || []);
+            } else {
+              reject(
+                new PeraWalletConnectError(
+                  {
+                    type: "SESSION_RECONNECT",
+                    detail: ""
+                  },
+                  "The bridge server is not active anymore. Disconnecting."
+                )
+              );
             }
           });
-
-          this.connector = new WalletConnect({
-            bridge: this.bridge,
-            qrcodeModal: peraWalletConnectModalActions
-          });
-
-          resolve(this.connector?.accounts || []);
-        } else {
-          resolve([]);
         }
       } catch (error: any) {
         reject(

@@ -43,7 +43,7 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
             className={
               "pera-wallet-connect-button pera-wallet-connect-modal__cancel-button"
             }
-            onClick={handleToggleSpinnerVisibility}>
+            onClick={handleCancelClick}>
             {"Cancel"}
           </button>
         )}
@@ -115,6 +115,10 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
 
   function handleToggleQRCodeVisibility() {
     setQRCodeVisibility(!isQRCodeVisible);
+  }
+
+  function handleCancelClick() {
+    onClose();
   }
 }
 
