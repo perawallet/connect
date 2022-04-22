@@ -42,7 +42,7 @@ function App() {
     // Reconnect to the session when the component is mounted
     peraWallet.reconnectSession().then((accounts) => {
       // Setup the disconnect event listener
-      peraWalletManager.connector?.on("disconnect", handleDisconnectWalletClick);
+      peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
 
       if (accounts.length) {
         setAccountAddress(accounts[0]);
@@ -62,7 +62,7 @@ function App() {
   function handleConnectWalletClick() {
     peraWallet.connect().then((newAccounts) => {
       // Setup the disconnect event listener
-      peraWalletManager.connector?.on("disconnect", handleDisconnectWalletClick);
+      peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
 
       setAccountAddress(newAccounts[0]);
     });
