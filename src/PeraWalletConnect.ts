@@ -92,47 +92,43 @@ class PeraWalletConnect {
     });
   }
 
-  reconnectSession() {
-    return new Promise<string[]>((resolve, reject) => {
-      try {
-        if (this.connector) {
-          resolve(this.connector.accounts || []);
-        } else {
-          // Fetch the active bridge servers
-          // If the bridge is not active, then disconnect
-          listBridgeServers().then((response) => {
-            if (response.servers.includes(this.bridge)) {
-              this.connector = new WalletConnect({
-                bridge: this.bridge,
-                qrcodeModal: peraWalletConnectModalActions
-              });
-
-              resolve(this.connector?.accounts || []);
-            } else {
-              reject(
-                new PeraWalletConnectError(
-                  {
-                    type: "SESSION_RECONNECT",
-                    detail: ""
-                  },
-                  "The bridge server is not active anymore. Disconnecting."
-                )
-              );
-            }
-          });
-        }
-      } catch (error: any) {
-        reject(
-          new PeraWalletConnectError(
-            {
-              type: "SESSION_RECONNECT",
-              detail: error
-            },
-            error.message || "There was an error while reconnecting to Pera Wallet"
-          )
-        );
+  async reconnectSession() {
+    try {
+      if (this.connector) {
+        return this.connector.accounts || [];
       }
-    });
+
+      // Fetch the active bridge servers
+      const response = await listBridgeServers();
+
+      if (response.servers.includes(this.bridge)) {
+        this.connector = new WalletConnect({
+          bridge: this.bridge,
+          qrcodeModal: peraWalletConnectModalActions
+        });
+
+        return this.connector?.accounts || [];
+      }
+
+      throw new PeraWalletConnectError(
+        {
+          type: "SESSION_RECONNECT",
+          detail: ""
+        },
+        "The bridge server is not active anymore. Disconnecting."
+      );
+    } catch (error: any) {
+      // If the bridge is not active, then disconnect
+      this.disconnect();
+
+      throw new PeraWalletConnectError(
+        {
+          type: "SESSION_RECONNECT",
+          detail: error
+        },
+        error.message || "There was an error while reconnecting to Pera Wallet"
+      );
+    }
   }
 
   disconnect() {
