@@ -1,6 +1,7 @@
 import CloseIcon from "../asset/icon/Close.svg";
 import PeraWalletLogo from "../asset/icon/PeraWallet.svg";
 
+import "./_pera-wallet-modal.scss";
 import "./_pera-wallet-connect-modal.scss";
 
 import React, {useState} from "react";

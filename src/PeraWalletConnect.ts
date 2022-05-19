@@ -4,7 +4,10 @@ import {formatJsonRpcRequest} from "@json-rpc-tools/utils/dist/cjs/format";
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
   openPeraWalletConnectModal,
-  closePeraWalletConnectModal
+  openPeraWalletRedirectModal,
+  removeModalWrapperFromDOM,
+  PERA_WALLET_CONNECT_MODAL_ID,
+  PERA_WALLET_REDIRECT_MODAL_ID
 } from "./modal/peraWalletConnectModalUtils";
 import {
   resetWalletDetailsFromStorage,
@@ -18,7 +21,6 @@ import {
   encodeUnsignedTransactionInBase64
 } from "./util/transaction/transactionUtils";
 import {isMobile} from "./util/device/deviceUtils";
-import {PERA_WALLET_APP_DEEP_LINK} from "./util/peraWalletConstants";
 
 interface PeraWalletConnectOptions {
   bridge: string;
@@ -26,7 +28,7 @@ interface PeraWalletConnectOptions {
 
 const peraWalletConnectModalActions = {
   open: openPeraWalletConnectModal,
-  close: closePeraWalletConnectModal
+  close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
 };
 
 class PeraWalletConnect {
@@ -177,7 +179,7 @@ class PeraWalletConnect {
 
     if (isMobile()) {
       // This is to automatically open the wallet app when trying to sign with it.
-      window.open(PERA_WALLET_APP_DEEP_LINK, "_blank");
+      openPeraWalletRedirectModal();
     }
 
     return this.connector
@@ -204,7 +206,8 @@ class PeraWalletConnect {
             error.message || "Failed to sign transaction"
           )
         )
-      );
+      )
+      .finally(() => removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID));
   }
 }
 
