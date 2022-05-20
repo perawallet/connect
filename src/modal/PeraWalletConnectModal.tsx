@@ -1,5 +1,4 @@
 import CloseIcon from "../asset/icon/Close.svg";
-import PeraWalletLogo from "../asset/icon/PeraWallet.svg";
 
 import "./_pera-wallet-modal.scss";
 import "./_pera-wallet-connect-modal.scss";
@@ -9,7 +8,10 @@ import QRCode from "react-qr-code";
 
 import {isLargeScreen} from "../util/screen/screenSizeUtils";
 import {isMobile} from "../util/device/deviceUtils";
-import {generatePeraWalletDeeplink} from "../util/peraWalletUtils";
+import {
+  generatePeraWalletConnectDeepLink,
+  getPeraWalletAppMeta
+} from "../util/peraWalletUtils";
 
 interface PeraWalletConnectModalProps {
   uri: string;
@@ -17,15 +19,18 @@ interface PeraWalletConnectModalProps {
 }
 
 function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
+  const {logo, name, main_color} = getPeraWalletAppMeta();
   const [isQRCodeVisible, setQRCodeVisibility] = useState(!isMobile());
   const [isSpinnerVisible, setSpinnerVisibility] = useState(false);
 
   return (
-    <div className={"pera-wallet-connect-modal"}>
+    <div
+      className={"pera-wallet-connect-modal"}
+      style={{"--pera-wallet-main-color": main_color} as React.CSSProperties}>
       <div className={"pera-wallet-connect-modal__body"}>
         <div className={"pera-wallet-connect-modal__body__header"}>
           <div className={"pera-wallet-connect-modal__logo"}>
-            <PeraWalletLogo />
+            <img src={logo} />
           </div>
 
           <button
@@ -33,7 +38,7 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
               "pera-wallet-connect-button pera-wallet-connect-modal__close-button"
             }
             onClick={onClose}>
-            <CloseIcon />
+            <img src={CloseIcon} />
           </button>
         </div>
 
@@ -59,10 +64,10 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
           <a
             onClick={handleToggleSpinnerVisibility}
             className={"pera-wallet-connect-modal__launch-pera-wallet-button"}
-            href={generatePeraWalletDeeplink(uri)}
+            href={generatePeraWalletConnectDeepLink(uri)}
             rel={"noopener noreferrer"}
             target={"_blank"}>
-            {"Launch Pera Wallet"}
+            {`Launch ${name}`}
           </a>
         )}
 
@@ -85,7 +90,7 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
     return (
       <div className={"pera-wallet-connect-modal__qr-code"}>
         <p className={"pera-wallet-connect-modal__qr-code__text"}>
-          {"Scan QR code with Pera Wallet"}
+          {`Scan QR code with ${name}`}
         </p>
         <QRCode
           // eslint-disable-next-line no-magic-numbers
@@ -100,11 +105,11 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
     return (
       <div className={"pera-wallet-connect-modal__pending-message"}>
         <div className={"pera-wallet-connect-modal__pending-message__logo"}>
-          <PeraWalletLogo />
+          <img src={logo} />
         </div>
 
         <div className={"pera-wallet-connect-modal__pending-message__text"}>
-          {"Please wait while we connect you to Pera Wallet..."}
+          {`Please wait while we connect you to ${name}...`}
         </div>
       </div>
     );

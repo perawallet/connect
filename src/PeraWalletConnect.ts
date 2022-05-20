@@ -21,9 +21,13 @@ import {
   encodeUnsignedTransactionInBase64
 } from "./util/transaction/transactionUtils";
 import {isMobile} from "./util/device/deviceUtils";
+import {AppMeta} from "./util/peraWalletTypes";
+import {getPeraWalletAppMeta} from "./util/peraWalletUtils";
 
 interface PeraWalletConnectOptions {
-  bridge: string;
+  bridge?: string;
+  deep_link?: string;
+  app_meta?: AppMeta;
 }
 
 const peraWalletConnectModalActions = {
@@ -40,6 +44,17 @@ class PeraWalletConnect {
       options?.bridge ||
       localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL) ||
       "";
+
+    if (options?.deep_link) {
+      localStorage.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK, options.deep_link);
+    }
+
+    if (options?.app_meta) {
+      localStorage.setItem(
+        PERA_WALLET_LOCAL_STORAGE_KEYS.APP_META,
+        JSON.stringify(options.app_meta)
+      );
+    }
 
     this.connector = null;
   }
@@ -81,13 +96,15 @@ class PeraWalletConnect {
       } catch (error: any) {
         console.log(error);
 
+        const {name} = getPeraWalletAppMeta();
+
         reject(
           new PeraWalletConnectError(
             {
               type: "SESSION_CONNECT",
               detail: error
             },
-            error.message || "There was an error while connecting to Pera Wallet"
+            error.message || `There was an error while connecting to ${name}`
           )
         );
       }
@@ -123,12 +140,14 @@ class PeraWalletConnect {
       // If the bridge is not active, then disconnect
       this.disconnect();
 
+      const {name} = getPeraWalletAppMeta();
+
       throw new PeraWalletConnectError(
         {
           type: "SESSION_RECONNECT",
           detail: error
         },
-        error.message || "There was an error while reconnecting to Pera Wallet"
+        error.message || `There was an error while reconnecting to ${name}`
       );
     }
   }
