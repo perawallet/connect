@@ -12,6 +12,8 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 [Learn how to integrate with your JavaScript application](#guide)
 
+[Learn how to Sign Transactions](#sign-transaction)
+
 ### Example Applications
 
 [Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-ib9tqt?file=/src/App.js)
@@ -73,6 +75,57 @@ function App() {
 
     setAccountAddress(null);
   }
+}
+```
+
+### Sign Transaction
+
+`@perawallet/connect` also allows signing transactions using the Pera Wallet application. Once the `signTransaction` method is triggered if the user is on a mobile browser, the Pera Wallet app will be launched automatically, if the browser blocks the redirection there's also a popup that links to the Pera Wallet app.
+
+`signTransaction` accepts `SignerTransaction[][]` the type can be found [here](./src/util/model/peraWalletModels.ts)
+
+**To see more details & working examples please [visit here](https://codesandbox.io/s/txns-demo-pj3nf2)**
+
+```javascript
+// Setting up algosdk client
+const algod = new algosdk.Algodv2("", "https://node.testnet.algoexplorerapi.io/", 443);
+
+// Setting up Transactions
+const suggestedParams = await algod.getTransactionParams().do();
+const optInTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+  from: FROM_ADDRESS,
+  to: FROM_ADDRESS,
+  assetIndex: ASSET_ID,
+  amount: 0,
+  suggestedParams
+});
+const optInTxn2 = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+  from: FROM_ADDRESS,
+  to: FROM_ADDRESS,
+  assetIndex: ASSET_ID,
+  amount: 0,
+  suggestedParams
+});
+
+// Mapping `Transaction` to `SignerTransaction[]`
+const singleTxnGroups = [{txn: optInTxn, signers: [FROM_ADDRESS]}];
+const multipleTxnGroups = [
+  {txn: optInTxn, signers: [FROM_ADDRESS]},
+  {txn: optInTxn2, signers: [FROM_ADDRESS]}
+];
+
+// Single Transaction
+try {
+  const signedTxn = await peraWallet.signTransaction([singleTxnGroups]);
+} catch (error) {
+  console.log("Couldn't sign Opt-in txns", error);
+}
+
+// Group Transaction
+try {
+  const signedTxns = await peraWallet.signTransaction([multipleTxnGroups]);
+} catch (error) {
+  console.log("Couldn't sign Opt-in txns", error);
 }
 ```
 
