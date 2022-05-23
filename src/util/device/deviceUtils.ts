@@ -4,6 +4,10 @@ function isAndroid() {
   return /Android/i.test(navigator.userAgent);
 }
 
+function isIOS() {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 function isMobile() {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
@@ -38,4 +42,4 @@ function detectBrowser() {
   return browserName;
 }
 
-export {isAndroid, isMobile, detectBrowser};
+export {isAndroid, isIOS, isMobile, detectBrowser};

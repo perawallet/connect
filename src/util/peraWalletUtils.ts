@@ -1,6 +1,6 @@
 import PeraWalletLogo from "../asset/icon/PeraWallet.svg";
 
-import {detectBrowser, isAndroid} from "./device/deviceUtils";
+import {detectBrowser, isAndroid, isIOS} from "./device/deviceUtils";
 import {PERA_WALLET_APP_DEEP_LINK} from "./peraWalletConstants";
 import {AppMeta} from "./peraWalletTypes";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storage/storageConstants";
@@ -31,18 +31,25 @@ function getPeraWalletAppMeta(): AppMeta {
  * @returns {string} Pera Wallet deeplink
  */
 function generatePeraWalletConnectDeepLink(uri: string): string {
-  let deeplink = `${generatePeraWalletAppDeepLink()}wc?uri=${encodeURIComponent(uri)}`;
+  let appDeepLink = generatePeraWalletAppDeepLink();
+
+  // Add `wc` suffix to the deeplink if it doesn't exist
+  if (isIOS() && !appDeepLink.includes("-wc")) {
+    appDeepLink = appDeepLink.replace("://", "-wc://");
+  }
+
+  let deepLink = `${appDeepLink}wc?uri=${encodeURIComponent(uri)}`;
   const browserName = detectBrowser();
 
   if (isAndroid()) {
-    deeplink = uri;
+    deepLink = uri;
   }
 
   if (browserName) {
-    deeplink = `${deeplink}&browser=${browserName}`;
+    deepLink = `${deepLink}&browser=${browserName}`;
   }
 
-  return deeplink;
+  return deepLink;
 }
 
 export {
