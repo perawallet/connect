@@ -17,7 +17,7 @@ export default [
       "react-dom",
       "@walletconnect/client",
       "@hipo/react-ui-toolkit",
-      "react-qr-code",
+      "react-qrcode-logo",
       "@json-rpc-tools/utils/dist/cjs/format",
       "algosdk"
     ],

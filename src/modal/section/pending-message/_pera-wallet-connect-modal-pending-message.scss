@@ -1,0 +1,19 @@
+.pera-wallet-connect-modal-pending-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  text-align: center;
+}
+
+.pera-wallet-connect-modal-pending-message__text {
+  margin-top: 20px;
+
+  color: #2c3559;
+
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+  letter-spacing: -0.26px;
+}

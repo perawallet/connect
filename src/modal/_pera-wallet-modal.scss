@@ -1,8 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import "../ui/styles/media-queries";
+
 .pera-wallet-connect-modal {
-  --pera-wallet-connect-modal-font-family: ui-rounded, "SF Pro Rounded", "SF Pro Text",
-    medium-content-sans-serif-font, -apple-system, BlinkMacSystemFont, ui-sans-serif,
-    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
-    sans-serif;
+  --pera-wallet-connect-modal-font-family: "Inter", sans-serif;
 
   display: flex;
   align-items: center;
@@ -23,6 +23,13 @@
 
   * {
     box-sizing: border-box;
+
+    li {
+      list-style-type: none;
+
+      margin: 0;
+      padding: 0;
+    }
   }
 }
 
@@ -32,12 +39,12 @@
   justify-content: center;
 
   width: auto;
-  height: 35px;
+  height: 48px;
 
   padding: 14px;
 
   border: none;
-  border-radius: var(--small-radius-size);
+  border-radius: 12px;
   outline: none;
 
   cursor: pointer;
@@ -53,14 +60,15 @@
 }
 
 .pera-wallet-connect-modal__close-button {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
 
   margin: 0;
   padding: 0;
 
-  box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.08);
-  background-color: white;
+  background: #333333;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
 
   border-radius: 100%;
 }
@@ -68,24 +76,88 @@
 .pera-wallet-connect-modal__body {
   position: relative;
 
-  width: 440px;
+  width: 655px;
   max-width: calc(100vw - 80px);
 
-  padding: 24px;
+  padding: 28px;
 
-  background-color: white;
+  background-color: #edeffb;
+
   box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.08);
 
-  border-radius: 4px;
+  border-radius: 24px;
+
+  &::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    content: "";
+
+    background-image: var(--pera-connect-wallet-modal-background-pattern);
+    background-size: cover;
+    mix-blend-mode: overlay;
+
+    border-radius: 24px;
+
+    opacity: 0.8;
+
+    pointer-events: none;
+  }
 }
 
 .pera-wallet-connect-modal__body__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
 
   position: absolute;
-  top: -40px;
-  right: 0;
+  top: -44px;
+  right: -44px;
   left: 0;
+}
+
+@include for-medium-screens {
+  .pera-wallet-connect-modal__body {
+    position: absolute;
+    bottom: 0;
+
+    width: 100%;
+    height: 80vh;
+    max-width: unset;
+
+    padding: 20px;
+
+    background-color: #ffffff;
+
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
+
+    border-radius: 20px 20px 0px 0px;
+
+    &::before {
+      background-image: unset;
+    }
+  }
+
+  .pera-wallet-connect-modal__body__header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    position: static;
+  }
+
+  .pera-wallet-connect-modal__close-button {
+    width: 24px;
+    height: 24px;
+
+    margin: 0;
+    padding: 0;
+
+    background: transparent;
+    border: unset;
+    box-shadow: unset;
+  }
 }

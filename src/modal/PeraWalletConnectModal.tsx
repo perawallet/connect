@@ -1,17 +1,22 @@
 import CloseIcon from "../asset/icon/Close.svg";
+import CloseIconDark from "../asset/icon/Close--dark.svg";
+import ConnectModalBackgroundPattern from "../asset/img/ConnectModalBackgroundPattern.png";
 
 import "./_pera-wallet-modal.scss";
 import "./_pera-wallet-connect-modal.scss";
 
 import React, {useState} from "react";
-import QRCode from "react-qr-code";
 
-import {isLargeScreen} from "../util/screen/screenSizeUtils";
 import {isMobile} from "../util/device/deviceUtils";
 import {
   generatePeraWalletConnectDeepLink,
   getPeraWalletAppMeta
 } from "../util/peraWalletUtils";
+import Accordion from "./component/accordion/Accordion";
+import {useIsMediumScreen} from "../util/screen/useMediaQuery";
+import PeraWalletConnectModalInformationSection from "./section/information/PeraWalletConnectModalInformationSection";
+import PeraWalletConnectModalPendingMessage from "./section/pending-message/PeraWalletConnectModalPendingMessage";
+import {getPeraConnectModalAccordionData} from "./util/peraWalletConnectModalUtils";
 
 interface PeraWalletConnectModalProps {
   uri: string;
@@ -19,112 +24,89 @@ interface PeraWalletConnectModalProps {
 }
 
 function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
-  const {logo, name, main_color} = getPeraWalletAppMeta();
-  const [isQRCodeVisible, setQRCodeVisibility] = useState(!isMobile());
+  const {name} = getPeraWalletAppMeta();
+  const [isQRCodeVisible] = useState(!isMobile());
   const [isSpinnerVisible, setSpinnerVisibility] = useState(false);
+  const isMediumScreen = useIsMediumScreen();
 
   return (
-    <div
-      className={"pera-wallet-connect-modal"}
-      style={{"--pera-wallet-main-color": main_color} as React.CSSProperties}>
-      <div className={"pera-wallet-connect-modal__body"}>
+    <div className={"pera-wallet-connect-modal"}>
+      <div
+        className={"pera-wallet-connect-modal__body"}
+        style={
+          {
+            "--pera-connect-wallet-modal-background-pattern": `url(${ConnectModalBackgroundPattern})`
+          } as React.CSSProperties
+        }>
         <div className={"pera-wallet-connect-modal__body__header"}>
-          <div className={"pera-wallet-connect-modal__logo"}>
-            <img src={logo} />
-          </div>
-
           <button
             className={
               "pera-wallet-connect-button pera-wallet-connect-modal__close-button"
             }
             onClick={onClose}>
-            <img src={CloseIcon} />
+            <img src={isMediumScreen ? CloseIconDark : CloseIcon} />
           </button>
         </div>
 
-        {isSpinnerVisible ? renderPendingMessage() : renderActionButtons()}
+        <div
+          className={`pera-wallet-connect-modal__content ${
+            isSpinnerVisible
+              ? "pera-wallet-connect-modal__content--pending-message-view"
+              : ""
+          }`}>
+          {isSpinnerVisible ? (
+            <PeraWalletConnectModalPendingMessage onClose={onClose} />
+          ) : (
+            <>
+              <PeraWalletConnectModalInformationSection />
 
-        {isSpinnerVisible && (
-          <button
-            className={
-              "pera-wallet-connect-button pera-wallet-connect-modal__cancel-button"
-            }
-            onClick={handleCancelClick}>
-            {"Cancel"}
-          </button>
-        )}
+              <div>{renderActionContent()}</div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
 
-  function renderActionButtons() {
+  function renderActionContent() {
     return (
       <>
-        {isMobile() && (
-          <a
-            onClick={handleToggleSpinnerVisibility}
-            className={"pera-wallet-connect-modal__launch-pera-wallet-button"}
-            href={generatePeraWalletConnectDeepLink(uri)}
-            rel={"noopener noreferrer"}
-            target={"_blank"}>
-            {`Launch ${name}`}
-          </a>
+        {isMediumScreen && (
+          <>
+            <a
+              onClick={handleToggleSpinnerVisibility}
+              className={"pera-wallet-connect-modal__launch-pera-wallet-button"}
+              href={generatePeraWalletConnectDeepLink(uri)}
+              rel={"noopener noreferrer"}
+              target={"_blank"}>
+              {`Launch ${name}`}
+            </a>
+
+            <div className={"pera-wallet-connect-modal__new-to-pera-box"}>
+              <p className={"pera-wallet-connect-modal__new-to-pera-box__text"}>
+                {"New to Pera?"}
+              </p>
+            </div>
+
+            <a
+              href={"https://perawallet.app/download/"}
+              className={"pera-wallet-connect-modal__install-pera-wallet-button"}
+              rel={"noopener noreferrer"}
+              target={"_blank"}>
+              {`Install ${name}`}
+            </a>
+          </>
         )}
 
-        {isQRCodeVisible && renderQRCode()}
-
-        {!isQRCodeVisible && (
-          <button
-            className={
-              "pera-wallet-connect-button pera-wallet-connect-modal__display-qr-code-button"
-            }
-            onClick={handleToggleQRCodeVisibility}>
-            {"Display QR Code"}
-          </button>
+        {isQRCodeVisible && !isMediumScreen && (
+          <Accordion accordionData={getPeraConnectModalAccordionData(uri)} />
         )}
       </>
     );
   }
 
-  function renderQRCode() {
-    return (
-      <div className={"pera-wallet-connect-modal__qr-code"}>
-        <p className={"pera-wallet-connect-modal__qr-code__text"}>
-          {`Scan QR code with ${name}`}
-        </p>
-        <QRCode
-          // eslint-disable-next-line no-magic-numbers
-          size={isLargeScreen() ? 392 : 240}
-          value={uri}
-        />
-      </div>
-    );
-  }
-
-  function renderPendingMessage() {
-    return (
-      <div className={"pera-wallet-connect-modal__pending-message"}>
-        <div className={"pera-wallet-connect-modal__pending-message__logo"}>
-          <img src={logo} />
-        </div>
-
-        <div className={"pera-wallet-connect-modal__pending-message__text"}>
-          {`Please wait while we connect you to ${name}...`}
-        </div>
-      </div>
-    );
-  }
-
   function handleToggleSpinnerVisibility() {
     setSpinnerVisibility(!isSpinnerVisible);
-  }
-
-  function handleToggleQRCodeVisibility() {
-    setQRCodeVisibility(!isQRCodeVisible);
-  }
-
-  function handleCancelClick() {
-    onClose();
   }
 }
 

@@ -35,7 +35,7 @@
     "@json-rpc-tools/utils": "^1.7.6",
     "@walletconnect/client": "^1.7.7",
     "buffer": "^6.0.3",
-    "react-qr-code": "^2.0.5"
+    "react-qrcode-logo": "^2.7.0"
   },
   "peerDependencies": {
     "algosdk": "^1.15.0",
