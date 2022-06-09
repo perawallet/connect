@@ -25,7 +25,7 @@ interface PeraWalletConnectModalProps {
 
 function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
   const {name} = getPeraWalletAppMeta();
-  const [isQRCodeVisible] = useState(!isMobile());
+  const isQRCodeVisible = !isMobile();
   const [isSpinnerVisible, setSpinnerVisibility] = useState(false);
   const isMediumScreen = useIsMediumScreen();
 
