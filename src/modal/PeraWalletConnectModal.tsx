@@ -7,13 +7,12 @@ import "./_pera-wallet-connect-modal.scss";
 
 import React, {useState} from "react";
 
-import {isMobile} from "../util/device/deviceUtils";
 import {
   generatePeraWalletConnectDeepLink,
   getPeraWalletAppMeta
 } from "../util/peraWalletUtils";
 import Accordion from "./component/accordion/Accordion";
-import {useIsMediumScreen} from "../util/screen/useMediaQuery";
+import {useIsSmallScreen} from "../util/screen/useMediaQuery";
 import PeraWalletConnectModalInformationSection from "./section/information/PeraWalletConnectModalInformationSection";
 import PeraWalletConnectModalPendingMessage from "./section/pending-message/PeraWalletConnectModalPendingMessage";
 import {getPeraConnectModalAccordionData} from "./util/peraWalletConnectModalUtils";
@@ -25,9 +24,8 @@ interface PeraWalletConnectModalProps {
 
 function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
   const {name} = getPeraWalletAppMeta();
-  const isQRCodeVisible = !isMobile();
   const [isSpinnerVisible, setSpinnerVisibility] = useState(false);
-  const isMediumScreen = useIsMediumScreen();
+  const isSmallScreen = useIsSmallScreen();
 
   return (
     <div className={"pera-wallet-connect-modal"}>
@@ -44,7 +42,7 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
               "pera-wallet-connect-button pera-wallet-connect-modal__close-button"
             }
             onClick={onClose}>
-            <img src={isMediumScreen ? CloseIconDark : CloseIcon} />
+            <img src={isSmallScreen ? CloseIconDark : CloseIcon} />
           </button>
         </div>
 
@@ -71,7 +69,7 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
   function renderActionContent() {
     return (
       <>
-        {isMediumScreen && (
+        {isSmallScreen && (
           <>
             <a
               onClick={handleToggleSpinnerVisibility}
@@ -98,7 +96,7 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
           </>
         )}
 
-        {isQRCodeVisible && !isMediumScreen && (
+        {!isSmallScreen && (
           <Accordion accordionData={getPeraConnectModalAccordionData(uri)} />
         )}
       </>

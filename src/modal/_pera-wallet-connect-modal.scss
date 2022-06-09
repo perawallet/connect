@@ -97,7 +97,7 @@
   border-radius: 24px;
 }
 
-@include for-medium-screens {
+@include for-small-screens {
   .pera-wallet-connect-modal__content {
     grid-template-columns: 1fr;
     gap: 56px;

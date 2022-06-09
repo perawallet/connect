@@ -119,7 +119,7 @@
   left: 0;
 }
 
-@include for-medium-screens {
+@include for-small-screens {
   .pera-wallet-connect-modal__body {
     position: absolute;
     bottom: 0;

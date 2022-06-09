@@ -37,9 +37,9 @@ function useMediaQuery(mediaQuery: string) {
   return isMediaMatchingQuery;
 }
 
-function useIsMediumScreen() {
-  return useMediaQuery(MEDIA_QUERIES.MEDIUM);
+function useIsSmallScreen() {
+  return useMediaQuery(MEDIA_QUERIES.SMALL);
 }
 
 export default useMediaQuery;
-export {useIsMediumScreen};
+export {useIsSmallScreen};

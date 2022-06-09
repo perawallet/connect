@@ -1,7 +1,7 @@
-import {MEDIUM_SCREEN_BREAKPOINT} from "./screenSizeConstants";
+import {SMALL_SCREEN_BREAKPOINT} from "./screenSizeConstants";
 
 const MEDIA_QUERIES = {
-  MEDIUM: `(max-width: ${MEDIUM_SCREEN_BREAKPOINT}px)`
+  SMALL: `(max-width: ${SMALL_SCREEN_BREAKPOINT}px)`
 };
 
 export {MEDIA_QUERIES};

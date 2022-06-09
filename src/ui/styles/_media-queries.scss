@@ -1,8 +1,8 @@
-$medium-max-width: 935px;
-$medium-screen-query: "only screen and (max-width: " + $medium-max-width + ")";
+$small-max-width: 767px;
+$small-screen-query: "only screen and (max-width: " + $small-max-width + ")";
 
-@mixin for-medium-screens {
-  @media #{$medium-screen-query} {
+@mixin for-small-screens {
+  @media #{$small-screen-query} {
     @content;
   }
 }

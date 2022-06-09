@@ -7,21 +7,21 @@ import "./_pera-wallet-modal-information-section.scss";
 
 import React from "react";
 
-import {useIsMediumScreen} from "../../../util/screen/useMediaQuery";
+import {useIsSmallScreen} from "../../../util/screen/useMediaQuery";
 import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
 
 function PeraWalletConnectModalInformationSection() {
-  const isMediumScreen = useIsMediumScreen();
+  const isSmallScreen = useIsSmallScreen();
   const {logo, name} = getPeraWalletAppMeta();
 
   return (
     <div className={"pera-wallet-connect-modal-information-section"}>
       <img
         className={"pera-wallet-connect-modal-information-section__pera-icon"}
-        src={isMediumScreen ? logo : PeraWalletWithText}
+        src={isSmallScreen ? logo : PeraWalletWithText}
       />
 
-      {isMediumScreen && (
+      {isSmallScreen && (
         <h1
           className={"pera-wallet-connect-modal-information-section__connect-pera-title"}>
           {`Connect to ${name}`}
@@ -32,7 +32,7 @@ function PeraWalletConnectModalInformationSection() {
         {"Simply the best Algorand wallet."}
       </h1>
 
-      {!isMediumScreen && (
+      {!isSmallScreen && (
         <h2 className={"pera-wallet-connect-modal-information-section__secondary-title"}>
           {"Features"}
         </h2>

@@ -65,7 +65,7 @@
   font-weight: 500;
 }
 
-@include for-medium-screens {
+@include for-small-screens {
   .pera-wallet-connect-modal-information-section__information-section {
     padding: 0;
   }
