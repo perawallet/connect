@@ -4,32 +4,32 @@ import AccordionItem from "./item/AccordionItem";
 import {AccordionData} from "./util/accordionTypes";
 
 interface AccordionProps {
-  accordionData: AccordionData[];
+  items: AccordionData[];
 }
 
-function Accordion({accordionData}: AccordionProps) {
-  const [clicked, setClicked] = useState("0");
+function Accordion({items}: AccordionProps) {
+  const [activeItem, setActiveItem] = useState(0);
 
   return (
-    <ul className={"accordion"}>
-      {accordionData.map((data, index) => (
+    <ul className={"pera-wallet-accordion"}>
+      {items.map((item, index) => (
         <AccordionItem
-          key={data.id}
-          data={data}
-          // eslint-disable-next-line
-          onToggle={() => handleToggle(index)}
-          isActive={String(index) === clicked}
+          key={item.id}
+          data={item}
+          onToggle={handleToggle(index)}
+          isActive={index === activeItem}
         />
       ))}
     </ul>
   );
 
   function handleToggle(index: number) {
-    if (clicked === String(index)) {
-      setClicked("0");
-    }
-
-    setClicked(String(index));
+    return () => {
+      if (activeItem === index) {
+        setActiveItem(0);
+      }
+      setActiveItem(index);
+    };
   }
 }
 

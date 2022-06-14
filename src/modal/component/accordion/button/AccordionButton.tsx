@@ -11,7 +11,7 @@ interface AccordionButtonProps {
 
 function AccordionButton({children, onClick}: AccordionButtonProps) {
   return (
-    <button className={"accordion-button"} onClick={onClick}>
+    <button className={"pera-wallet-accordion-button"} onClick={onClick}>
       <AccordionIcon />
 
       <p>{children}</p>

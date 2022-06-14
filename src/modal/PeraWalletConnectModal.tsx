@@ -1,6 +1,5 @@
 import CloseIcon from "../asset/icon/Close.svg";
 import CloseIconDark from "../asset/icon/Close--dark.svg";
-import ConnectModalBackgroundPattern from "../asset/img/ConnectModalBackgroundPattern.png";
 
 import "./_pera-wallet-modal.scss";
 
@@ -23,13 +22,7 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
 
   return (
     <div className={"pera-wallet-connect-modal"}>
-      <div
-        className={"pera-wallet-connect-modal__body"}
-        style={
-          {
-            "--pera-connect-wallet-modal-background-pattern": `url(${ConnectModalBackgroundPattern})`
-          } as React.CSSProperties
-        }>
+      <div className={"pera-wallet-connect-modal__body"}>
         <div className={"pera-wallet-connect-modal__body__header"}>
           <button
             className={

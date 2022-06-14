@@ -4,10 +4,6 @@
 .pera-wallet-connect-modal {
   --pera-wallet-connect-modal-font-family: "Inter", sans-serif;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   position: fixed;
   top: 0;
   right: 0;
@@ -75,6 +71,8 @@
 
 .pera-wallet-connect-modal__body {
   position: relative;
+  top: 50%;
+  left: 50%;
 
   width: 655px;
   max-width: calc(100vw - 80px);
@@ -87,7 +85,11 @@
 
   border-radius: 24px;
 
+  transform: translate(-50%, -50%);
+
   &::before {
+    --background-line: #1e0972 0 1.2px, transparent 0 calc(100% - 1.2px), #1e0972;
+
     position: absolute;
     top: 0;
     right: 0;
@@ -96,8 +98,10 @@
 
     content: "";
 
-    background-image: var(--pera-connect-wallet-modal-background-pattern);
-    background-size: cover;
+    background-image: linear-gradient(var(--background-line)),
+      linear-gradient(90deg, var(--background-line));
+    background-size: 116px 116px;
+
     mix-blend-mode: overlay;
 
     border-radius: 24px;
@@ -121,12 +125,13 @@
 
 @include for-small-screens {
   .pera-wallet-connect-modal__body {
-    position: absolute;
+    top: 40px;
     bottom: 0;
+    left: 0;
 
     width: 100%;
     max-width: unset;
-    height: calc(95 * var(--vh));
+    height: calc(calc(100 * var(--vh)));
 
     padding: 20px;
 
@@ -135,6 +140,8 @@
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
 
     border-radius: 20px 20px 0px 0px;
+
+    transform: unset;
 
     &::before {
       background-image: unset;

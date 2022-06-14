@@ -1,4 +1,4 @@
-.accordion-item {
+.pera-wallet-accordion-item {
   background-color: #ffffff;
 
   border-radius: 24px;
@@ -8,8 +8,8 @@
   }
 }
 
-.accordion-item--active {
-  .accordion-panel {
+.pera-wallet-accordion-item--active {
+  .pera-wallet-accordion-panel {
     height: 296px;
 
     border-radius: 0 0 24px 24px;
@@ -17,7 +17,7 @@
     transition: height ease-in 0.2s;
   }
 
-  .accordion-button {
+  .pera-wallet-accordion-button {
     padding: 28px 24px 12px;
 
     border-radius: 24px 24px 0 0;
@@ -25,7 +25,7 @@
     transition: all ease-in 0.2s;
   }
 
-  .accordion-icon {
+  .pera-wallet-accordion-icon {
     transform: rotate(90deg);
   }
 }

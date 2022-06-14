@@ -17,7 +17,7 @@ function PeraWalletConnectModalDesktopMode({
     <div className={"pera-wallet-connect-modal-desktop-mode"}>
       <PeraWalletConnectModalInformationSection />
 
-      <Accordion accordionData={getPeraConnectModalAccordionData(uri)} />
+      <Accordion items={getPeraConnectModalAccordionData(uri)} />
     </div>
   );
 }

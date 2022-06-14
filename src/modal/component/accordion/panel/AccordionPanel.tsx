@@ -8,8 +8,8 @@ interface AccordionPanelProps {
 
 function AccordionPanel({children}: AccordionPanelProps) {
   return (
-    <div className={"accordion-panel"}>
-      <div className={"accordion-panel__description"}>{children}</div>
+    <div className={"pera-wallet-accordion-panel"}>
+      <div className={"pera-wallet-accordion-panel__description"}>{children}</div>
     </div>
   );
 }

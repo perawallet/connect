@@ -16,7 +16,10 @@ function AccordionItem({data, onToggle, isActive}: AccordionItemProps) {
   const {title, description} = data;
 
   return (
-    <li className={`accordion-item ${isActive ? "accordion-item--active" : ""}`}>
+    <li
+      className={`pera-wallet-accordion-item ${
+        isActive ? "pera-wallet-accordion-item--active" : ""
+      }`}>
       <AccordionButton onClick={onToggle}>{title}</AccordionButton>
 
       <AccordionPanel>{description}</AccordionPanel>
