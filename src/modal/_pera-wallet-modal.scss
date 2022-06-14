@@ -23,13 +23,13 @@
 
   * {
     box-sizing: border-box;
+  }
 
-    li {
-      list-style-type: none;
+  li {
+    list-style-type: none;
 
-      margin: 0;
-      padding: 0;
-    }
+    margin: 0;
+    padding: 0;
   }
 }
 
@@ -125,8 +125,8 @@
     bottom: 0;
 
     width: 100%;
-    height: 80vh;
     max-width: unset;
+    height: calc(95 * var(--vh));
 
     padding: 20px;
 

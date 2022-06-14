@@ -1,0 +1,29 @@
+.pera-wallet-connect-modal-desktop-mode {
+  display: grid;
+  grid-template-columns: 205px auto;
+  gap: 80px;
+}
+
+.pera-wallet-connect-modal-desktop-mode__accordion__description {
+  padding: 0 40px 40px 64px;
+}
+
+.pera-wallet-connect-modal-desktop-mode__pera-download-qr-code {
+  display: flex;
+
+  width: 264px;
+  height: 264px;
+
+  margin: -12px auto 0;
+}
+
+#pera-wallet-connect-modal-desktop-mode__qr-code {
+  width: 164px;
+  height: 164px;
+
+  margin: 0 auto;
+  display: flex;
+  box-shadow: 0px 20px 60px rgba(26, 35, 91, 0.15), 0px 4px 12px rgba(26, 35, 91, 0.05),
+    0px 1px 4px rgba(26, 35, 91, 0.06);
+  border-radius: 24px;
+}

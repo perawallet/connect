@@ -15,10 +15,11 @@ function PeraWalletConnectModalInformationSection() {
   const {logo, name} = getPeraWalletAppMeta();
 
   return (
-    <div className={"pera-wallet-connect-modal-information-section"}>
+    <section className={"pera-wallet-connect-modal-information-section"}>
       <img
         className={"pera-wallet-connect-modal-information-section__pera-icon"}
         src={isSmallScreen ? logo : PeraWalletWithText}
+        alt={"Pera Wallet Logo"}
       />
 
       {isSmallScreen && (
@@ -38,54 +39,56 @@ function PeraWalletConnectModalInformationSection() {
         </h2>
       )}
 
-      <div className={"pera-wallet-connect-modal-information-section__features-item"}>
-        <div
-          className={
-            "pera-wallet-connect-modal-information-section__features-item__icon-wrapper"
-          }>
-          <img src={LayerIcon} />
-        </div>
+      <ul>
+        <li className={"pera-wallet-connect-modal-information-section__features-item"}>
+          <div
+            className={
+              "pera-wallet-connect-modal-information-section__features-item__icon-wrapper"
+            }>
+            <img src={LayerIcon} alt={"Layer Icon"} />
+          </div>
 
-        <p
-          className={
-            "pera-wallet-connect-modal-information-section__features-item__description"
-          }>
-          {"Connect to any Algorand dApp securely"}
-        </p>
-      </div>
+          <p
+            className={
+              "pera-wallet-connect-modal-information-section__features-item__description"
+            }>
+            {"Connect to any Algorand dApp securely"}
+          </p>
+        </li>
 
-      <div className={"pera-wallet-connect-modal-information-section__features-item"}>
-        <div
-          className={
-            "pera-wallet-connect-modal-information-section__features-item__icon-wrapper"
-          }>
-          <img src={ShieldTickIcon} />
-        </div>
+        <li className={"pera-wallet-connect-modal-information-section__features-item"}>
+          <div
+            className={
+              "pera-wallet-connect-modal-information-section__features-item__icon-wrapper"
+            }>
+            <img src={ShieldTickIcon} alt={"Tick Icon"} />
+          </div>
 
-        <p
-          className={
-            "pera-wallet-connect-modal-information-section__features-item__description"
-          }>
-          {"Your private keys are safely stored locally"}
-        </p>
-      </div>
+          <p
+            className={
+              "pera-wallet-connect-modal-information-section__features-item__description"
+            }>
+            {"Your private keys are safely stored locally"}
+          </p>
+        </li>
 
-      <div className={"pera-wallet-connect-modal-information-section__features-item"}>
-        <div
-          className={
-            "pera-wallet-connect-modal-information-section__features-item__icon-wrapper"
-          }>
-          <img src={NoteIcon} />
-        </div>
+        <li className={"pera-wallet-connect-modal-information-section__features-item"}>
+          <div
+            className={
+              "pera-wallet-connect-modal-information-section__features-item__icon-wrapper"
+            }>
+            <img src={NoteIcon} alt={"Note Icon"} />
+          </div>
 
-        <p
-          className={
-            "pera-wallet-connect-modal-information-section__features-item__description"
-          }>
-          {"View NFTs, buy and swap crypto and more"}
-        </p>
-      </div>
-    </div>
+          <p
+            className={
+              "pera-wallet-connect-modal-information-section__features-item__description"
+            }>
+            {"View NFTs, buy and swap crypto and more"}
+          </p>
+        </li>
+      </ul>
+    </section>
   );
 }
 

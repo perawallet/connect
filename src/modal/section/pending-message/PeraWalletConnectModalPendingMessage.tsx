@@ -16,7 +16,7 @@ function PeraWalletConnectModalPendingMessage({
   return (
     <>
       <div className={"pera-wallet-connect-modal-pending-message"}>
-        <img src={logo} />
+        <img src={logo} alt={"Pera Wallet Logo"} />
 
         <div className={"pera-wallet-connect-modal-pending-message__text"}>
           {`Please wait while we connect you to`}

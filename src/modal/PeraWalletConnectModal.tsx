@@ -3,19 +3,13 @@ import CloseIconDark from "../asset/icon/Close--dark.svg";
 import ConnectModalBackgroundPattern from "../asset/img/ConnectModalBackgroundPattern.png";
 
 import "./_pera-wallet-modal.scss";
-import "./_pera-wallet-connect-modal.scss";
 
-import React, {useState} from "react";
+import React from "react";
 
-import {
-  generatePeraWalletConnectDeepLink,
-  getPeraWalletAppMeta
-} from "../util/peraWalletUtils";
-import Accordion from "./component/accordion/Accordion";
 import {useIsSmallScreen} from "../util/screen/useMediaQuery";
-import PeraWalletConnectModalInformationSection from "./section/information/PeraWalletConnectModalInformationSection";
-import PeraWalletConnectModalPendingMessage from "./section/pending-message/PeraWalletConnectModalPendingMessage";
-import {getPeraConnectModalAccordionData} from "./util/peraWalletConnectModalUtils";
+import PeraWalletConnectModalTouchScreenMode from "./mode/touch-screen/PeraWalletConnectModalTouchScreenMode";
+import PeraWalletConnectModalDesktopMode from "./mode/desktop/PeraWalletConnectModalDesktopMode";
+import useSetDynamicVhValue from "../util/screen/useSetDynamicVhValue";
 
 interface PeraWalletConnectModalProps {
   uri: string;
@@ -23,9 +17,9 @@ interface PeraWalletConnectModalProps {
 }
 
 function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
-  const {name} = getPeraWalletAppMeta();
-  const [isSpinnerVisible, setSpinnerVisibility] = useState(false);
   const isSmallScreen = useIsSmallScreen();
+
+  useSetDynamicVhValue();
 
   return (
     <div className={"pera-wallet-connect-modal"}>
@@ -46,66 +40,14 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
           </button>
         </div>
 
-        <div
-          className={`pera-wallet-connect-modal__content ${
-            isSpinnerVisible
-              ? "pera-wallet-connect-modal__content--pending-message-view"
-              : ""
-          }`}>
-          {isSpinnerVisible ? (
-            <PeraWalletConnectModalPendingMessage onClose={onClose} />
-          ) : (
-            <>
-              <PeraWalletConnectModalInformationSection />
-
-              <div>{renderActionContent()}</div>
-            </>
-          )}
-        </div>
+        {isSmallScreen ? (
+          <PeraWalletConnectModalTouchScreenMode uri={uri} />
+        ) : (
+          <PeraWalletConnectModalDesktopMode uri={uri} />
+        )}
       </div>
     </div>
   );
-
-  function renderActionContent() {
-    return (
-      <>
-        {isSmallScreen && (
-          <>
-            <a
-              onClick={handleToggleSpinnerVisibility}
-              className={"pera-wallet-connect-modal__launch-pera-wallet-button"}
-              href={generatePeraWalletConnectDeepLink(uri)}
-              rel={"noopener noreferrer"}
-              target={"_blank"}>
-              {`Launch ${name}`}
-            </a>
-
-            <div className={"pera-wallet-connect-modal__new-to-pera-box"}>
-              <p className={"pera-wallet-connect-modal__new-to-pera-box__text"}>
-                {"New to Pera?"}
-              </p>
-            </div>
-
-            <a
-              href={"https://perawallet.app/download/"}
-              className={"pera-wallet-connect-modal__install-pera-wallet-button"}
-              rel={"noopener noreferrer"}
-              target={"_blank"}>
-              {`Install ${name}`}
-            </a>
-          </>
-        )}
-
-        {!isSmallScreen && (
-          <Accordion accordionData={getPeraConnectModalAccordionData(uri)} />
-        )}
-      </>
-    );
-  }
-
-  function handleToggleSpinnerVisibility() {
-    setSpinnerVisibility(!isSpinnerVisible);
-  }
 }
 
 export default PeraWalletConnectModal;
