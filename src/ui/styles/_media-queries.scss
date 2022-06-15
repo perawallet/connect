@@ -1,0 +1,8 @@
+$small-max-width: 767px;
+$small-screen-query: "(max-width: " + $small-max-width + ")";
+
+@mixin for-small-screens {
+  @media #{$small-screen-query} {
+    @content;
+  }
+}
