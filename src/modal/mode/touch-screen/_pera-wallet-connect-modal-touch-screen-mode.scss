@@ -1,7 +1,7 @@
 .pera-wallet-connect-modal-touch-screen-mode {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 56px;
+  gap: 46px;
 
   padding: 4px;
 
@@ -16,8 +16,7 @@
 }
 
 .pera-wallet-connect-modal-touch-screen-mode__launch-pera-wallet-button,
-.pera-wallet-connect-modal-touch-screen-mode__install-pera-wallet-button,
-.pera-wallet-connect-modal-touch-screen-mode__cancel-button {
+.pera-wallet-connect-modal-touch-screen-mode__install-pera-wallet-button {
   display: block;
 
   padding: 14px;
@@ -42,14 +41,6 @@
 
 .pera-wallet-connect-modal-touch-screen-mode__install-pera-wallet-button {
   margin-bottom: 20px;
-
-  background-color: #f2f3f8;
-
-  color: #2c3559;
-}
-
-.pera-wallet-connect-modal-touch-screen-mode__cancel-button {
-  width: 100%;
 
   background-color: #f2f3f8;
 
