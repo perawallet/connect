@@ -86,6 +86,8 @@
 
   border-radius: 24px;
 
+  animation: 0.3s slideAnimationForModal ease-out;
+
   transform: translate(-50%, -50%);
 
   &::before {
@@ -168,5 +170,19 @@
     background: transparent;
     border: unset;
     box-shadow: unset;
+  }
+}
+
+@keyframes slideAnimationForModal {
+  0% {
+    opacity: 0;
+
+    transform: translate(-50%, calc(-50% + 24px));
+  }
+
+  100% {
+    opacity: 1;
+
+    transform: translate(-50%, -50%);
   }
 }
