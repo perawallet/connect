@@ -20,7 +20,7 @@ import {
   base64ToUint8Array,
   encodeUnsignedTransactionInBase64
 } from "./util/transaction/transactionUtils";
-// import {isMobile} from "./util/device/deviceUtils";
+import {isMobile} from "./util/device/deviceUtils";
 import {AppMeta} from "./util/peraWalletTypes";
 import {getPeraWalletAppMeta} from "./util/peraWalletUtils";
 
@@ -196,8 +196,10 @@ class PeraWalletConnect {
       signTxnRequestParams
     ]);
 
-    // This is to automatically open the wallet app when trying to sign with it.
-    openPeraWalletRedirectModal();
+    if (isMobile()) {
+      // This is to automatically open the wallet app when trying to sign with it.
+      openPeraWalletRedirectModal();
+    }
 
     return this.connector
       .sendCustomRequest(formattedSignTxnRequest)
