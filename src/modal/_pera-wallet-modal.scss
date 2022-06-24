@@ -18,6 +18,12 @@
 
   font-family: var(--pera-wallet-connect-modal-font-family);
 
+  // Although this is not a standard, Design team suggest that we use it so supported browsers will use it
+  // stylelint-disable-next-line property-no-unknown
+  font-smooth: antialiased;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
   * {
     box-sizing: border-box;
   }
