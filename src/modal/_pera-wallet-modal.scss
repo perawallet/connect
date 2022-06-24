@@ -92,7 +92,7 @@
 
   border-radius: 24px;
 
-  animation: 0.3s slideAnimationForModal ease-out;
+  animation: 0.3s PeraWalletConnectSlideIn ease-out;
 
   transform: translate(-50%, -50%);
 
@@ -151,6 +151,8 @@
 
     border-radius: 20px 20px 0px 0px;
 
+    animation: 0.3s PeraWalletConnectMobileSlideIn ease-out;
+
     transform: unset;
 
     &::before {
@@ -179,7 +181,7 @@
   }
 }
 
-@keyframes slideAnimationForModal {
+@keyframes PeraWalletConnectSlideIn {
   0% {
     opacity: 0;
 
@@ -190,5 +192,19 @@
     opacity: 1;
 
     transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes PeraWalletConnectMobileSlideIn {
+  0% {
+    top: 30%;
+
+    opacity: 0;
+  }
+
+  100% {
+    top: 40px;
+
+    opacity: 1;
   }
 }
