@@ -18,6 +18,12 @@
 
   font-family: var(--pera-wallet-connect-modal-font-family);
 
+  // Although this is not a standard, Design team suggest that we use it so supported browsers will use it
+  // stylelint-disable-next-line property-no-unknown
+  font-smooth: antialiased;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
   * {
     box-sizing: border-box;
   }
@@ -86,6 +92,8 @@
 
   border-radius: 24px;
 
+  animation: 0.3s PeraWalletConnectSlideIn ease-out;
+
   transform: translate(-50%, -50%);
 
   &::before {
@@ -143,6 +151,8 @@
 
     border-radius: 20px 20px 0px 0px;
 
+    animation: 0.3s PeraWalletConnectMobileSlideIn ease-out;
+
     transform: unset;
 
     &::before {
@@ -168,5 +178,33 @@
     background: transparent;
     border: unset;
     box-shadow: unset;
+  }
+}
+
+@keyframes PeraWalletConnectSlideIn {
+  0% {
+    opacity: 0;
+
+    transform: translate(-50%, calc(-50% + 24px));
+  }
+
+  100% {
+    opacity: 1;
+
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes PeraWalletConnectMobileSlideIn {
+  0% {
+    top: 30%;
+
+    opacity: 0;
+  }
+
+  100% {
+    top: 40px;
+
+    opacity: 1;
   }
 }
