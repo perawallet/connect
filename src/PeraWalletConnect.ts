@@ -30,10 +30,12 @@ interface PeraWalletConnectOptions {
   app_meta?: AppMeta;
 }
 
-const peraWalletConnectModalActions = {
-  open: openPeraWalletConnectModal,
-  close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
-};
+function generatePeraWalletConnectModalActions(rejectPromise?: (error: any) => void) {
+  return {
+    open: openPeraWalletConnectModal(rejectPromise),
+    close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
+  };
+}
 
 class PeraWalletConnect {
   bridge: string;
@@ -77,7 +79,7 @@ class PeraWalletConnect {
         // Create Connector instance
         this.connector = new WalletConnect({
           bridge: this.bridge || bridgeURL,
-          qrcodeModal: peraWalletConnectModalActions
+          qrcodeModal: generatePeraWalletConnectModalActions(reject)
         });
 
         await this.connector.createSession({
@@ -123,7 +125,7 @@ class PeraWalletConnect {
       if (response.servers.includes(this.bridge)) {
         this.connector = new WalletConnect({
           bridge: this.bridge,
-          qrcodeModal: peraWalletConnectModalActions
+          qrcodeModal: generatePeraWalletConnectModalActions()
         });
 
         return this.connector?.accounts || [];
