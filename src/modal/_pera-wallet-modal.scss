@@ -92,8 +92,6 @@
 
   border-radius: 24px;
 
-  overflow-y: auto;
-
   animation: 0.3s PeraWalletConnectSlideIn ease-out;
 
   transform: translate(-50%, -50%);
@@ -154,6 +152,8 @@
     border-radius: 20px 20px 0px 0px;
 
     animation: 0.3s PeraWalletConnectMobileSlideIn ease-out;
+
+    overflow-y: auto;
 
     transform: unset;
 
