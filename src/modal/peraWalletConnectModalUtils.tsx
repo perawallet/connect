@@ -79,8 +79,36 @@ function removeModalWrapperFromDOM(modalId: string) {
   }
 }
 
-function getPeraConnectModalAccordionData(uri: string): AccordionData[] {
+interface PeraWalletConnectModalAccordionProps {
+  uri: string;
+  onWebWalletConnect: VoidFunction;
+}
+
+function getPeraConnectModalAccordionData({
+  uri,
+  onWebWalletConnect
+}: PeraWalletConnectModalAccordionProps): AccordionData[] {
   return [
+    {
+      id: "web-wallet",
+      title: "Web Wallet",
+      description: (
+        <>
+          <p className={"pera-wallet-connect-modal-desktop-mode__accordion__description"}>
+            {"Click to connect to Pera Wallet Web"}
+          </p>
+
+          <div
+            className={"pera-wallet-connect-modal-desktop-mode__connect-button-wrapper"}>
+            <button
+              className={"pera-wallet-connect-modal-desktop-mode__connect-button"}
+              onClick={onWebWalletConnect}>
+              {"Connect"}
+            </button>
+          </div>
+        </>
+      )
+    },
     {
       id: "scan-to-connect",
       title: "Scan to connect",

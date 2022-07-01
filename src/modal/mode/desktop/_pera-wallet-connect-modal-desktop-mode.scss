@@ -4,8 +4,27 @@
   gap: 80px;
 }
 
-.pera-wallet-connect-modal-desktop-mode__accordion__description {
+.pera-wallet-connect-modal-desktop-mode__accordion__description,
+.pera-wallet-connect-modal-desktop-mode__connect-button-wrapper {
   padding: 0 40px 40px 64px;
+}
+
+.pera-wallet-connect-modal-desktop-mode__connect-button {
+  display: block;
+
+  width: 100%;
+  height: 48px;
+
+  border: unset;
+  border-radius: 6px;
+  background-color: #333333;
+
+  color: white;
+
+  cursor: pointer;
+
+  font-family: var(--pera-wallet-connect-modal-font-family);
+  font-size: 13px;
 }
 
 .pera-wallet-connect-modal-desktop-mode__pera-download-qr-code {

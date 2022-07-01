@@ -23,6 +23,7 @@ import {
 import {isMobile} from "./util/device/deviceUtils";
 import {AppMeta} from "./util/peraWalletTypes";
 import {getPeraWalletAppMeta} from "./util/peraWalletUtils";
+import appTellerManager from "./util/network/teller/appTellerManager";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -201,32 +202,65 @@ class PeraWalletConnect {
       openPeraWalletRedirectModal();
     }
 
-    return this.connector
-      .sendCustomRequest(formattedSignTxnRequest)
-      .then((response: (string | null | Uint8Array)[]): Uint8Array[] => {
-        // We send the full txn group to the mobile wallet.
-        // Therefore, we first filter out txns that were not signed by the wallet.
-        // These are received as `null`.
-        const nonNullResponse = response.filter(Boolean) as (string | number[])[];
+    const peraWalletIframe = document.createElement("iframe");
 
-        // android returns a response Uint8Array[]
-        // ios returns base64String[]
-        return typeof nonNullResponse[0] === "string"
-          ? (nonNullResponse as string[]).map(base64ToUint8Array)
-          : (nonNullResponse as number[][]).map((item) => Uint8Array.from(item));
-      })
-      .catch((error) =>
-        Promise.reject(
-          new PeraWalletConnectError(
-            {
-              type: "SIGN_TRANSACTIONS",
-              detail: error
-            },
-            error.message || "Failed to sign transaction"
-          )
-        )
-      )
-      .finally(() => removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID));
+    peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
+    peraWalletIframe.setAttribute("src", "https://localhost:3000/transaction/sign");
+
+    document.body.appendChild(peraWalletIframe);
+
+    if (peraWalletIframe.contentWindow) {
+      appTellerManager.sendMessage({
+        targetWindow: peraWalletIframe.contentWindow,
+        message: {
+          type: "SIGN_TXN",
+          txn: signTxnRequestParams
+        },
+        origin: "https://localhost:3000"
+      });
+    }
+
+    console.log(signTxnRequestParams, formattedSignTxnRequest, base64ToUint8Array);
+
+    return new Promise<Uint8Array[]>(async (resolve) => {
+      await appTellerManager.setupListener({
+        onReceiveMessage: (event: any) => {
+          document.getElementById("pera-wallet-iframe")?.remove();
+
+          console.log(event);
+
+          resolve([]);
+        }
+      });
+    }).finally(() => removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID));
+    
+
+    // return this.connector
+    //   .sendCustomRequest(formattedSignTxnRequest)
+    //   .then((response: (string | null | Uint8Array)[]): Uint8Array[] => {
+    //     // We send the full txn group to the mobile wallet.
+    //     // Therefore, we first filter out txns that were not signed by the wallet.
+    //     // These are received as `null`.
+    //     const nonNullResponse = response.filter(Boolean) as (string | number[])[];
+
+    //     // android returns a response Uint8Array[]
+    //     // ios returns base64String[]
+    //     return typeof nonNullResponse[0] === "string"
+    //       ? (nonNullResponse as string[]).map(base64ToUint8Array)
+    //       : (nonNullResponse as number[][]).map((item) => Uint8Array.from(item));
+    //   })
+    //   .catch((error) =>
+    //     Promise.reject(
+    //       new PeraWalletConnectError(
+    //         {
+    //           type: "SIGN_TRANSACTIONS",
+    //           detail: error
+    //         },
+    //         error.message || "Failed to sign transaction"
+    //       )
+    //     )
+    //   )
+    //   .finally(() => removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID));
   }
 }
 
