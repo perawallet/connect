@@ -62,12 +62,18 @@ function App() {
   );
 
   function handleConnectWalletClick() {
-    peraWallet.connect().then((newAccounts) => {
-      // Setup the disconnect event listener
-      peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
+    peraWallet
+      .connect()
+      .then((newAccounts) => {
+        // Setup the disconnect event listener
+        peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
 
-      setAccountAddress(newAccounts[0]);
-    });
+        setAccountAddress(newAccounts[0]);
+      })
+      .reject((error) => {
+        // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
+        // For the async/await syntax you MUST use try/catch
+      });
   }
 
   function handleDisconnectWalletClick() {
