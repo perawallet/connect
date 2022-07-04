@@ -4,7 +4,8 @@ interface PeraWalletConnectErrorData {
     | "SESSION_DISCONNECT"
     | "SESSION_UPDATE"
     | "SESSION_CONNECT"
-    | "SESSION_RECONNECT";
+    | "SESSION_RECONNECT"
+    | "CONNECT_MODAL_CLOSED";
   detail?: any;
 }
 
