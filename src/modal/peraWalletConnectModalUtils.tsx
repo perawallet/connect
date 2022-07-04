@@ -54,9 +54,9 @@ function openPeraWalletConnectModal(rejectPromise?: (error: any) => void) {
         rejectPromise(
           new PeraWalletConnectError(
             {
-              type: "SESSION_CONNECT"
+              type: "CONNECT_MODAL_CLOSED"
             },
-            "The action canceled by the user."
+            "The modal has been closed by the user."
           )
         );
       }
