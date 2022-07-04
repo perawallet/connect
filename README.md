@@ -73,6 +73,9 @@ function App() {
       .reject((error) => {
         // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
         // For the async/await syntax you MUST use try/catch
+        if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
+          // log the necessary errors
+        }
       });
   }
 
