@@ -164,6 +164,8 @@
 
     animation: 0.3s PeraWalletConnectMobileSlideIn ease-out;
 
+    overflow-y: auto;
+
     transform: unset;
 
     &::before {

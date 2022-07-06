@@ -8,6 +8,7 @@ import {QRCode} from "react-qrcode-logo";
 import PeraWalletConnectModal from "./PeraWalletConnectModal";
 import PeraWalletRedirectModal from "./redirect/PeraWalletRedirectModal";
 import {AccordionData} from "./component/accordion/util/accordionTypes";
+import PeraWalletConnectError from "../util/PeraWalletConnectError";
 
 // The ID of the wrapper element for PeraWalletConnectModal
 const PERA_WALLET_CONNECT_MODAL_ID = "pera-wallet-connect-modal-wrapper";
@@ -31,22 +32,36 @@ function createModalWrapperOnDOM(modalId: string) {
 /**
  * Creates a PeraWalletConnectModal instance and renders it on the DOM.
  *
+ * @param {rejectPromise} rejectPromise - the reject callback of the PeraWalletConnect.connect method
  * @param {string} uri - uri to be passed to Pera Wallet via deeplink
  * @param {VoidFunction} closeCallback - callback to be called when user closes the modal
  * @returns {void}
  */
-function openPeraWalletConnectModal(uri: string, closeCallback: VoidFunction) {
-  const wrapper = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
+function openPeraWalletConnectModal(rejectPromise?: (error: any) => void) {
+  return (uri: string, closeCallback: VoidFunction) => {
+    const wrapper = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
 
-  ReactDOM.render(
-    <PeraWalletConnectModal onClose={handleClosePeraWalletConnectModal} uri={uri} />,
-    wrapper
-  );
+    ReactDOM.render(
+      <PeraWalletConnectModal onClose={handleClosePeraWalletConnectModal} uri={uri} />,
+      wrapper
+    );
 
-  function handleClosePeraWalletConnectModal() {
-    removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
-    closeCallback();
-  }
+    function handleClosePeraWalletConnectModal() {
+      removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+      closeCallback();
+
+      if (rejectPromise) {
+        rejectPromise(
+          new PeraWalletConnectError(
+            {
+              type: "CONNECT_MODAL_CLOSED"
+            },
+            "The modal has been closed by the user."
+          )
+        );
+      }
+    }
+  };
 }
 
 /**
