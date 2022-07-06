@@ -7,7 +7,9 @@ import {
   openPeraWalletRedirectModal,
   removeModalWrapperFromDOM,
   PERA_WALLET_CONNECT_MODAL_ID,
-  PERA_WALLET_REDIRECT_MODAL_ID
+  PERA_WALLET_REDIRECT_MODAL_ID,
+  openPeraWalletSignTxnToast,
+  PERA_WALLET_SIGN_TXN_TOAST
 } from "./modal/peraWalletConnectModalUtils";
 import {
   resetWalletDetailsFromStorage,
@@ -201,6 +203,9 @@ class PeraWalletConnect {
     if (isMobile()) {
       // This is to automatically open the wallet app when trying to sign with it.
       openPeraWalletRedirectModal();
+    } else if (!isMobile()) {
+      // This is to inform user go the wallet app when trying to sign with it.
+      openPeraWalletSignTxnToast();
     }
 
     return this.connector
@@ -228,7 +233,10 @@ class PeraWalletConnect {
           )
         )
       )
-      .finally(() => removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID));
+      .finally(() => {
+        removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
+        removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST);
+      });
   }
 }
 
