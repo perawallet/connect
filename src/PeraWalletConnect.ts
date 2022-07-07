@@ -63,9 +63,10 @@ class PeraWalletConnect {
     }
 
     this.connector = null;
-    this.shouldShowSignTxnToast = options?.shouldShowSignTxnToast
-      ? options.shouldShowSignTxnToast
-      : true;
+    this.shouldShowSignTxnToast =
+      typeof options?.shouldShowSignTxnToast === "undefined"
+        ? true
+        : options.shouldShowSignTxnToast;
   }
 
   connect() {

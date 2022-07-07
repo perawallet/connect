@@ -91,6 +91,12 @@ function App() {
 
 `@perawallet/connect` also allows signing transactions using the Pera Wallet application. Once the `signTransaction` method is triggered if the user is on a mobile browser, the Pera Wallet app will be launched automatically, if the browser blocks the redirection there's also a popup that links to the Pera Wallet app.
 
+`@perawallet/connect` guides users with a toast message when the `signTransaction` is triggered. It's enabled by default but in some cases, you may not need to the toast message (e.g. you already have signing guidance for users). There's a configuration called `shouldShowSignTxnToast` to disable it, see the example below:
+
+```js
+const peraWallet = new PeraWalletConnect({shouldShowSignTxnToast: false});
+```
+
 `signTransaction` accepts `SignerTransaction[][]` the type can be found [here](./src/util/model/peraWalletModels.ts)
 
 **To see more details & working examples please [visit here](https://codesandbox.io/s/txns-demo-pj3nf2)**
@@ -136,14 +142,6 @@ try {
 } catch (error) {
   console.log("Couldn't sign Opt-in txns", error);
 }
-```
-
-### Sign Transaction Toast
-
-`@perawallet/connect` informs users with toast when users try to sign transaction. If dApp wants to disable it, it can be disabled as follows. The default value of `shouldShowSignTxnToast` is `true`.
-
-```js
-const peraWallet = new PeraWalletConnect({shouldShowSignTxnToast: false});
 ```
 
 ### Your app name on Pera Wallet
