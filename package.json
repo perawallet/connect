@@ -1,6 +1,6 @@
 {
   "name": "@perawallet/connect",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
   "main": "dist/index.js",
   "scripts": {
@@ -15,6 +15,7 @@
     "@hipo/eslint-config-react": "^2.2.0",
     "@hipo/eslint-config-typescript": "^1.1.0",
     "@rollup/plugin-image": "^2.1.1",
+    "@rollup/plugin-json": "^4.1.0",
     "@types/react": "^17.0.43",
     "@types/react-dom": "^17.0.14",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
@@ -35,6 +36,7 @@
     "@json-rpc-tools/utils": "^1.7.6",
     "@walletconnect/client": "^1.7.7",
     "buffer": "^6.0.3",
+    "lottie-react": "^2.3.1",
     "react-qrcode-logo": "^2.7.0"
   },
   "peerDependencies": {

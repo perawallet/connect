@@ -2,6 +2,7 @@ import typescript from "rollup-plugin-typescript2";
 import {terser} from "rollup-plugin-terser";
 import postcss from "rollup-plugin-postcss";
 import image from "@rollup/plugin-image";
+import json from "@rollup/plugin-json";
 
 export default [
   {
@@ -19,7 +20,8 @@ export default [
       "@hipo/react-ui-toolkit",
       "react-qrcode-logo",
       "@json-rpc-tools/utils/dist/cjs/format",
-      "algosdk"
+      "algosdk",
+      "lottie-react"
     ],
     plugins: [
       image(),
@@ -29,7 +31,8 @@ export default [
         rollupCommonJSResolveHack: true,
         exclude: "**/__tests__/**",
         clean: true
-      })
+      }),
+      json()
     ]
   }
 ];
