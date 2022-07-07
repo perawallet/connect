@@ -18,7 +18,7 @@ const PERA_WALLET_CONNECT_MODAL_ID = "pera-wallet-connect-modal-wrapper";
 const PERA_WALLET_REDIRECT_MODAL_ID = "pera-wallet-redirect-modal-wrapper";
 
 // The ID of the wrapper element for PeraWalletSignTxnToast
-const PERA_WALLET_SIGN_TXN_TOAST = "pera-wallet-sign-txn-toast";
+const PERA_WALLET_SIGN_TXN_TOAST_ID = "pera-wallet-sign-txn-toast";
 
 /**
  * @returns {HTMLDivElement} wrapper element for PeraWalletConnectModal
@@ -87,12 +87,12 @@ function openPeraWalletRedirectModal() {
 }
 
 /**
- * Creates a PeraWalletRedirectModal instance and renders it on the DOM.
+ * Creates a PeraWalletSignTxnToast instance and renders it on the DOM.
  *
  * @returns {void}
  */
 function openPeraWalletSignTxnToast() {
-  const wrapper = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_TOAST);
+  const wrapper = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
 
   ReactDOM.render(
     <PeraWalletSignTxnToast onClose={handlePeraWalletSignTxnToast} />,
@@ -100,7 +100,7 @@ function openPeraWalletSignTxnToast() {
   );
 
   function handlePeraWalletSignTxnToast() {
-    removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST);
+    removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
   }
 }
 
@@ -172,7 +172,7 @@ export {getPeraConnectModalAccordionData};
 export {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_REDIRECT_MODAL_ID,
-  PERA_WALLET_SIGN_TXN_TOAST,
+  PERA_WALLET_SIGN_TXN_TOAST_ID,
   openPeraWalletConnectModal,
   openPeraWalletRedirectModal,
   openPeraWalletSignTxnToast,

@@ -9,7 +9,7 @@ import {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_REDIRECT_MODAL_ID,
   openPeraWalletSignTxnToast,
-  PERA_WALLET_SIGN_TXN_TOAST
+  PERA_WALLET_SIGN_TXN_TOAST_ID
 } from "./modal/peraWalletConnectModalUtils";
 import {
   resetWalletDetailsFromStorage,
@@ -63,7 +63,9 @@ class PeraWalletConnect {
     }
 
     this.connector = null;
-    this.shouldShowSignTxnToast = Boolean(options?.shouldShowSignTxnToast);
+    this.shouldShowSignTxnToast = options?.shouldShowSignTxnToast
+      ? options.shouldShowSignTxnToast
+      : true;
   }
 
   connect() {
@@ -238,7 +240,7 @@ class PeraWalletConnect {
       )
       .finally(() => {
         removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
-        removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST);
+        removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
       });
   }
 }

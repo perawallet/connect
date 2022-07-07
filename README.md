@@ -138,6 +138,14 @@ try {
 }
 ```
 
+### Sign Transaction Toast
+
+`@perawallet/connect` informs users with toast when users try to sign transaction. If dApp wants to disable it, it can be disabled as follows. The default value of `shouldShowSignTxnToast` is `true`.
+
+```js
+const peraWallet = new PeraWalletConnect({shouldShowSignTxnToast: false});
+```
+
 ### Your app name on Pera Wallet
 
 By default, the connect wallet drawer on Pera Wallet gets the app name from `document.title`.
