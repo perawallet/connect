@@ -1,6 +1,6 @@
 {
   "name": "@perawallet/connect",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
   "main": "dist/index.js",
   "scripts": {
