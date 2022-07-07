@@ -13,9 +13,14 @@ import useSetDynamicVhValue from "../util/screen/useSetDynamicVhValue";
 interface PeraWalletConnectModalProps {
   uri: string;
   onClose: () => void;
+  resolvePromise?: (accounts: string[]) => void;
 }
 
-function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
+function PeraWalletConnectModal({
+  uri,
+  onClose,
+  resolvePromise
+}: PeraWalletConnectModalProps) {
   const isSmallScreen = useIsSmallScreen();
 
   useSetDynamicVhValue();
@@ -36,7 +41,11 @@ function PeraWalletConnectModal({uri, onClose}: PeraWalletConnectModalProps) {
         {isSmallScreen ? (
           <PeraWalletConnectModalTouchScreenMode uri={uri} />
         ) : (
-          <PeraWalletConnectModalDesktopMode uri={uri} />
+          <PeraWalletConnectModalDesktopMode
+            uri={uri}
+            resolvePromise={resolvePromise}
+            onClose={onClose}
+          />
         )}
       </div>
     </div>

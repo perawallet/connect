@@ -37,12 +37,19 @@ function createModalWrapperOnDOM(modalId: string) {
  * @param {VoidFunction} closeCallback - callback to be called when user closes the modal
  * @returns {void}
  */
-function openPeraWalletConnectModal(rejectPromise?: (error: any) => void) {
+function openPeraWalletConnectModal(
+  resolvePromise?: (accounts: string[]) => void,
+  rejectPromise?: (error: any) => void
+) {
   return (uri: string, closeCallback: VoidFunction) => {
     const wrapper = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
 
     ReactDOM.render(
-      <PeraWalletConnectModal onClose={handleClosePeraWalletConnectModal} uri={uri} />,
+      <PeraWalletConnectModal
+        onClose={handleClosePeraWalletConnectModal}
+        uri={uri}
+        resolvePromise={resolvePromise}
+      />,
       wrapper
     );
 

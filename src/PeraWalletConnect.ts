@@ -1,5 +1,5 @@
 import WalletConnect from "@walletconnect/client";
-import {formatJsonRpcRequest} from "@json-rpc-tools/utils/dist/cjs/format";
+// import {formatJsonRpcRequest} from "@json-rpc-tools/utils/dist/cjs/format";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
@@ -10,6 +10,7 @@ import {
   PERA_WALLET_REDIRECT_MODAL_ID
 } from "./modal/peraWalletConnectModalUtils";
 import {
+  getWalletDetailsFromStorage,
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage
 } from "./util/storage/storageUtils";
@@ -17,7 +18,7 @@ import {assignBridgeURL, listBridgeServers} from "./util/api/peraWalletConnectAp
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
-  base64ToUint8Array,
+  // base64ToUint8Array,
   encodeUnsignedTransactionInBase64
 } from "./util/transaction/transactionUtils";
 import {isMobile} from "./util/device/deviceUtils";
@@ -31,9 +32,12 @@ interface PeraWalletConnectOptions {
   app_meta?: AppMeta;
 }
 
-function generatePeraWalletConnectModalActions(rejectPromise?: (error: any) => void) {
+function generatePeraWalletConnectModalActions(
+  resolvePromise?: (accounts: string[]) => void,
+  rejectPromise?: (error: any) => void
+) {
   return {
-    open: openPeraWalletConnectModal(rejectPromise),
+    open: openPeraWalletConnectModal(resolvePromise, rejectPromise),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
 }
@@ -80,7 +84,7 @@ class PeraWalletConnect {
         // Create Connector instance
         this.connector = new WalletConnect({
           bridge: this.bridge || bridgeURL,
-          qrcodeModal: generatePeraWalletConnectModalActions(reject)
+          qrcodeModal: generatePeraWalletConnectModalActions(resolve, reject)
         });
 
         await this.connector.createSession({
@@ -116,6 +120,12 @@ class PeraWalletConnect {
 
   async reconnectSession() {
     try {
+      const walletDetails = getWalletDetailsFromStorage();
+
+      if (walletDetails?.type === "pera-wallet-web") {
+        return walletDetails.accounts || [];
+      }
+
       if (this.connector) {
         return this.connector.accounts || [];
       }
@@ -171,7 +181,9 @@ class PeraWalletConnect {
     txGroups: SignerTransaction[][],
     signerAddress?: string
   ): Promise<Uint8Array[]> {
-    if (!this.connector) {
+    const walletDetails = getWalletDetailsFromStorage();
+
+    if (walletDetails?.type === "pera-wallet" && !this.connector) {
       throw new Error("PeraWalletConnect was not initialized correctly.");
     }
 
@@ -195,9 +207,9 @@ class PeraWalletConnect {
       })
     );
 
-    const formattedSignTxnRequest = formatJsonRpcRequest("algo_signTxn", [
-      signTxnRequestParams
-    ]);
+    // const formattedSignTxnRequest = formatJsonRpcRequest("algo_signTxn", [
+    //   signTxnRequestParams
+    // ]);
 
     if (isMobile()) {
       // This is to automatically open the wallet app when trying to sign with it.
@@ -207,7 +219,7 @@ class PeraWalletConnect {
     const peraWalletIframe = document.createElement("iframe");
 
     peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
-    peraWalletIframe.setAttribute("src", "https://localhost:3000/transaction/sign");
+    peraWalletIframe.setAttribute("src", "https://localhost:3001/transaction/sign");
 
     document.body.appendChild(peraWalletIframe);
 
@@ -218,11 +230,9 @@ class PeraWalletConnect {
           type: "SIGN_TXN",
           txn: signTxnRequestParams
         },
-        origin: "https://localhost:3000"
+        origin: "https://localhost:3001"
       });
     }
-
-    console.log(signTxnRequestParams, formattedSignTxnRequest, base64ToUint8Array);
 
     return new Promise<Uint8Array[]>(async (resolve) => {
       await appTellerManager.setupListener({
@@ -235,7 +245,6 @@ class PeraWalletConnect {
         }
       });
     }).finally(() => removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID));
-    
 
     // return this.connector
     //   .sendCustomRequest(formattedSignTxnRequest)
