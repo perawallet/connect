@@ -30,6 +30,7 @@ interface PeraWalletConnectOptions {
   bridge?: string;
   deep_link?: string;
   app_meta?: AppMeta;
+  shouldShowSignTxnToast?: boolean;
 }
 
 function generatePeraWalletConnectModalActions(rejectPromise?: (error: any) => void) {
@@ -42,6 +43,7 @@ function generatePeraWalletConnectModalActions(rejectPromise?: (error: any) => v
 class PeraWalletConnect {
   bridge: string;
   connector: WalletConnect | null;
+  shouldShowSignTxnToast: boolean;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge =
@@ -61,6 +63,7 @@ class PeraWalletConnect {
     }
 
     this.connector = null;
+    this.shouldShowSignTxnToast = Boolean(options?.shouldShowSignTxnToast);
   }
 
   connect() {
@@ -203,7 +206,7 @@ class PeraWalletConnect {
     if (isMobile()) {
       // This is to automatically open the wallet app when trying to sign with it.
       openPeraWalletRedirectModal();
-    } else if (!isMobile()) {
+    } else if (!isMobile() && this.shouldShowSignTxnToast) {
       // This is to inform user go the wallet app when trying to sign with it.
       openPeraWalletSignTxnToast();
     }

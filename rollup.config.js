@@ -20,7 +20,8 @@ export default [
       "@hipo/react-ui-toolkit",
       "react-qrcode-logo",
       "@json-rpc-tools/utils/dist/cjs/format",
-      "algosdk"
+      "algosdk",
+      "lottie-react"
     ],
     plugins: [
       image(),
