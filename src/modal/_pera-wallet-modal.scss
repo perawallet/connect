@@ -1,19 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "../ui/styles/media-queries";
 
-* {
-  box-sizing: border-box;
-
-  margin: 0;
-  padding: 0;
-}
-
-ul,
-ol,
-li {
-  list-style-type: none;
-}
-
 .pera-wallet-connect-modal {
   --pera-wallet-connect-modal-font-family: "Inter", sans-serif;
 
@@ -29,23 +16,25 @@ li {
 
   background-color: rgba(0, 0, 0, 0.3);
 
-  font-family: var(--pera-wallet-connect-modal-font-family);
-
-  // Although this is not a standard, Design team suggest that we use it so supported browsers will use it
-  // stylelint-disable-next-line property-no-unknown
-  font-smooth: antialiased;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
   * {
     box-sizing: border-box;
-  }
-
-  li {
-    list-style-type: none;
 
     margin: 0;
     padding: 0;
+
+    font-family: var(--pera-wallet-connect-modal-font-family);
+
+    // Although this is not a standard, Design team suggest that we use it so supported browsers will use it
+    // stylelint-disable-next-line property-no-unknown
+    font-smooth: antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ul,
+  ol,
+  li {
+    list-style-type: none;
   }
 }
 
