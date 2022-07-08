@@ -28,6 +28,58 @@ Let's start with installing `@perawallet/connect`
 npm install --save @perawallet/connect
 ```
 
+<details>
+  <summary>Using with React 18</summary>
+  
+  When you want to use `@perawallet/connect` library with React 18, you need to make some changes. After creating a new app with `npx create-react-app my-app`, the following changes should be made.
+
+1. Firstly, you need to install this packages.
+
+```sh
+  npm install buffer,
+  npm install crypto-browserify
+  npm install process
+  npm install react-app-rewired
+  npm install stream-browserify
+```
+
+2. After that we need to override some webpack features. Create the following file in the root part of the project and copy the following code block into it.
+
+`config-overrides.js`
+
+```jsx
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const webpack = require("webpack");
+
+module.exports = function override(config) {
+  const fallback = config.resolve.fallback || {};
+
+  Object.assign(fallback, {
+    crypto: require.resolve("crypto-browserify"),
+    stream: require.resolve("stream-browserify")
+  });
+  config.resolve.fallback = fallback;
+  // ignore warning about source map of perawallet/connect
+
+  config.ignoreWarnings = [/Failed to parse source map/];
+  config.plugins = (config.plugins || []).concat([
+    new webpack.ProvidePlugin({
+      process: "process/browser",
+      Buffer: ["buffer", "Buffer"]
+    })
+  ]);
+  return config;
+};
+```
+
+3. Finally, we need to change the npm scripts.
+
+`{ "start": "react-app-rewired start", "build": "react-app-rewired build" }`
+
+After that, you are good to go! 🎊
+
+</details>
+
 #### Using React Hooks
 
 ```typescript
