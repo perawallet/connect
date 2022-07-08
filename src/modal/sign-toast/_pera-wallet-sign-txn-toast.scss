@@ -1,5 +1,18 @@
 @import "../../ui/styles/media-queries";
 
+* {
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 0;
+}
+
+ul,
+ol,
+li {
+  list-style-type: none;
+}
+
 .pera-wallet-sign-txn-toast {
   --pera-wallet-sign-txn-toast-width: 422px;
   --pera-wallet-sign-txn-toast-height: 134px;

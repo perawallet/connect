@@ -1,6 +1,19 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "../ui/styles/media-queries";
 
+* {
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 0;
+}
+
+ul,
+ol,
+li {
+  list-style-type: none;
+}
+
 .pera-wallet-connect-modal {
   --pera-wallet-connect-modal-font-family: "Inter", sans-serif;
 
