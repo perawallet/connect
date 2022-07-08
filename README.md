@@ -31,9 +31,9 @@ npm install --save @perawallet/connect
 <details>
   <summary>Using with React 18</summary><br/>
   
-  When you want to use `@perawallet/connect` library with React 18, you need to make some changes. After creating a new app with `npx create-react-app my-app`, the following changes should be made.
+   When you want to use `@perawallet/connect` library with React 18, you need to make some changes. `react-scripts` stopped polyfilling some of the packages with the `react-scripts@5.x` version. After creating a new app with `npx create-react-app my-app` or in your react application, the following changes should be made.
 
-1. Firstly, you need to install this packages.
+1. Firstly, install the following packages.
 
 ```sh
   npm install buffer,
@@ -43,7 +43,7 @@ npm install --save @perawallet/connect
   npm install stream-browserify
 ```
 
-2. After that we need to override some webpack features. Create the following file in the root part of the project and copy the following code block into it.
+2. After that you need to override some webpack features. Create the following file in the root directory of the project and copy the following code block into it.
 
 `config-overrides.js`
 
@@ -72,7 +72,7 @@ module.exports = function override(config) {
 };
 ```
 
-3. Finally, we need to change the npm scripts.
+3. Finally, you need to update the npm scripts.
 
 `{ "start": "react-app-rewired start", "build": "react-app-rewired build" }`
 
