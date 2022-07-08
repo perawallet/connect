@@ -29,7 +29,7 @@ npm install --save @perawallet/connect
 ```
 
 <details>
-  <summary>Using with React 18</summary>
+  <summary>Using with React 18</summary><br/>
   
   When you want to use `@perawallet/connect` library with React 18, you need to make some changes. After creating a new app with `npx create-react-app my-app`, the following changes should be made.
 
