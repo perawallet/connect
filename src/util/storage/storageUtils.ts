@@ -1,7 +1,11 @@
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storageConstants";
 
+function getLocalStorage() {
+  return typeof localStorage === "undefined" ? undefined : localStorage;
+}
+
 function saveWalletDetailsToStorage(accounts: string[]) {
-  localStorage.setItem(
+  getLocalStorage()?.setItem(
     PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET,
     JSON.stringify({
       type: "pera-wallet",
@@ -12,9 +16,9 @@ function saveWalletDetailsToStorage(accounts: string[]) {
 }
 
 function resetWalletDetailsFromStorage() {
-  localStorage.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT);
-  localStorage.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET);
-  localStorage.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL);
+  getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT);
+  getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET);
+  getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL);
 }
 
-export {saveWalletDetailsToStorage, resetWalletDetailsFromStorage};
+export {getLocalStorage, saveWalletDetailsToStorage, resetWalletDetailsFromStorage};

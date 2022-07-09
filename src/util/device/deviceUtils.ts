@@ -1,15 +1,19 @@
 type BrowserName = "chrome" | "firefox" | "opera" | "safari" | "edge" | "brave";
 
+function isNavigatorAvailable() {
+  return typeof navigator !== "undefined";
+}
+
 function isAndroid() {
-  return /Android/i.test(navigator.userAgent);
+  return isNavigatorAvailable() && /Android/i.test(navigator.userAgent);
 }
 
 function isIOS() {
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return isNavigatorAvailable() && /iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 function isMobile() {
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  return isNavigatorAvailable() && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
 
 /**
@@ -17,6 +21,10 @@ function isMobile() {
  * @returns {BrowserName} Browser name
  */
 function detectBrowser() {
+  if (!isNavigatorAvailable()) {
+    return null;
+  }
+
   const {userAgent} = navigator;
   let browserName: BrowserName | undefined;
 

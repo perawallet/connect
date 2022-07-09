@@ -12,6 +12,7 @@ import {
   PERA_WALLET_SIGN_TXN_TOAST_ID
 } from "./modal/peraWalletConnectModalUtils";
 import {
+  getLocalStorage,
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage
 } from "./util/storage/storageUtils";
@@ -48,15 +49,18 @@ class PeraWalletConnect {
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge =
       options?.bridge ||
-      localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL) ||
+      getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL) ||
       "";
 
     if (options?.deep_link) {
-      localStorage.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK, options.deep_link);
+      getLocalStorage()?.setItem(
+        PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK,
+        options.deep_link
+      );
     }
 
     if (options?.app_meta) {
-      localStorage.setItem(
+      getLocalStorage()?.setItem(
         PERA_WALLET_LOCAL_STORAGE_KEYS.APP_META,
         JSON.stringify(options.app_meta)
       );

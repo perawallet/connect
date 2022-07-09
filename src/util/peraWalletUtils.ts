@@ -4,16 +4,19 @@ import {detectBrowser, isAndroid, isIOS} from "./device/deviceUtils";
 import {PERA_WALLET_APP_DEEP_LINK} from "./peraWalletConstants";
 import {AppMeta} from "./peraWalletTypes";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storage/storageConstants";
+import {getLocalStorage} from "./storage/storageUtils";
 
 function generatePeraWalletAppDeepLink() {
   return (
-    localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK) ||
+    getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK) ||
     PERA_WALLET_APP_DEEP_LINK
   );
 }
 
 function getPeraWalletAppMeta(): AppMeta {
-  const storedAppMeta = localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.APP_META);
+  const storedAppMeta = getLocalStorage()?.getItem(
+    PERA_WALLET_LOCAL_STORAGE_KEYS.APP_META
+  );
 
   if (storedAppMeta) {
     return JSON.parse(storedAppMeta) as AppMeta;
