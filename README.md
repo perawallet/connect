@@ -36,7 +36,7 @@ npm install --save @perawallet/connect
 1. Firstly, install the following packages.
 
 ```sh
-  npm install buffer,
+  npm install buffer
   npm install crypto-browserify
   npm install process
   npm install react-app-rewired
