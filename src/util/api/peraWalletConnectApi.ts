@@ -1,5 +1,6 @@
 import {shuffleArray} from "../array/arrayUtils";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "../storage/storageConstants";
+import {getLocalStorage} from "../storage/storageUtils";
 import fetcher from "./fetcher";
 
 const BRIDGE_SERVERS_URL = "https://wc.perawallet.app/servers.json";
@@ -21,7 +22,7 @@ function listBridgeServers() {
  */
 async function assignBridgeURL() {
   // Retrieve bridge from local storage
-  const bridgeURL = localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL);
+  const bridgeURL = getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL);
 
   // User is already assigned to a bridge
   // No need to retrieve new one
@@ -37,7 +38,7 @@ async function assignBridgeURL() {
   const newBridgeURL = shuffleArray(response.servers)[0];
 
   // Save bridge URL to local storage
-  localStorage.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL, newBridgeURL);
+  getLocalStorage()?.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL, newBridgeURL);
 
   return newBridgeURL;
 }
