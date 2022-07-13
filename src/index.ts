@@ -5,5 +5,7 @@ window.Buffer = window.Buffer || require("buffer").Buffer;
 
 // Components
 import PeraWalletConnect from "./PeraWalletConnect";
+// Utilities
+import {closePeraWalletSignTxnToast} from "./modal/peraWalletConnectModalUtils";
 
-export {PeraWalletConnect};
+export {PeraWalletConnect, closePeraWalletSignTxnToast};
