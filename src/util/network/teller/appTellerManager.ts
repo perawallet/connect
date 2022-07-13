@@ -1,5 +1,3 @@
-import {Transaction} from "algosdk";
-
 import {PeraWalletTransaction} from "../../model/peraWalletModels";
 import Teller from "./Teller";
 
@@ -25,7 +23,14 @@ export type PeraTeller =
     }
   | {
       type: "SIGN_TXN_CALLBACK";
-      signedTxn: Transaction[];
+      signedTxns: {
+        txnId: string;
+        signedTxn: string;
+      }[];
+    }
+  | {
+      type: "SIGN_TXN_CALLBACK_ERROR";
+      error: string;
     };
 
 const appTellerManager = new Teller<PeraTeller>({

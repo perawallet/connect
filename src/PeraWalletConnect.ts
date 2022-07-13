@@ -18,13 +18,13 @@ import {assignBridgeURL, listBridgeServers} from "./util/api/peraWalletConnectAp
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
-  // base64ToUint8Array,
+  base64ToUint8Array,
   encodeUnsignedTransactionInBase64
 } from "./util/transaction/transactionUtils";
 import {isMobile} from "./util/device/deviceUtils";
 import {AppMeta} from "./util/peraWalletTypes";
 import {getPeraWalletAppMeta} from "./util/peraWalletUtils";
-import appTellerManager from "./util/network/teller/appTellerManager";
+import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -225,23 +225,34 @@ class PeraWalletConnect {
 
     if (peraWalletIframe.contentWindow) {
       appTellerManager.sendMessage({
-        targetWindow: peraWalletIframe.contentWindow,
         message: {
           type: "SIGN_TXN",
           txn: signTxnRequestParams
         },
-        origin: "https://localhost:3001"
+
+        origin: "https://localhost:3001",
+        targetWindow: peraWalletIframe.contentWindow
       });
     }
 
-    return new Promise<Uint8Array[]>(async (resolve) => {
+    return new Promise<Uint8Array[]>(async (resolve, reject) => {
       await appTellerManager.setupListener({
-        onReceiveMessage: (event: any) => {
-          document.getElementById("pera-wallet-iframe")?.remove();
+        onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
+          if (event.data.message.type === "SIGN_TXN_CALLBACK") {
+            document.getElementById("pera-wallet-iframe")?.remove();
 
-          console.log(event);
+            resolve(
+              event.data.message.signedTxns.map((txn) =>
+                base64ToUint8Array(txn.signedTxn)
+              )
+            );
+          }
 
-          resolve([]);
+          if (event.data.message.type === "SIGN_TXN_CALLBACK_ERROR") {
+            document.getElementById("pera-wallet-iframe")?.remove();
+
+            reject(event.data.message.error);
+          }
         }
       });
     }).finally(() => removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID));
