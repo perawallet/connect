@@ -31,6 +31,10 @@ export type PeraTeller =
   | {
       type: "SIGN_TXN_CALLBACK_ERROR";
       error: string;
+    }
+  | {
+      type: "SESSION_DISCONNECTED";
+      error: string;
     };
 
 const appTellerManager = new Teller<PeraTeller>({

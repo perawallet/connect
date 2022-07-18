@@ -60,7 +60,7 @@ function PeraWalletConnectModalDesktopMode({
 
     peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
     // TODO: fix the url
-    peraWalletIframe.setAttribute("src", "https://localhost:3001/connect");
+    peraWalletIframe.setAttribute("src", "https://localhost:3000/connect");
 
     document.body.appendChild(peraWalletIframe);
 
@@ -73,7 +73,7 @@ function PeraWalletConnectModalDesktopMode({
           data: getMetaInfo()
         },
 
-        origin: "https://localhost:3001/connect",
+        origin: "https://localhost:3000/connect",
         targetWindow: peraWalletIframe.contentWindow
       });
     }

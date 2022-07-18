@@ -219,7 +219,7 @@ class PeraWalletConnect {
     const peraWalletIframe = document.createElement("iframe");
 
     peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
-    peraWalletIframe.setAttribute("src", "https://localhost:3001/transaction/sign");
+    peraWalletIframe.setAttribute("src", "https://localhost:3000/transaction/sign");
 
     document.body.appendChild(peraWalletIframe);
 
@@ -230,7 +230,7 @@ class PeraWalletConnect {
           txn: signTxnRequestParams
         },
 
-        origin: "https://localhost:3001",
+        origin: "https://localhost:3000",
         targetWindow: peraWalletIframe.contentWindow
       });
     }
@@ -248,8 +248,10 @@ class PeraWalletConnect {
             );
           }
 
-          if (event.data.message.type === "SIGN_TXN_CALLBACK_ERROR") {
+          if (event.data.message.type === "SESSION_DISCONNECTED") {
             document.getElementById("pera-wallet-iframe")?.remove();
+
+            resetWalletDetailsFromStorage();
 
             reject(event.data.message.error);
           }
