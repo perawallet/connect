@@ -17,14 +17,27 @@
   background: #edeffb;
   border-radius: 8px;
 
-  font-family: var(--pera-wallet-sign-txn-toast-font-family);
-  // Although this is not a standard, Design team suggest that we use it so supported browsers will use it
-  // stylelint-disable-next-line property-no-unknown
-  font-smooth: antialiased;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
   animation: 0.2s PeraWalletSignTxnToastSlideIn ease-out;
+
+  * {
+    box-sizing: border-box;
+
+    margin: 0;
+    padding: 0;
+
+    font-family: var(--pera-wallet-sign-txn-toast-font-family);
+    // Although this is not a standard, Design team suggest that we use it so supported browsers will use it
+    // stylelint-disable-next-line property-no-unknown
+    font-smooth: antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ul,
+  ol,
+  li {
+    list-style-type: none;
+  }
 }
 
 .pera-wallet-sign-txn-toast__header__close-button {

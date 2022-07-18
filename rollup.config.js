@@ -16,6 +16,7 @@ export default [
     external: [
       "react",
       "react-dom",
+      "react-dom/client",
       "@walletconnect/client",
       "@hipo/react-ui-toolkit",
       "react-qrcode-logo",
