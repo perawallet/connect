@@ -3,7 +3,7 @@ import PeraRedirectIcon from "../../asset/icon/PeraRedirectIcon.svg";
 import "../_pera-wallet-modal.scss";
 import "./_pera-wallet-redirect-modal.scss";
 
-import React, {useEffect} from "react";
+import React from "react";
 
 import {
   generatePeraWalletAppDeepLink,
@@ -19,16 +19,6 @@ function PeraWalletRedirectModal({onClose}: PeraWalletRedirectModalProps) {
   const {name, main_color} = getPeraWalletAppMeta();
 
   useSetDynamicVhValue();
-
-  useEffect(() => {
-    const peraWalletDeepLink = window.open(generatePeraWalletAppDeepLink());
-
-    if (peraWalletDeepLink) {
-      peraWalletDeepLink.addEventListener("load", onClose);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div

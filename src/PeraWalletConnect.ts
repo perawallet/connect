@@ -188,15 +188,15 @@ class PeraWalletConnect {
     }
 
     if (isMobile()) {
-      let windowObj;
+      let peraWalletAppDeeplink;
 
       try {
         // This is to automatically open the wallet app when trying to sign with it.
-        windowObj = window.open(PERA_WALLET_APP_DEEP_LINK, "_blank");
+        peraWalletAppDeeplink = window.open(PERA_WALLET_APP_DEEP_LINK, "_blank");
       } catch (error) {
         console.log(error);
       } finally {
-        if (!windowObj) {
+        if (!peraWalletAppDeeplink) {
           openPeraWalletRedirectModal();
         }
       }
