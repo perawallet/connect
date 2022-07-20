@@ -131,3 +131,7 @@ In some cases, you may want to customize it. You can achieve this by adding a me
 ```html
 <meta name="name" content="My dApp" />
 ```
+
+### Contributing
+
+You can contribute to this package. You can review this [file](./CONTRIBUTING.md) to learn how it will contribute and for detailed information.
