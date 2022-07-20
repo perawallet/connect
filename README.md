@@ -1,4 +1,5 @@
-![Pera Connect Cover Image]()
+![Pera Connect Cover Image](https://user-images.githubusercontent.com/54077855/179925939-68b76470-fdfc-4a14-a71e-51f980534310.png)
+
 
 ### @perawallet/connect
 
