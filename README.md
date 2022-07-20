@@ -1,5 +1,4 @@
-![Pera Connect Cover Image](https://user-images.githubusercontent.com/54077855/179925939-68b76470-fdfc-4a14-a71e-51f980534310.png)
-
+![Pera Connect Cover Image]()
 
 ### @perawallet/connect
 
@@ -19,6 +18,8 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 [Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-ib9tqt?file=/src/App.js)
 
+[Using React Hooks with React@18]()
+
 [Using Vue3](https://codesandbox.io/s/perawallet-connect-vue-demo-m8q3sl?file=/src/App.vue)
 
 [Using Svelte]()
@@ -27,7 +28,7 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 [Using Nuxt.js]()
 
-### Guide
+### Quick Start
 
 Let's start with installing `@perawallet/connect`
 
@@ -35,68 +36,14 @@ Let's start with installing `@perawallet/connect`
 npm install --save @perawallet/connect
 ```
 
-<details>
-  <summary>Using with React 18</summary><br/>
-  
-   When you want to use `@perawallet/connect` library with React 18, you need to make some changes. `react-scripts` stopped polyfilling some of the packages with the `react-scripts@5.x` version. After creating a new app with `npx create-react-app my-app` or in your react application, the following changes should be made.
-
-1. Firstly, install the following packages.
-
-```sh
-  npm install buffer
-  npm install crypto-browserify
-  npm install process
-  npm install react-app-rewired
-  npm install stream-browserify
-```
-
-2. After that you need to override some webpack features. Create the following file in the root directory of the project and copy the following code block into it.
-
-`config-overrides.js`
-
 ```jsx
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const webpack = require("webpack");
-
-module.exports = function override(config) {
-  const fallback = config.resolve.fallback || {};
-
-  Object.assign(fallback, {
-    crypto: require.resolve("crypto-browserify"),
-    stream: require.resolve("stream-browserify")
-  });
-  config.resolve.fallback = fallback;
-  // ignore warning about source map of perawallet/connect
-
-  config.ignoreWarnings = [/Failed to parse source map/];
-  config.plugins = (config.plugins || []).concat([
-    new webpack.ProvidePlugin({
-      process: "process/browser",
-      Buffer: ["buffer", "Buffer"]
-    })
-  ]);
-  return config;
-};
-```
-
-3. Finally, you need to update the npm scripts.
-
-`{ "start": "react-app-rewired start", "build": "react-app-rewired build" }`
-
-After that, you are good to go! 🎊
-
-</details>
-
-#### Using React Hooks
-
-```typescript
 import {PeraWalletConnect} from "@perawallet/connect";
 
 // Create the PeraWalletConnect instance outside of the component
 const peraWallet = new PeraWalletConnect();
 
 function App() {
-  const [accountAddress, setAccountAddress] = useState<string | null>(null);
+  const [accountAddress, setAccountAddress] = (useState < string) | (null > null);
   const isConnectedToPeraWallet = !!accountAddress;
 
   useEffect(() => {
@@ -146,59 +93,9 @@ function App() {
 }
 ```
 
-### Sign Transaction
+After that you can sign transaction with this way
 
-`@perawallet/connect` also allows signing transactions using the Pera Wallet application. Once the `signTransaction` method is triggered if the user is on a mobile browser, the Pera Wallet app will be launched automatically, if the browser blocks the redirection there's also a popup that links to the Pera Wallet app.
-
-`@perawallet/connect` guides users with a toast message when the `signTransaction` is triggered on desktop. It's enabled by default but in some cases, you may not need to the toast message (e.g. you already have signing guidance for users). There's an option called `shouldShowSignTxnToast` to disable it, see the example below:
-
-```js
-const peraWallet = new PeraWalletConnect({shouldShowSignTxnToast: false});
-```
-
-You can also call the `closePeraWalletSignTxnToast` function to hide the toast.
-
-```js
-import {closePeraWalletSignTxnToast} from "@perawallet/connect";
-
-// ...Business logic
-
-// Close the toast message
-closePeraWalletSignTxnToast();
-```
-
-`signTransaction` accepts `SignerTransaction[][]` the type can be found [here](./src/util/model/peraWalletModels.ts)
-
-**To see more details & working examples please [visit here](https://codesandbox.io/s/txns-demo-pj3nf2)**
-
-```javascript
-// Setting up algosdk client
-const algod = new algosdk.Algodv2("", "https://node.testnet.algoexplorerapi.io/", 443);
-
-// Setting up Transactions
-const suggestedParams = await algod.getTransactionParams().do();
-const optInTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-  from: FROM_ADDRESS,
-  to: FROM_ADDRESS,
-  assetIndex: ASSET_ID,
-  amount: 0,
-  suggestedParams
-});
-const optInTxn2 = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-  from: FROM_ADDRESS,
-  to: FROM_ADDRESS,
-  assetIndex: ASSET_ID,
-  amount: 0,
-  suggestedParams
-});
-
-// Mapping `Transaction` to `SignerTransaction[]`
-const singleTxnGroups = [{txn: optInTxn, signers: [FROM_ADDRESS]}];
-const multipleTxnGroups = [
-  {txn: optInTxn, signers: [FROM_ADDRESS]},
-  {txn: optInTxn2, signers: [FROM_ADDRESS]}
-];
-
+```jsx
 // Single Transaction
 try {
   const signedTxn = await peraWallet.signTransaction([singleTxnGroups]);
@@ -211,6 +108,17 @@ try {
   const signedTxns = await peraWallet.signTransaction([multipleTxnGroups]);
 } catch (error) {
   console.log("Couldn't sign Opt-in txns", error);
+}
+```
+
+### Customizing Style
+
+You can override the z-index using the pera-wallet-connect-modal class so that the modal does not conflict with another component on your dApp.
+
+```scss
+.pera-wallet-connect-modal {
+  // The default value of z-index is 10. You can lower and raise it as much as you want.
+  z-index: 11;
 }
 ```
 
