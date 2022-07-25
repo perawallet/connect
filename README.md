@@ -1,6 +1,5 @@
 ![Pera Connect Cover Image](https://user-images.githubusercontent.com/54077855/179966121-bd9295c3-5f61-4203-b13f-851434e72d35.png)
 
-
 ### @perawallet/connect
 
 JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web applications.
@@ -19,15 +18,15 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 [Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-ib9tqt?file=/src/App.js)
 
-[Using React Hooks with React@18]()
+Using React Hooks with React@18 (Will be added soon)
 
-[Using Vue3](https://codesandbox.io/s/perawallet-connect-vue-demo-m8q3sl?file=/src/App.vue)
+[Using Vue3](https://codesandbox.io/s/perawallet-connect-vue-demo-m8q3sl?file=/src/App.vue) (Will be added soon)
 
-[Using Svelte]()
+[Using Svelte](https://codesandbox.io/s/pera-connect-svelte-demo-zkq6b9)
 
-[Using Next.js]()
+Using Next.js (Will be added soon)
 
-[Using Nuxt.js]()
+Using Nuxt.js (Will be added soon)
 
 ### Quick Start
 
