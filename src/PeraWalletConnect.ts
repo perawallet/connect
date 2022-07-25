@@ -7,10 +7,13 @@ import {
   openPeraWalletRedirectModal,
   removeModalWrapperFromDOM,
   PERA_WALLET_CONNECT_MODAL_ID,
-  PERA_WALLET_REDIRECT_MODAL_ID
+  PERA_WALLET_REDIRECT_MODAL_ID,
+  openPeraWalletSignTxnToast,
+  PERA_WALLET_SIGN_TXN_TOAST_ID
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
+  getLocalStorage,
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage
 } from "./util/storage/storageUtils";
@@ -30,6 +33,7 @@ interface PeraWalletConnectOptions {
   bridge?: string;
   deep_link?: string;
   app_meta?: AppMeta;
+  shouldShowSignTxnToast?: boolean;
 }
 
 function generatePeraWalletConnectModalActions(
@@ -45,25 +49,33 @@ function generatePeraWalletConnectModalActions(
 class PeraWalletConnect {
   bridge: string;
   connector: WalletConnect | null;
+  shouldShowSignTxnToast: boolean;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge =
       options?.bridge ||
-      localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL) ||
+      getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL) ||
       "";
 
     if (options?.deep_link) {
-      localStorage.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK, options.deep_link);
+      getLocalStorage()?.setItem(
+        PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK,
+        options.deep_link
+      );
     }
 
     if (options?.app_meta) {
-      localStorage.setItem(
+      getLocalStorage()?.setItem(
         PERA_WALLET_LOCAL_STORAGE_KEYS.APP_META,
         JSON.stringify(options.app_meta)
       );
     }
 
     this.connector = null;
+    this.shouldShowSignTxnToast =
+      typeof options?.shouldShowSignTxnToast === "undefined"
+        ? true
+        : options.shouldShowSignTxnToast;
   }
 
   connect() {
@@ -187,6 +199,9 @@ class PeraWalletConnect {
       if (isMobile()) {
         // This is to automatically open the wallet app when trying to sign with it.
         openPeraWalletRedirectModal();
+      } else if (!isMobile() && this.shouldShowSignTxnToast) {
+        // This is to inform user go the wallet app when trying to sign with it.
+        openPeraWalletSignTxnToast();
       }
 
       if (!this.connector) {
@@ -292,6 +307,7 @@ class PeraWalletConnect {
       }
     } finally {
       removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
+      removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
     }
     // ================================================= //
   }
