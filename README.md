@@ -16,17 +16,19 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 ### Example Applications
 
-[Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-ib9tqt?file=/src/App.js)
+- [Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-ib9tqt?file=/src/App.js)
 
-Using React Hooks with React@18 (Will be added soon)
+- Using React Hooks with React@18 (Will be added soon)
 
-[Using Vue3](https://codesandbox.io/s/perawallet-connect-vue-demo-m8q3sl?file=/src/App.vue) (Will be added soon)
+- [Using Vue3](https://codesandbox.io/s/perawallet-connect-vue-demo-m8q3sl?file=/src/App.vue) (Will be added soon)
 
-[Using Svelte](https://codesandbox.io/s/pera-connect-svelte-demo-zkq6b9)
+- [Using Svelte](https://codesandbox.io/s/pera-connect-svelte-demo-zkq6b9)
 
-Using Next.js (Will be added soon)
+- Using Next.js (Will be added soon)
 
-Using Nuxt.js (Will be added soon)
+- Using Nuxt.js (Will be added soon)
+
+- Vanilla JS with TypeScript and Webpack (Will be added soon)
 
 ### Quick Start
 
@@ -37,60 +39,36 @@ npm install --save @perawallet/connect
 ```
 
 ```jsx
-import {PeraWalletConnect} from "@perawallet/connect";
+// Connect handler
+peraWallet
+  .connect()
+  .then((newAccounts) => {
+    // Setup the disconnect event listener
+    peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
 
-// Create the PeraWalletConnect instance outside of the component
-const peraWallet = new PeraWalletConnect();
+    setAccountAddress(newAccounts[0]);
+  })
+  .reject((error) => {
+    // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
+    // For the async/await syntax you MUST use try/catch
+    if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
+      // log the necessary errors
+    }
+  });
+```
 
-function App() {
-  const [accountAddress, setAccountAddress] = (useState < string) | (null > null);
-  const isConnectedToPeraWallet = !!accountAddress;
+If you don't want the user's account information to be lost by the dApp when the user closes the browser with user’s wallet connected to the dApp, you need to handle the reconnect session status. You can do this in the following way.
 
-  useEffect(() => {
-    // Reconnect to the session when the component is mounted
-    peraWallet.reconnectSession().then((accounts) => {
-      // Setup the disconnect event listener
-      peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
+```jsx
+// On the every page refresh
+peraWallet.reconnectSession().then((accounts) => {
+  // Setup the disconnect event listener
+  peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
 
-      if (accounts.length) {
-        setAccountAddress(accounts[0]);
-      }
-    });
-  }, []);
-
-  return (
-    <button
-      onClick={
-        isConnectedToPeraWallet ? handleDisconnectWalletClick : handleConnectWalletClick
-      }>
-      {isConnectedToPeraWallet ? "Disconnect" : "Connect to Pera Wallet"}
-    </button>
-  );
-
-  function handleConnectWalletClick() {
-    peraWallet
-      .connect()
-      .then((newAccounts) => {
-        // Setup the disconnect event listener
-        peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
-
-        setAccountAddress(newAccounts[0]);
-      })
-      .reject((error) => {
-        // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
-        // For the async/await syntax you MUST use try/catch
-        if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
-          // log the necessary errors
-        }
-      });
+  if (accounts.length) {
+    setAccountAddress(accounts[0]);
   }
-
-  function handleDisconnectWalletClick() {
-    peraWallet.disconnect();
-
-    setAccountAddress(null);
-  }
-}
+});
 ```
 
 After that you can sign transaction with this way
@@ -113,7 +91,7 @@ try {
 
 ### Customizing Style
 
-You can override the z-index using the pera-wallet-connect-modal class so that the modal does not conflict with another component on your dApp.
+You can override the z-index using the `.pera-wallet-connect-modal` class so that the modal does not conflict with another component on your application.
 
 ```scss
 .pera-wallet-connect-modal {
@@ -134,4 +112,4 @@ In some cases, you may want to customize it. You can achieve this by adding a me
 
 ### Contributing
 
-You can contribute to this package. You can review this [file](./CONTRIBUTING.md) to learn how it will contribute and for detailed information.
+All contributions are welcomed! To get more information about the details, please read the [contribution](./CONTRIBUTING.md) guide first.

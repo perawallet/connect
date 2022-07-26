@@ -4,10 +4,10 @@ To contribute to the codebase, you will need to fork the repository.
 
 The following steps will get you setup to contribute changes to this repo:
 
-- Fork the repo and create your branch from main.
+- Fork the repo and create your branch from `next-release`.
 - Install depencencies and build.
 
-We use npm to manage installation of dependencies and running various scripts. To get everything installed, make sure you have npm and run npm install from the root of the repository.
+We use npm to manage installation of dependencies and running various scripts. To get everything installed, make sure you have npm and run `npm install` from the root of the repository.
 
 #### Reporting new issues
 
@@ -70,4 +70,4 @@ You can work on your local project with this package. All you have to do is repl
 "@perawallet/connect": "file:../connect"
 ```
 
-After did this, you can run npm run dev and in this way, you can see the changes you have made to the package simultaneously.
+After doing this, you can run `npm run dev` and in this way, you can see the changes you have made to the package simultaneously.
