@@ -41,8 +41,6 @@ function PeraWalletConnectModalDesktopMode({
   );
 
   function onReceiveMessage(event: MessageEvent<TellerMessage<PeraTeller>>) {
-    console.log("onReceiveMessage", event.data);
-
     if (resolvePromise && event.data.message.type === "CONNECT_CALLBACK") {
       const accounts = [event.data.message.data.address];
 
