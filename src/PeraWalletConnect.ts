@@ -25,8 +25,10 @@ import {
 } from "./util/transaction/transactionUtils";
 import {isMobile} from "./util/device/deviceUtils";
 import {AppMeta} from "./util/peraWalletTypes";
-import {getPeraWalletAppMeta} from "./util/peraWalletUtils";
-import {PERA_WALLET_APP_DEEP_LINK} from "./util/peraWalletConstants";
+import {
+  generatePeraWalletAppDeepLink,
+  getPeraWalletAppMeta
+} from "./util/peraWalletUtils";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -192,7 +194,7 @@ class PeraWalletConnect {
 
       try {
         // This is to automatically open the wallet app when trying to sign with it.
-        peraWalletAppDeeplink = window.open(PERA_WALLET_APP_DEEP_LINK, "_blank");
+        peraWalletAppDeeplink = window.open(generatePeraWalletAppDeepLink(), "_blank");
       } catch (error) {
         console.log(error);
       } finally {
