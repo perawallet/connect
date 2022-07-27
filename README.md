@@ -20,7 +20,7 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 - Using React Hooks with React@18 (Will be added soon)
 
-- [Using Vue3](https://codesandbox.io/s/perawallet-connect-vue-demo-m8q3sl?file=/src/App.vue) (Will be added soon)
+- [Using Vue3](https://codesandbox.io/s/perawallet-connect-vue-demo-m8q3sl?file=/src/App.vue)
 
 - [Using Svelte](https://codesandbox.io/s/pera-connect-svelte-demo-zkq6b9)
 
