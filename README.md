@@ -26,7 +26,7 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 - [Using Next.js](https://codesandbox.io/s/perawallet-connect-next-js-demo-16yxsd)
 
-- Using Nuxt.js (Will be added soon)
+- [Using Nuxt.js](https://codesandbox.io/s/perawallet-connect-nuxt-demo-702zrv)
 
 - Vanilla JS with TypeScript and Webpack (Will be added soon)
 
