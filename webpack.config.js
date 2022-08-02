@@ -1,19 +1,19 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
-const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const path = require("path");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const {CleanWebpackPlugin} = require("clean-webpack-plugin");
 
-const isProduction = process.env.NODE_ENV == 'production';
+const isProduction = process.env.NODE_ENV === "production";
 
 const config = {
-  entry: './src/index.ts',
+  entry: "./src/index.ts",
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: '[name].js',
-    libraryTarget: 'umd',
-    library: 'MyLib',
-    umdNamedDefine: true,
+    path: path.resolve(__dirname, "dist"),
+    filename: "[name].js",
+    libraryTarget: "umd",
+    library: "MyLib",
+    umdNamedDefine: true
   },
   module: {
     rules: [
@@ -21,60 +21,60 @@ const config = {
         test: /\.(ts|js)x?$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader',
-        },
+          loader: "babel-loader"
+        }
       },
 
       {
         test: /\.svg$/,
         use: [
           {
-            loader: '@svgr/webpack',
+            loader: "@svgr/webpack",
             options: {
               svgoConfig: {
-                plugins: [{ removeViewBox: false }],
-              },
-            },
+                plugins: [{removeViewBox: false}]
+              }
+            }
           },
-          'url-loader',
-        ],
+          "url-loader"
+        ]
       },
 
       {
         test: /\.(ts|tsx)$/i,
-        loader: 'ts-loader',
-        exclude: ['/node_modules/'],
+        loader: "ts-loader",
+        exclude: ["/node_modules/"]
       },
 
       {
         test: /\.s[ac]ss$/i,
-        use: ['css-loader', 'postcss-loader', 'sass-loader'],
+        use: ["css-loader", "postcss-loader", "sass-loader"]
       },
 
       {
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
-        type: 'asset',
-      },
-    ],
+        type: "asset"
+      }
+    ]
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.jsx', '.js', '...'],
+    extensions: [".tsx", ".ts", ".jsx", ".js", "..."]
   },
 
   plugins: [
     new CleanWebpackPlugin({
-      verbose: true,
-    }),
-  ],
+      verbose: true
+    })
+  ]
 };
 
 module.exports = () => {
   if (isProduction) {
-    config.mode = 'production';
+    config.mode = "production";
 
     config.plugins.push(new MiniCssExtractPlugin());
   } else {
-    config.mode = 'development';
+    config.mode = "development";
   }
   return config;
 };

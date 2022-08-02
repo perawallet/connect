@@ -10,6 +10,8 @@
     "resolveJsonModule": true /* Include modules imported with '.json' extension. */,
     "noEmit": true /* do not emit output */,
     "skipLibCheck": true,
+    "declaration": true,
+    "declarationDir": "dist/types",
 
     /* Strict Type-Checking Options */
     "strict": true /* Enable all strict type-checking options. */,
@@ -24,5 +26,5 @@
     "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
     "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */
   },
-  "files": ["src/index.ts"]
+  "include": ["src"]
 }
