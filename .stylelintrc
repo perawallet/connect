@@ -1,0 +1,23 @@
+{
+  "ignoreFiles": ["**/*.css"],
+  "plugins": [
+    "stylelint-order",
+    "stylelint-scss",
+    "stylelint-no-unsupported-browser-features"
+  ],
+  "extends": ["@hipo/stylelint-config-base"],
+  "rules": {
+    "unit-allowed-list": [
+      "px",
+      "rem",
+      "em",
+      "fr",
+      "deg",
+      "%",
+      "s",
+      "ms",
+      "vh",
+      "vw"
+    ]
+  }
+}
