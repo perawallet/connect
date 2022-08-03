@@ -1,0 +1,106 @@
+@import "../../../ui/styles/media-queries";
+
+.pera-wallet-connect-modal-information-section {
+  padding: 12px;
+  padding-right: 0;
+}
+
+.pera-wallet-connect-modal-information-section__pera-icon {
+  margin-bottom: 32px;
+}
+
+.pera-wallet-connect-modal-information-section__title {
+  margin-bottom: 82px;
+
+  color: #2c3559;
+
+  font-size: 22px;
+  line-height: 30px;
+  letter-spacing: -0.4px;
+  font-weight: 500;
+}
+
+.pera-wallet-connect-modal-information-section__secondary-title {
+  margin-bottom: 16px;
+
+  color: #69708d;
+
+  font-size: 10px;
+  line-height: 20px;
+  letter-spacing: 2px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.pera-wallet-connect-modal-information-section__features-item {
+  display: grid;
+  align-items: center;
+  grid-template-columns: 36px auto;
+  gap: 16px;
+
+  &:not(:last-of-type) {
+    margin-bottom: 20px;
+  }
+}
+
+.pera-wallet-connect-modal-information-section__features-item__icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  background-color: #ffffff;
+
+  border-radius: 50%;
+}
+
+.pera-wallet-connect-modal-information-section__features-item__description {
+  color: #2c3559;
+
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.01px;
+  font-weight: 500;
+}
+
+@include for-small-screens {
+  .pera-wallet-connect-modal-information-section__information-section {
+    padding: 0;
+  }
+
+  .pera-wallet-connect-modal-information-section__pera-icon {
+    margin-bottom: 16px;
+  }
+
+  .pera-wallet-connect-modal-information-section__connect-pera-title {
+    margin-bottom: 8px;
+
+    color: #2c3559;
+
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 22px;
+    letter-spacing: -0.2px;
+  }
+
+  .pera-wallet-connect-modal-information-section__title {
+    margin-bottom: 40px;
+
+    color: #2c3559;
+
+    font-size: 14px;
+    line-height: 24px;
+    letter-spacing: -0.09px;
+    font-weight: 400;
+  }
+
+  .pera-wallet-connect-modal-information-section__features-item__icon-wrapper {
+    background-color: #f2f3f8;
+  }
+
+  .pera-wallet-connect-modal-information-section__features-item__description {
+    color: #69708d;
+  }
+}

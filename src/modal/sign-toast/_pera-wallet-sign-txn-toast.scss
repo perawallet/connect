@@ -1,0 +1,102 @@
+@import "../../ui/styles/media-queries";
+
+.pera-wallet-sign-txn-toast {
+  --pera-wallet-sign-txn-toast-width: 422px;
+  --pera-wallet-sign-txn-toast-height: 134px;
+  --pera-wallet-sign-txn-toast-font-family: "Inter", sans-serif;
+
+  position: fixed;
+  bottom: 28px;
+  right: 35px;
+  z-index: 11;
+  overflow: hidden;
+
+  width: var(--pera-wallet-sign-txn-toast-width);
+  height: var(--pera-wallet-sign-txn-toast-height);
+
+  background: #edeffb;
+  border-radius: 8px;
+
+  animation: 0.2s PeraWalletSignTxnToastSlideIn ease-out;
+
+  * {
+    box-sizing: border-box;
+
+    margin: 0;
+    padding: 0;
+
+    font-family: var(--pera-wallet-sign-txn-toast-font-family);
+    // Although this is not a standard, Design team suggest that we use it so supported browsers will use it
+    // stylelint-disable-next-line property-no-unknown
+    font-smooth: antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ul,
+  ol,
+  li {
+    list-style-type: none;
+  }
+}
+
+.pera-wallet-sign-txn-toast__header__close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  width: 20px;
+  height: 20px;
+
+  margin: 0;
+  padding: 0;
+
+  background: transparent;
+
+  border: none;
+
+  cursor: pointer;
+}
+
+.pera-wallet-sign-txn-toast__content__lottie-animation {
+  position: absolute;
+  top: -75px;
+  left: -100px;
+
+  width: 368px;
+  height: 368px;
+}
+
+.pera-wallet-sign-txn-toast__content__description {
+  position: absolute;
+  top: 40px;
+  right: 48px;
+
+  max-width: 197px;
+
+  color: #2c3559;
+
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.1px;
+}
+
+@include for-small-screens {
+  .pera-wallet-sign-txn-toast {
+    display: none;
+  }
+}
+
+@keyframes PeraWalletSignTxnToastSlideIn {
+  0% {
+    bottom: 12px;
+
+    opacity: 0;
+  }
+
+  100% {
+    bottom: 26px;
+
+    opacity: 1;
+  }
+}

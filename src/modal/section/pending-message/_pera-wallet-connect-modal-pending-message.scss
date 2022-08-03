@@ -1,0 +1,41 @@
+.pera-wallet-connect-modal-pending-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  text-align: center;
+}
+
+.pera-wallet-connect-modal-pending-message__text {
+  max-width: 271px;
+
+  margin-top: 20px;
+
+  color: #2c3559;
+
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+  letter-spacing: -0.26px;
+}
+
+.pera-wallet-connect-modal-pending-message__cancel-button {
+  display: block;
+
+  width: 100%;
+
+  padding: 14px;
+
+  color: #2c3559;
+  background-color: #f2f3f8;
+
+  border-radius: 12px;
+
+  text-decoration: none;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.09px;
+  font-weight: 500;
+}
