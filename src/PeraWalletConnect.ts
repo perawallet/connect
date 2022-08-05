@@ -25,7 +25,10 @@ import {
 } from "./util/transaction/transactionUtils";
 import {isMobile} from "./util/device/deviceUtils";
 import {AppMeta} from "./util/peraWalletTypes";
-import {getPeraWalletAppMeta} from "./util/peraWalletUtils";
+import {
+  generatePeraWalletAppDeepLink,
+  getPeraWalletAppMeta
+} from "./util/peraWalletUtils";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -186,6 +189,24 @@ class PeraWalletConnect {
       throw new Error("PeraWalletConnect was not initialized correctly.");
     }
 
+    if (isMobile()) {
+      let peraWalletAppDeeplink;
+
+      try {
+        // This is to automatically open the wallet app when trying to sign with it.
+        peraWalletAppDeeplink = window.open(generatePeraWalletAppDeepLink(), "_blank");
+      } catch (error) {
+        console.log(error);
+      } finally {
+        if (!peraWalletAppDeeplink) {
+          openPeraWalletRedirectModal();
+        }
+      }
+    } else if (!isMobile() && this.shouldShowSignTxnToast) {
+      // This is to inform user go the wallet app when trying to sign with it.
+      openPeraWalletSignTxnToast();
+    }
+
     const signTxnRequestParams = txGroups.flatMap((txGroup) =>
       txGroup.map<PeraWalletTransaction>((txGroupDetail) => {
         let signers: PeraWalletTransaction["signers"];
@@ -209,14 +230,6 @@ class PeraWalletConnect {
     const formattedSignTxnRequest = formatJsonRpcRequest("algo_signTxn", [
       signTxnRequestParams
     ]);
-
-    if (isMobile()) {
-      // This is to automatically open the wallet app when trying to sign with it.
-      openPeraWalletRedirectModal();
-    } else if (!isMobile() && this.shouldShowSignTxnToast) {
-      // This is to inform user go the wallet app when trying to sign with it.
-      openPeraWalletSignTxnToast();
-    }
 
     return this.connector
       .sendCustomRequest(formattedSignTxnRequest)

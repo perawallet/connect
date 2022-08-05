@@ -3,7 +3,7 @@ import PeraRedirectIcon from "../../asset/icon/PeraRedirectIcon.svg";
 import "../_pera-wallet-modal.scss";
 import "./_pera-wallet-redirect-modal.scss";
 
-import React, {useEffect} from "react";
+import React from "react";
 
 import {
   generatePeraWalletAppDeepLink,
@@ -20,16 +20,6 @@ function PeraWalletRedirectModal({onClose}: PeraWalletRedirectModalProps) {
 
   useSetDynamicVhValue();
 
-  useEffect(() => {
-    const peraWalletDeepLink = window.open(generatePeraWalletAppDeepLink());
-
-    if (peraWalletDeepLink) {
-      peraWalletDeepLink.addEventListener("load", onClose);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <div
       className={"pera-wallet-connect-modal"}
@@ -40,11 +30,13 @@ function PeraWalletRedirectModal({onClose}: PeraWalletRedirectModalProps) {
             <img src={PeraRedirectIcon} />
 
             <h1 className={"pera-wallet-redirect-modal__content__title"}>
-              {"Can't Launch Pera"}
+              {"Continue on Pera"}
             </h1>
 
             <p className={"pera-wallet-redirect-modal__content__description"}>
-              {"We couldn't redirect you to Pera Wallet automatically. Please try again."}
+              {
+                "Launch Pera Wallet to securely connect your account and sign transactions."
+              }
             </p>
 
             <p className={"pera-wallet-redirect-modal__content__install-pera-text"}>
