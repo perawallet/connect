@@ -30,11 +30,13 @@ function PeraWalletRedirectModal({onClose}: PeraWalletRedirectModalProps) {
             <img src={PeraRedirectIcon} />
 
             <h1 className={"pera-wallet-redirect-modal__content__title"}>
-              {"Can't Launch Pera"}
+              {"Continue on Pera"}
             </h1>
 
             <p className={"pera-wallet-redirect-modal__content__description"}>
-              {"We couldn't redirect you to Pera Wallet automatically. Please try again."}
+              {
+                "Launch Pera Wallet to securely connect your account and sign transactions."
+              }
             </p>
 
             <p className={"pera-wallet-redirect-modal__content__install-pera-text"}>
