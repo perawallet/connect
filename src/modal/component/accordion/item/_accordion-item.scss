@@ -5,12 +5,18 @@
 
   &:not(:last-of-type) {
     margin-bottom: 20px;
+
+    .pera-wallet-accordion-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 }
 
 .pera-wallet-accordion-item--active {
   .pera-wallet-accordion-panel {
-    height: 296px;
+    height: 364px;
 
     border-radius: 0 0 24px 24px;
 
