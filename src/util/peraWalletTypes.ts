@@ -4,6 +4,7 @@ interface AppMeta {
   main_color: string;
 }
 
+type PeraWalletNetwork = "dev" | "mainnet" | "testnet";
 type PeraWalletType = "pera-wallet" | "pera-wallet-web";
 
 interface PeraWalletDetails {
@@ -12,4 +13,4 @@ interface PeraWalletDetails {
   selectedAccount: string;
 }
 
-export type {AppMeta, PeraWalletType, PeraWalletDetails};
+export type {AppMeta, PeraWalletNetwork, PeraWalletType, PeraWalletDetails};

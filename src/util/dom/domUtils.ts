@@ -1,13 +1,22 @@
 function getMetaInfo() {
   const metaTitle: HTMLElement | null = document.querySelector('meta[name="name"]');
+  const metaDescription: HTMLElement | null = document.querySelector(
+    'meta[name="description"]'
+  );
   let {title} = document;
+  let description = "";
 
   if (metaTitle instanceof HTMLMetaElement) {
     title = metaTitle.content;
   }
 
+  if (metaDescription instanceof HTMLMetaElement) {
+    description = metaDescription.content;
+  }
+
   return {
     title,
+    description,
     url: window.location.origin,
     favicon: getFavicons()[0]
   };
@@ -32,10 +41,6 @@ function getFavicons() {
         href.indexOf("//") !== 0
       ) {
         let absoluteHref = `${window.location.protocol}//${window.location.host}`;
-
-        // if (window.location.port) {
-        //   absoluteHref += `:${window.location.port}`;
-        // }
 
         if (href.indexOf("/") === 0) {
           absoluteHref += href;

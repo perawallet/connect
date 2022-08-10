@@ -42,7 +42,7 @@ function createModalWrapperOnDOM(modalId: string) {
  * @returns {void}
  */
 function openPeraWalletConnectModal(
-  resolvePromise?: (accounts: string[]) => void,
+  onWebWalletConnect: VoidFunction,
   rejectPromise?: (error: any) => void
 ) {
   return (uri: string, closeCallback: VoidFunction) => {
@@ -53,8 +53,8 @@ function openPeraWalletConnectModal(
     root.render(
       <PeraWalletConnectModal
         onClose={handleClosePeraWalletConnectModal}
+        onWebWalletConnect={onWebWalletConnect}
         uri={uri}
-        resolvePromise={resolvePromise}
       />
     );
 
