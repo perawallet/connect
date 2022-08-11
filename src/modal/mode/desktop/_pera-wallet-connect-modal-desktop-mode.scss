@@ -46,3 +46,30 @@
     0px 1px 4px rgba(26, 35, 91, 0.06);
   border-radius: 24px;
 }
+
+.pera-wallet-connect-modal-desktop-mode__back-button {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  margin-bottom: 26px;
+  padding: 12px 24px;
+
+  color: #3c3c49;
+  background-color: #ffffff;
+  outline: none;
+
+  box-shadow: 0px 0px 1px rgba(12, 26, 75, 0.24), 0px 3px 8px -1px rgba(50, 50, 71, 0.05);
+  border: unset;
+  border-radius: 24px;
+
+  cursor: pointer;
+}
+
+.pera-wallet-connect-modal-desktop-mode__back-button__arrow-icon {
+  transform: rotate(180deg);
+}
+
+.pera-wallet-connect-modal-desktop-mode__download-pera-view {
+  background-color: #ffffff;
+}

@@ -1,5 +1,4 @@
 import PeraWalletLogoCircleYellow from "../asset/icon/PeraWallet--circle-yellow.svg";
-import PeraWalletLogoCircleBlack from "../asset/icon/PeraWallet--circle-black.svg";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -125,11 +124,13 @@ function removeModalWrapperFromDOM(modalId: string) {
 interface PeraWalletConnectModalAccordionProps {
   uri: string;
   onWebWalletConnect: VoidFunction;
+  handleSetView: VoidFunction;
 }
 
 function getPeraConnectModalAccordionData({
   uri,
-  onWebWalletConnect
+  onWebWalletConnect,
+  handleSetView
 }: PeraWalletConnectModalAccordionProps): AccordionData[] {
   return [
     {
@@ -172,29 +173,8 @@ function getPeraConnectModalAccordionData({
             // eslint-disable no-magic-numbers
             eyeRadius={5}
           />
-        </>
-      )
-    },
-    {
-      id: "new-to-pera-wallet",
-      title: "New to Pera Wallet?",
-      description: (
-        <>
-          <p className={"pera-wallet-connect-modal-desktop-mode__accordion__description"}>
-            {"Scan the QR code with your phone to download Pera Wallet."}
-          </p>
 
-          <QRCode
-            id={"pera-wallet-connect-modal-desktop-mode__qr-code"}
-            logoImage={PeraWalletLogoCircleBlack}
-            value={"https://perawallet.app/download/"}
-            qrStyle={"dots"}
-            quietZone={20}
-            logoWidth={48}
-            logoHeight={48}
-            // eslint-disable no-magic-numbers
-            eyeRadius={5}
-          />
+          <button onClick={handleSetView}>{"Download Pera Wallet"}</button>
         </>
       )
     }

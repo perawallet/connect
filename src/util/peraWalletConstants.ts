@@ -4,9 +4,9 @@ const PERA_WALLET_APP_DEEP_LINK = isAndroid() ? "algorand://" : "algorand-wc://"
 
 const PERA_WEB_WALLET_URL = {
   dev: {
-    ROOT: "https://localhost:3000",
-    CONNECT: "https://localhost:3000/connect",
-    TRANSACTION_SIGN: "https://localhost:3000/transaction/sign"
+    ROOT: "https://localhost:3001",
+    CONNECT: "https://localhost:3001/connect",
+    TRANSACTION_SIGN: "https://localhost:3001/transaction/sign"
   },
   testnet: {
     ROOT: "https://staging.web.perawallet.app",
