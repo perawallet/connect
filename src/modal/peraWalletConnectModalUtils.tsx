@@ -1,5 +1,7 @@
 import PeraWalletLogoCircleYellow from "../asset/icon/PeraWallet--circle-yellow.svg";
 import QrIcon from "../asset/icon/Qr.svg";
+import PeraWebIcon from "../asset/icon/PeraWeb.svg";
+import ChevronRighIcon from "../asset/icon/ChevronRight.svg";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -10,6 +12,7 @@ import PeraWalletConnectError from "../util/PeraWalletConnectError";
 import PeraWalletConnectModal from "./PeraWalletConnectModal";
 import PeraWalletRedirectModal from "./redirect/PeraWalletRedirectModal";
 import PeraWalletSignTxnToast from "./sign-toast/PeraWalletSignTxnToast";
+import {detectBrowser} from "../util/device/deviceUtils";
 
 // The ID of the wrapper element for PeraWalletConnectModal
 const PERA_WALLET_CONNECT_MODAL_ID = "pera-wallet-connect-modal-wrapper";
@@ -125,12 +128,16 @@ function removeModalWrapperFromDOM(modalId: string) {
 interface PeraWalletConnectModalAccordionProps {
   uri: string;
   handleSetView: VoidFunction;
+  onWebWalletConnect: VoidFunction;
 }
 
 function getPeraConnectModalAccordionData({
   uri,
-  handleSetView
+  handleSetView,
+  onWebWalletConnect
 }: PeraWalletConnectModalAccordionProps): AccordionData[] {
+  const browser = detectBrowser();
+
   return [
     {
       id: "web-wallet",
@@ -147,9 +154,36 @@ function getPeraConnectModalAccordionData({
           <span className={"pera-wallet-accordion-button__label"}>{"NEW"}</span>
         </div>
       ),
-      description: (
-        <div className={"pera-wallet-connect-modal-desktop-mode__web-wallet"} />
-      )
+      description:
+        browser === "chrome" ? (
+          <div className={"pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"} />
+        ) : (
+          <div className={"pera-wallet-connect-modal-desktop-mode__web-wallet"}>
+            <div
+              className={
+                "pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper"
+              }>
+              <img src={PeraWebIcon} />
+            </div>
+
+            <p
+              className={
+                "pera-wallet-connect-modal-desktop-mode__web-wallet__description"
+              }>
+              {"Connect with Pera Web to continue"}
+            </p>
+
+            <button
+              onClick={onWebWalletConnect}
+              className={
+                "pera-wallet-connect-modal-desktop-mode__web-wallet__launch-button"
+              }>
+              {"Launch Pera Web"}
+
+              <img src={ChevronRighIcon} />
+            </button>
+          </div>
+        )
     },
     {
       id: "scan-to-connect",

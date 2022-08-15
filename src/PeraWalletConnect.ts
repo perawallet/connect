@@ -26,11 +26,14 @@ import {
   base64ToUint8Array,
   encodeUnsignedTransactionInBase64
 } from "./util/transaction/transactionUtils";
-import {isMobile} from "./util/device/deviceUtils";
+import {detectBrowser, isMobile} from "./util/device/deviceUtils";
 import {AppMeta, PeraWalletNetwork} from "./util/peraWalletTypes";
 import {getPeraWalletAppMeta} from "./util/peraWalletUtils";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
-import {PERA_WEB_WALLET_URL} from "./util/peraWalletConstants";
+import {
+  PERA_WEB_EMBEED_WALLET_URL,
+  PERA_WEB_WALLET_URL
+} from "./util/peraWalletConstants";
 import {getMetaInfo} from "./util/dom/domUtils";
 
 interface PeraWalletConnectOptions {
@@ -94,9 +97,7 @@ class PeraWalletConnect {
   }
 
   private connectWithWebWallet(resolve: (accounts: string[]) => void) {
-    appTellerManager.setupListener({
-      onReceiveMessage
-    });
+    const browser = detectBrowser();
 
     const {network} = this;
 
@@ -115,25 +116,64 @@ class PeraWalletConnect {
     }
 
     function onWebWalletConnect() {
-      const peraWalletWebWalletTab = document.getElementsByClassName(
-        "pera-wallet-connect-modal-desktop-mode__web-wallet"
-      )[0];
-      const peraWalletIframe = document.createElement("iframe");
+      if (browser === "chrome") {
+        const peraWalletWebWalletTab = document.getElementsByClassName(
+          "pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
+        )[0];
+        const peraWalletIframe = document.createElement("iframe");
 
-      peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
-      peraWalletIframe.setAttribute("src", PERA_WEB_WALLET_URL[network].CONNECT);
+        peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
+        peraWalletIframe.setAttribute("src", PERA_WEB_EMBEED_WALLET_URL[network].CONNECT);
 
-      peraWalletWebWalletTab.appendChild(peraWalletIframe);
+        peraWalletWebWalletTab.appendChild(peraWalletIframe);
 
-      if (peraWalletIframe.contentWindow) {
-        appTellerManager.sendMessage({
-          message: {
-            type: "CONNECT",
-            data: getMetaInfo()
-          },
+        if (peraWalletIframe.contentWindow) {
+          appTellerManager.sendMessage({
+            message: {
+              type: "CONNECT",
+              data: getMetaInfo()
+            },
 
-          origin: PERA_WEB_WALLET_URL[network].CONNECT,
-          targetWindow: peraWalletIframe.contentWindow
+            origin: PERA_WEB_WALLET_URL[network].CONNECT,
+            targetWindow: peraWalletIframe.contentWindow
+          });
+        }
+
+        appTellerManager.setupListener({
+          onReceiveMessage
+        });
+      } else {
+        const newPeraWalletTab = window.open(
+          PERA_WEB_WALLET_URL[network].CONNECT,
+          "_blank"
+        );
+
+        if (newPeraWalletTab && newPeraWalletTab.opener) {
+          appTellerManager.sendMessage({
+            message: {
+              type: "CONNECT",
+              data: getMetaInfo()
+            },
+
+            origin: PERA_WEB_WALLET_URL[network].CONNECT,
+            targetWindow: newPeraWalletTab
+          });
+        }
+
+        appTellerManager.setupListener({
+          onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
+            if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
+              const accounts = [event.data.message.data.address];
+
+              saveWalletDetailsToStorage(accounts, "pera-wallet-web");
+
+              resolve(accounts);
+
+              onClose();
+
+              newPeraWalletTab?.close();
+            }
+          }
         });
       }
     }

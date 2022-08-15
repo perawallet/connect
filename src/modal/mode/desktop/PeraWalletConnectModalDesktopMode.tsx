@@ -15,12 +15,14 @@ import PeraWalletConnectModalInformationSection from "../../section/information/
 
 interface PeraWalletConnectModalDesktopModeProps {
   uri: string;
+  onWebWalletConnect: VoidFunction;
 }
 
 type PERA_CONNECT_MODAL_VIEWS = "default" | "download-pera";
 
 function PeraWalletConnectModalDesktopMode({
-  uri
+  uri,
+  onWebWalletConnect
 }: PeraWalletConnectModalDesktopModeProps) {
   const [view, setView] = useState<PERA_CONNECT_MODAL_VIEWS>("default");
 
@@ -32,7 +34,8 @@ function PeraWalletConnectModalDesktopMode({
         <Accordion
           items={getPeraConnectModalAccordionData({
             uri,
-            handleSetView
+            handleSetView,
+            onWebWalletConnect
           })}
         />
       )}

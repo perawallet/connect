@@ -10,6 +10,7 @@ import {useIsSmallScreen} from "../util/screen/useMediaQuery";
 import PeraWalletConnectModalTouchScreenMode from "./mode/touch-screen/PeraWalletConnectModalTouchScreenMode";
 import PeraWalletConnectModalDesktopMode from "./mode/desktop/PeraWalletConnectModalDesktopMode";
 import useSetDynamicVhValue from "../util/screen/useSetDynamicVhValue";
+import {detectBrowser} from "../util/device/deviceUtils";
 
 interface PeraWalletConnectModalProps {
   uri: string;
@@ -23,12 +24,15 @@ function PeraWalletConnectModal({
   onWebWalletConnect
 }: PeraWalletConnectModalProps) {
   const isSmallScreen = useIsSmallScreen();
+  const browser = detectBrowser();
 
   useSetDynamicVhValue();
 
   useEffect(() => {
-    onWebWalletConnect();
-  }, [onWebWalletConnect]);
+    if (browser === "chrome") {
+      onWebWalletConnect();
+    }
+  }, [onWebWalletConnect, browser]);
 
   return (
     <div className={"pera-wallet-connect-modal"}>
@@ -57,7 +61,10 @@ function PeraWalletConnectModal({
         {isSmallScreen ? (
           <PeraWalletConnectModalTouchScreenMode uri={uri} />
         ) : (
-          <PeraWalletConnectModalDesktopMode uri={uri} />
+          <PeraWalletConnectModalDesktopMode
+            uri={uri}
+            onWebWalletConnect={onWebWalletConnect}
+          />
         )}
       </div>
     </div>
