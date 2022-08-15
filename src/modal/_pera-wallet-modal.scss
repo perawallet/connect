@@ -2,16 +2,12 @@
 @import "../ui/styles/media-queries";
 
 #pera-wallet-iframe {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
+  width: 280px;
+  height: 376px;
 
-  z-index: 999999;
+  margin: 0 auto;
 
-  width: 100vw;
-  height: 100vh;
+  border: none;
 }
 
 .pera-wallet-connect-modal {
@@ -22,7 +18,7 @@
   right: 0;
   left: 0;
   bottom: 0;
-  z-index: 10;
+  z-index: 999999;
 
   width: 100vw;
   height: 100vh;
@@ -78,17 +74,20 @@
 }
 
 .pera-wallet-connect-modal__close-button {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
 
   margin: 0;
   padding: 0;
 
-  background: #333333;
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
+  background: rgba(44, 53, 89, 0.1);
 
-  border-radius: 100%;
+  border-radius: 8px;
+}
+
+.pera-wallet-connect-modal__close-button__close-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .pera-wallet-connect-modal__body {
@@ -96,7 +95,7 @@
   top: 50%;
   left: 50%;
 
-  width: 655px;
+  width: 700px;
   max-width: calc(100vw - 80px);
 
   padding: 28px;
@@ -140,12 +139,25 @@
 .pera-wallet-connect-modal__body__header {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
 
   position: absolute;
   top: -44px;
-  right: -44px;
+  right: 0px;
   left: 0;
+}
+
+.pera-wallet-connect-modal__body__header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.13px;
+
+  color: #ffffff;
 }
 
 @include for-small-screens {

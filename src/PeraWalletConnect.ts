@@ -115,12 +115,15 @@ class PeraWalletConnect {
     }
 
     function onWebWalletConnect() {
+      const peraWalletWebWalletTab = document.getElementsByClassName(
+        "pera-wallet-connect-modal-desktop-mode__web-wallet"
+      )[0];
       const peraWalletIframe = document.createElement("iframe");
 
       peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
       peraWalletIframe.setAttribute("src", PERA_WEB_WALLET_URL[network].CONNECT);
 
-      document.body.appendChild(peraWalletIframe);
+      peraWalletWebWalletTab.appendChild(peraWalletIframe);
 
       if (peraWalletIframe.contentWindow) {
         appTellerManager.sendMessage({
