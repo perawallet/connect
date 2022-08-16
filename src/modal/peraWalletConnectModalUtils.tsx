@@ -119,25 +119,20 @@ function getPeraConnectModalAccordionData(uri: string): AccordionData[] {
   return [
     {
       id: "scan-to-connect",
-      title: "Scan to connect",
+      title: "Scan with Pera Wallet to connect",
       description: (
-        <>
-          <p className={"pera-wallet-connect-modal-desktop-mode__accordion__description"}>
-            {"Scan the QR code below with Pera Wallet's scan feature."}
-          </p>
-
-          <QRCode
-            id={"pera-wallet-connect-modal-desktop-mode__qr-code"}
-            logoImage={PeraWalletLogoCircleYellow}
-            value={uri}
-            qrStyle={"dots"}
-            quietZone={20}
-            logoWidth={48}
-            logoHeight={48}
-            // eslint-disable no-magic-numbers
-            eyeRadius={5}
-          />
-        </>
+        <QRCode
+          id={"pera-wallet-connect-modal-desktop-mode__qr-code"}
+          logoImage={PeraWalletLogoCircleYellow}
+          value={uri}
+          qrStyle={"dots"}
+          quietZone={20}
+          logoWidth={48}
+          logoHeight={48}
+          // eslint-disable no-magic-numbers
+          eyeRadius={5}
+          size={216}
+        />
       )
     },
     {
@@ -159,6 +154,7 @@ function getPeraConnectModalAccordionData(uri: string): AccordionData[] {
             logoHeight={48}
             // eslint-disable no-magic-numbers
             eyeRadius={5}
+            size={216}
           />
         </>
       )
