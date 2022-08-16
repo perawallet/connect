@@ -1,26 +1,36 @@
-![Pera Wallet Logo](https://perawallet.s3.amazonaws.com/images/logo.svg)
+![Pera Connect Cover Image](https://user-images.githubusercontent.com/54077855/179966121-bd9295c3-5f61-4203-b13f-851434e72d35.png)
 
 ### @perawallet/connect
 
-JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web applications.
+JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web applications. For more detailed information, please check our [Pera Connect Docs](https://docs.perawallet.app/references/pera-connect/).
 
 [![](https://img.shields.io/npm/v/@perawallet/connect?style=flat-square)](https://www.npmjs.com/package/@perawallet/connect) [![](https://img.shields.io/bundlephobia/min/@perawallet/connect?style=flat-square)](https://www.npmjs.com/package/@perawallet/connect)
 
 ### Getting Started
 
-[Try it out using CodeSandbox](#example-applications)
-
 [Learn how to integrate with your JavaScript application](#guide)
 
 [Learn how to Sign Transactions](#sign-transaction)
 
+[Try it out using CodeSandbox](#example-applications)
+
 ### Example Applications
 
-[Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-ib9tqt?file=/src/App.js)
+- [Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-zlvokc)
 
-[Using Vue3](https://codesandbox.io/s/perawallet-connect-vue-demo-m8q3sl?file=/src/App.vue)
+- [Using React Hooks with React@18](https://codesandbox.io/s/perawallet-connect-react-18-demo-tig2md)
 
-### Guide
+- [Using Vue3](https://codesandbox.io/s/perawallet-connect-vue3-demo-yiyw4b)
+
+- [Using Svelte](https://codesandbox.io/s/perawallet-connect-svelte-demo-ys1m4x)
+
+- [Using Next.js](https://codesandbox.io/s/perawallet-connect-next-js-demo-ryhbdb)
+
+- [Using Nuxt.js](https://codesandbox.io/s/perawallet-connect-nuxt-js-demo-s65z58)
+
+- [Vanilla JS](https://codesandbox.io/s/perawallet-connect-vanillajs-demo-s5pjeo)
+
+### Quick Start
 
 Let's start with installing `@perawallet/connect`
 
@@ -28,170 +38,42 @@ Let's start with installing `@perawallet/connect`
 npm install --save @perawallet/connect
 ```
 
-<details>
-  <summary>Using with React 18</summary><br/>
-  
-   When you want to use `@perawallet/connect` library with React 18, you need to make some changes. `react-scripts` stopped polyfilling some of the packages with the `react-scripts@5.x` version. After creating a new app with `npx create-react-app my-app` or in your react application, the following changes should be made.
+```jsx
+// Connect handler
+peraWallet
+  .connect()
+  .then((newAccounts) => {
+    // Setup the disconnect event listener
+    peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
 
-1. Firstly, install the following packages.
-
-```sh
-  npm install buffer
-  npm install crypto-browserify
-  npm install process
-  npm install react-app-rewired
-  npm install stream-browserify
+    setAccountAddress(newAccounts[0]);
+  })
+  .reject((error) => {
+    // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
+    // For the async/await syntax you MUST use try/catch
+    if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
+      // log the necessary errors
+    }
+  });
 ```
 
-2. After that you need to override some webpack features. Create the following file in the root directory of the project and copy the following code block into it.
-
-`config-overrides.js`
+If you don't want the user's account information to be lost by the dApp when the user closes the browser with user’s wallet connected to the dApp, you need to handle the reconnect session status. You can do this in the following way.
 
 ```jsx
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const webpack = require("webpack");
+// On the every page refresh
+peraWallet.reconnectSession().then((accounts) => {
+  // Setup the disconnect event listener
+  peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
 
-module.exports = function override(config) {
-  const fallback = config.resolve.fallback || {};
-
-  Object.assign(fallback, {
-    crypto: require.resolve("crypto-browserify"),
-    stream: require.resolve("stream-browserify")
-  });
-  config.resolve.fallback = fallback;
-  // ignore warning about source map of perawallet/connect
-
-  config.ignoreWarnings = [/Failed to parse source map/];
-  config.plugins = (config.plugins || []).concat([
-    new webpack.ProvidePlugin({
-      process: "process/browser",
-      Buffer: ["buffer", "Buffer"]
-    })
-  ]);
-  return config;
-};
-```
-
-3. Finally, you need to update the npm scripts.
-
-`{ "start": "react-app-rewired start", "build": "react-app-rewired build" }`
-
-After that, you are good to go! 🎊
-
-</details>
-
-#### Using React Hooks
-
-```typescript
-import {PeraWalletConnect} from "@perawallet/connect";
-
-// Create the PeraWalletConnect instance outside of the component
-const peraWallet = new PeraWalletConnect();
-
-function App() {
-  const [accountAddress, setAccountAddress] = useState<string | null>(null);
-  const isConnectedToPeraWallet = !!accountAddress;
-
-  useEffect(() => {
-    // Reconnect to the session when the component is mounted
-    peraWallet.reconnectSession().then((accounts) => {
-      // Setup the disconnect event listener
-      peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
-
-      if (accounts.length) {
-        setAccountAddress(accounts[0]);
-      }
-    });
-  }, []);
-
-  return (
-    <button
-      onClick={
-        isConnectedToPeraWallet ? handleDisconnectWalletClick : handleConnectWalletClick
-      }>
-      {isConnectedToPeraWallet ? "Disconnect" : "Connect to Pera Wallet"}
-    </button>
-  );
-
-  function handleConnectWalletClick() {
-    peraWallet
-      .connect()
-      .then((newAccounts) => {
-        // Setup the disconnect event listener
-        peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
-
-        setAccountAddress(newAccounts[0]);
-      })
-      .reject((error) => {
-        // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
-        // For the async/await syntax you MUST use try/catch
-        if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
-          // log the necessary errors
-        }
-      });
+  if (accounts.length) {
+    setAccountAddress(accounts[0]);
   }
-
-  function handleDisconnectWalletClick() {
-    peraWallet.disconnect();
-
-    setAccountAddress(null);
-  }
-}
-```
-
-### Sign Transaction
-
-`@perawallet/connect` also allows signing transactions using the Pera Wallet application. Once the `signTransaction` method is triggered if the user is on a mobile browser, the Pera Wallet app will be launched automatically, if the browser blocks the redirection there's also a popup that links to the Pera Wallet app.
-
-`@perawallet/connect` guides users with a toast message when the `signTransaction` is triggered on desktop. It's enabled by default but in some cases, you may not need to the toast message (e.g. you already have signing guidance for users). There's an option called `shouldShowSignTxnToast` to disable it, see the example below:
-
-```js
-const peraWallet = new PeraWalletConnect({shouldShowSignTxnToast: false});
-```
-
-You can also call the `closePeraWalletSignTxnToast` function to hide the toast.
-
-```js
-import {closePeraWalletSignTxnToast} from "@perawallet/connect";
-
-// ...Business logic
-
-// Close the toast message
-closePeraWalletSignTxnToast();
-```
-
-`signTransaction` accepts `SignerTransaction[][]` the type can be found [here](./src/util/model/peraWalletModels.ts)
-
-**To see more details & working examples please [visit here](https://codesandbox.io/s/txns-demo-pj3nf2)**
-
-```javascript
-// Setting up algosdk client
-const algod = new algosdk.Algodv2("", "https://node.testnet.algoexplorerapi.io/", 443);
-
-// Setting up Transactions
-const suggestedParams = await algod.getTransactionParams().do();
-const optInTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-  from: FROM_ADDRESS,
-  to: FROM_ADDRESS,
-  assetIndex: ASSET_ID,
-  amount: 0,
-  suggestedParams
 });
-const optInTxn2 = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-  from: FROM_ADDRESS,
-  to: FROM_ADDRESS,
-  assetIndex: ASSET_ID,
-  amount: 0,
-  suggestedParams
-});
+```
 
-// Mapping `Transaction` to `SignerTransaction[]`
-const singleTxnGroups = [{txn: optInTxn, signers: [FROM_ADDRESS]}];
-const multipleTxnGroups = [
-  {txn: optInTxn, signers: [FROM_ADDRESS]},
-  {txn: optInTxn2, signers: [FROM_ADDRESS]}
-];
+After that you can sign transaction with this way
 
+```jsx
 // Single Transaction
 try {
   const signedTxn = await peraWallet.signTransaction([singleTxnGroups]);
@@ -207,6 +89,17 @@ try {
 }
 ```
 
+### Customizing Style
+
+You can override the z-index using the `.pera-wallet-connect-modal` class so that the modal does not conflict with another component on your application.
+
+```scss
+.pera-wallet-connect-modal {
+  // The default value of z-index is 10. You can lower and raise it as much as you want.
+  z-index: 11;
+}
+```
+
 ### Your app name on Pera Wallet
 
 By default, the connect wallet drawer on Pera Wallet gets the app name from `document.title`.
@@ -216,3 +109,7 @@ In some cases, you may want to customize it. You can achieve this by adding a me
 ```html
 <meta name="name" content="My dApp" />
 ```
+
+### Contributing
+
+All contributions are welcomed! To get more information about the details, please read the [contribution](./CONTRIBUTING.md) guide first.
