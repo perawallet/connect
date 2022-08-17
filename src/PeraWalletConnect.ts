@@ -103,7 +103,7 @@ class PeraWalletConnect {
 
     function onReceiveMessage(event: MessageEvent<TellerMessage<PeraTeller>>) {
       if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
-        const accounts = [event.data.message.data.address];
+        const accounts = event.data.message.data.addresses;
 
         saveWalletDetailsToStorage(accounts, "pera-wallet-web");
 
@@ -163,7 +163,7 @@ class PeraWalletConnect {
         appTellerManager.setupListener({
           onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
             if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
-              const accounts = [event.data.message.data.address];
+              const accounts = event.data.message.data.addresses;
 
               saveWalletDetailsToStorage(accounts, "pera-wallet-web");
 

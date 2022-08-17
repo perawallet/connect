@@ -14,7 +14,7 @@ export type PeraTeller =
       type: "CONNECT_CALLBACK";
       data: {
         name?: string;
-        address: string;
+        addresses: string[];
       };
     }
   | {
