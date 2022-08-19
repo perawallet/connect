@@ -144,7 +144,7 @@ function getPeraConnectModalAccordionData({
       title: (
         <div className={"pera-wallet-accordion-button__content-with-label"}>
           <div>
-            {"Connect with"}
+            <span>{"Connect with"}</span>
 
             <span className={"pera-wallet-accordion-button__bold-color"}>
               {" Pera Web"}
