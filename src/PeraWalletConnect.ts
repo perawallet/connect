@@ -101,6 +101,8 @@ class PeraWalletConnect {
 
     const {network} = this;
 
+    const peraWalletIframe = document.createElement("iframe");
+
     function onReceiveMessage(event: MessageEvent<TellerMessage<PeraTeller>>) {
       if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
         const accounts = event.data.message.data.addresses;
@@ -110,9 +112,47 @@ class PeraWalletConnect {
         resolve(accounts);
 
         onClose();
-      }
 
-      document.getElementById("pera-wallet-iframe")?.remove();
+        document.getElementById("pera-wallet-iframe")?.remove();
+      } else if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
+        const peraWalletConnectModal = document.getElementsByClassName(
+          "pera-wallet-connect-modal"
+        )[0];
+
+        peraWalletConnectModal.classList.add(
+          "pera-wallet-connect-modal--create-passcode"
+        );
+        peraWalletConnectModal.classList.remove(
+          "pera-wallet-connect-modal--select-account"
+        );
+
+        appTellerManager.sendMessage({
+          message: {
+            type: "CREATE_PASSCODE_EMBEDDED_CALLBACK"
+          },
+
+          origin: PERA_WEB_WALLET_URL[network].CONNECT,
+          targetWindow: peraWalletIframe.contentWindow!
+        });
+      } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
+        const peraWalletConnectModal = document.getElementsByClassName(
+          "pera-wallet-connect-modal"
+        )[0];
+
+        peraWalletConnectModal.classList.add("pera-wallet-connect-modal--select-account");
+        peraWalletConnectModal.classList.remove(
+          "pera-wallet-connect-modal--create-passcode"
+        );
+
+        appTellerManager.sendMessage({
+          message: {
+            type: "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
+          },
+
+          origin: PERA_WEB_WALLET_URL[network].CONNECT,
+          targetWindow: peraWalletIframe.contentWindow!
+        });
+      }
     }
 
     function onWebWalletConnect() {
@@ -120,7 +160,6 @@ class PeraWalletConnect {
         const peraWalletWebWalletTab = document.getElementsByClassName(
           "pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
         )[0];
-        const peraWalletIframe = document.createElement("iframe");
 
         peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
         peraWalletIframe.setAttribute("src", PERA_WEB_EMBEED_WALLET_URL[network].CONNECT);

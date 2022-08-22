@@ -24,6 +24,57 @@
   height: 100vh;
 
   background-color: rgba(0, 0, 0, 0.3);
+  &--create-passcode,
+  &--select-account {
+    .pera-wallet-connect-modal__body {
+      width: 480px;
+
+      background-color: #ffffff;
+
+      .pera-wallet-connect-modal-desktop-mode__web-wallet-iframe {
+        position: unset;
+      }
+
+      .pera-wallet-connect-modal-desktop-mode {
+        width: 100%;
+        height: 100%;
+      }
+
+      .pera-wallet-accordion {
+        overflow: hidden;
+      }
+
+      #pera-wallet-iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        width: 480px;
+
+        border-radius: 16px;
+      }
+    }
+  }
+
+  &--create-passcode {
+    .pera-wallet-connect-modal__body {
+      height: 634px;
+
+      #pera-wallet-iframe {
+        height: 634px;
+      }
+    }
+  }
+
+  &--select-account {
+    .pera-wallet-connect-modal__body {
+      height: 569px;
+
+      #pera-wallet-iframe {
+        height: 569px;
+      }
+    }
+  }
 
   * {
     box-sizing: border-box;

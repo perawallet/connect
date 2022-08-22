@@ -18,6 +18,18 @@ export type PeraTeller =
       };
     }
   | {
+      type: "CREATE_PASSCODE_EMBEDDED";
+    }
+  | {
+      type: "SELECT_ACCOUNT_EMBEDDED";
+    }
+  | {
+      type: "CREATE_PASSCODE_EMBEDDED_CALLBACK";
+    }
+  | {
+      type: "SELECT_ACCOUNT_EMBEDDED_CALLBACK";
+    }
+  | {
       type: "SIGN_TXN";
       txn: PeraWalletTransaction[];
     }
