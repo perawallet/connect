@@ -13,6 +13,8 @@ import PeraWalletConnectModal from "./PeraWalletConnectModal";
 import PeraWalletRedirectModal from "./redirect/PeraWalletRedirectModal";
 import PeraWalletSignTxnToast from "./sign-toast/PeraWalletSignTxnToast";
 import {detectBrowser} from "../util/device/deviceUtils";
+import PeraWalletSignTxnModal from "./sign-txn/PeraWalletSignTxnModal";
+import {waitForElementCreatedAtDOM} from "../util/dom/domUtils";
 
 // The ID of the wrapper element for PeraWalletConnectModal
 const PERA_WALLET_CONNECT_MODAL_ID = "pera-wallet-connect-modal-wrapper";
@@ -22,6 +24,9 @@ const PERA_WALLET_REDIRECT_MODAL_ID = "pera-wallet-redirect-modal-wrapper";
 
 // The ID of the wrapper element for PeraWalletSignTxnToast
 const PERA_WALLET_SIGN_TXN_TOAST_ID = "pera-wallet-sign-txn-toast-wrapper";
+
+// The ID of the wrapper element for PeraWalletSignTxnToast
+const PERA_WALLET_SIGN_TXN_MODAL_ID = "pera-wallet-sign-txn-modal-wrapper";
 
 /**
  * @returns {HTMLDivElement} wrapper element for PeraWalletConnectModal
@@ -97,7 +102,26 @@ function openPeraWalletRedirectModal() {
 }
 
 /**
- * Creates a PeraWalletSignTxnToast instance and renders it on the DOM.
+ * Creates a PeraWalletSignTxnModal instance and renders it on the DOM.
+ *
+ * @returns PeraWalletSignTxnModal element
+ */
+function openPeraWalletSignTxnModal() {
+  const root = ReactDOM.createRoot(
+    createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_MODAL_ID)
+  );
+
+  root.render(<PeraWalletSignTxnModal onClose={closePeraWalletSignTxnModal} />);
+
+  return waitForElementCreatedAtDOM("pera-wallet-sign-txn-modal__body__content");
+}
+
+function closePeraWalletSignTxnModal() {
+  removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
+}
+
+/**
+ * Creates a PeraWalletSignTxnModal
  *
  * @returns {void}
  */
@@ -239,9 +263,12 @@ export {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_REDIRECT_MODAL_ID,
   PERA_WALLET_SIGN_TXN_TOAST_ID,
+  PERA_WALLET_SIGN_TXN_MODAL_ID,
   openPeraWalletConnectModal,
   openPeraWalletRedirectModal,
   openPeraWalletSignTxnToast,
   closePeraWalletSignTxnToast,
-  removeModalWrapperFromDOM
+  removeModalWrapperFromDOM,
+  openPeraWalletSignTxnModal,
+  closePeraWalletSignTxnModal
 };

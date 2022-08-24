@@ -32,10 +32,10 @@ function PeraWalletRedirectModal({onClose}: PeraWalletRedirectModalProps) {
 
   return (
     <div
-      className={"pera-wallet-connect-modal"}
+      className={"pera-wallet-modal"}
       style={{"--pera-wallet-main-color": main_color} as React.CSSProperties}>
-      <div className={"pera-wallet-connect-modal__body"}>
-        <div className={"pera-wallet-wallet-redirect-modal"}>
+      <div className={"pera-wallet-modal__body"}>
+        <div className={"pera-wallet-redirect-modal"}>
           <div className={"pera-wallet-redirect-modal__content"}>
             <img src={PeraRedirectIcon} />
 

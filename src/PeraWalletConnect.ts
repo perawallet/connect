@@ -10,7 +10,8 @@ import {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_REDIRECT_MODAL_ID,
   openPeraWalletSignTxnToast,
-  PERA_WALLET_SIGN_TXN_TOAST_ID
+  PERA_WALLET_SIGN_TXN_TOAST_ID,
+  openPeraWalletSignTxnModal
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
@@ -115,16 +116,11 @@ class PeraWalletConnect {
 
         document.getElementById("pera-wallet-iframe")?.remove();
       } else if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
-        const peraWalletConnectModal = document.getElementsByClassName(
-          "pera-wallet-connect-modal"
-        )[0];
+        const peraWalletConnectModal =
+          document.getElementsByClassName("pera-wallet-modal")[0];
 
-        peraWalletConnectModal.classList.add(
-          "pera-wallet-connect-modal--create-passcode"
-        );
-        peraWalletConnectModal.classList.remove(
-          "pera-wallet-connect-modal--select-account"
-        );
+        peraWalletConnectModal.classList.add("pera-wallet-modal--create-passcode");
+        peraWalletConnectModal.classList.remove("pera-wallet-modal--select-account");
 
         appTellerManager.sendMessage({
           message: {
@@ -135,14 +131,11 @@ class PeraWalletConnect {
           targetWindow: peraWalletIframe.contentWindow!
         });
       } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
-        const peraWalletConnectModal = document.getElementsByClassName(
-          "pera-wallet-connect-modal"
-        )[0];
+        const peraWalletConnectModal =
+          document.getElementsByClassName("pera-wallet-modal")[0];
 
-        peraWalletConnectModal.classList.add("pera-wallet-connect-modal--select-account");
-        peraWalletConnectModal.classList.remove(
-          "pera-wallet-connect-modal--create-passcode"
-        );
+        peraWalletConnectModal.classList.add("pera-wallet-modal--select-account");
+        peraWalletConnectModal.classList.remove("pera-wallet-modal--create-passcode");
 
         appTellerManager.sendMessage({
           message: {
@@ -378,31 +371,39 @@ class PeraWalletConnect {
   }
 
   private signTransactionWithWeb(signTxnRequestParams: PeraWalletTransaction[]) {
-    const peraWalletIframe = document.createElement("iframe");
+    openPeraWalletSignTxnModal()
+      .then((modal) => {
+        const peraWalletSignTxnModal = modal;
+        const peraWalletIframe = document.createElement("iframe");
 
-    peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
-    peraWalletIframe.setAttribute(
-      "src",
-      PERA_WEB_WALLET_URL[this.network].TRANSACTION_SIGN
-    );
+        peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
+        peraWalletIframe.setAttribute(
+          "src",
+          PERA_WEB_EMBEED_WALLET_URL[this.network].TRANSACTION_SIGN
+        );
 
-    document.body.appendChild(peraWalletIframe);
+        peraWalletSignTxnModal?.appendChild(peraWalletIframe);
 
-    if (peraWalletIframe.contentWindow) {
-      appTellerManager.sendMessage({
-        message: {
-          type: "SIGN_TXN",
-          txn: signTxnRequestParams
-        },
+        if (peraWalletIframe.contentWindow) {
+          appTellerManager.sendMessage({
+            message: {
+              type: "SIGN_TXN",
+              txn: signTxnRequestParams
+            },
 
-        origin: PERA_WEB_WALLET_URL[this.network].ROOT,
-        targetWindow: peraWalletIframe.contentWindow
+            origin: PERA_WEB_EMBEED_WALLET_URL[this.network].ROOT,
+            targetWindow: peraWalletIframe.contentWindow
+          });
+        }
+
+        // Returns a promise that waits for the response from the web wallet.
+        // The promise is resolved when the web wallet responds with the signed txn.
+        // The promise is rejected when the web wallet responds with an error.
+      })
+      .catch((error) => {
+        console.log(error);
       });
-    }
 
-    // Returns a promise that waits for the response from the web wallet.
-    // The promise is resolved when the web wallet responds with the signed txn.
-    // The promise is rejected when the web wallet responds with an error.
     return new Promise<Uint8Array[]>((resolve, reject) => {
       appTellerManager.setupListener({
         onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
@@ -464,6 +465,8 @@ class PeraWalletConnect {
         if (Array.isArray(signers)) {
           txnRequestParams.signers = signers;
         }
+
+        console.log(signers);
 
         return txnRequestParams;
       })

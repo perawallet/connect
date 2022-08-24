@@ -35,11 +35,11 @@ function PeraWalletConnectModal({
   }, [onWebWalletConnect, browser]);
 
   return (
-    <div className={"pera-wallet-connect-modal"}>
-      <div className={"pera-wallet-connect-modal__body"}>
-        <div className={"pera-wallet-connect-modal__body__header"}>
+    <div className={"pera-wallet-modal"}>
+      <div className={"pera-wallet-modal__body"}>
+        <div className={"pera-wallet-modal__body__header"}>
           {!isSmallScreen && (
-            <div className={"pera-wallet-connect-modal__body__header__brand"}>
+            <div className={"pera-wallet-modal__body__header__brand"}>
               <img src={PeraConnectIcon} />
 
               {"Pera Connect"}
@@ -47,12 +47,10 @@ function PeraWalletConnectModal({
           )}
 
           <button
-            className={
-              "pera-wallet-connect-button pera-wallet-connect-modal__close-button"
-            }
+            className={"pera-wallet-button pera-wallet-modal__close-button"}
             onClick={onClose}>
             <img
-              className={"pera-wallet-connect-modal__close-button__close-icon"}
+              className={"pera-wallet-modal__close-button__close-icon"}
               src={isSmallScreen ? CloseIconDark : CloseIcon}
             />
           </button>
