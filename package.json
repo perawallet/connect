@@ -35,6 +35,7 @@
   "dependencies": {
     "@json-rpc-tools/utils": "^1.7.6",
     "@walletconnect/client": "^1.7.7",
+    "bowser": "^2.11.0",
     "buffer": "^6.0.3",
     "lottie-react": "^2.3.1",
     "react-qrcode-logo": "^2.7.0"
