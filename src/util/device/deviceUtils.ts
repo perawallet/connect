@@ -1,4 +1,4 @@
-type BrowserName = "chrome" | "firefox" | "opera" | "safari" | "edge" | "brave";
+import Bowser from "bowser";
 
 function isNavigatorAvailable() {
   return typeof navigator !== "undefined";
@@ -26,25 +26,18 @@ function detectBrowser() {
   }
 
   const {userAgent} = navigator;
-  let browserName: BrowserName | undefined;
+  let browserName: string;
 
-  if (userAgent.match(/chrome|chromium|crios/i)) {
-    browserName = "chrome";
-  } else if (userAgent.match(/firefox|fxios/i)) {
-    browserName = "firefox";
-  } else if (userAgent.match(/safari/i)) {
-    browserName = "safari";
-  } else if (userAgent.match(/opr\//i)) {
-    browserName = "opera";
-  } else if (userAgent.match(/edg/i)) {
-    browserName = "edge";
-  } else {
-    browserName = undefined;
+  if (userAgent.match(/DuckDuckGo/i)) {
+    browserName = "DuckDuckGo";
+  } else if (userAgent.match(/OPX/i)) {
+    browserName = "Opera GX";
   }
-
   // @ts-ignore brave object exists on Brave
-  if (navigator.brave) {
-    browserName = "brave";
+  else if (navigator.brave) {
+    browserName = "Brave";
+  } else {
+    browserName = Bowser.getParser(navigator.userAgent).getBrowserName();
   }
 
   return browserName;
