@@ -1,6 +1,6 @@
 {
   "name": "@perawallet/connect",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
   "main": "dist/index.js",
   "scripts": {
@@ -35,6 +35,7 @@
   "dependencies": {
     "@json-rpc-tools/utils": "^1.7.6",
     "@walletconnect/client": "^1.7.7",
+    "bowser": "^2.11.0",
     "buffer": "^6.0.3",
     "lottie-react": "^2.3.1",
     "react-qrcode-logo": "^2.7.0"
