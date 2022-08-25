@@ -22,7 +22,8 @@ export default [
       "react-qrcode-logo",
       "@json-rpc-tools/utils/dist/cjs/format",
       "algosdk",
-      "lottie-react"
+      "lottie-react",
+      "bowser"
     ],
     plugins: [
       image(),
