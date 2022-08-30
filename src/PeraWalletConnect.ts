@@ -11,7 +11,8 @@ import {
   PERA_WALLET_REDIRECT_MODAL_ID,
   openPeraWalletSignTxnToast,
   PERA_WALLET_SIGN_TXN_TOAST_ID,
-  openPeraWalletSignTxnModal
+  openPeraWalletSignTxnModal,
+  closePeraWalletSignTxnModal
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
@@ -371,44 +372,71 @@ class PeraWalletConnect {
   }
 
   private signTransactionWithWeb(signTxnRequestParams: PeraWalletTransaction[]) {
-    openPeraWalletSignTxnModal()
-      .then((modal) => {
-        const peraWalletSignTxnModal = modal;
-        const peraWalletIframe = document.createElement("iframe");
+    const browser = detectBrowser();
+    let newPeraWalletTab: Window | null;
 
-        peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
-        peraWalletIframe.setAttribute(
-          "src",
-          PERA_WEB_EMBEED_WALLET_URL[this.network].TRANSACTION_SIGN
-        );
+    if (browser === "chrome") {
+      openPeraWalletSignTxnModal()
+        .then((modal) => {
+          const peraWalletSignTxnModal = modal;
+          const peraWalletIframe = document.createElement("iframe");
 
-        peraWalletSignTxnModal?.appendChild(peraWalletIframe);
+          peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
+          peraWalletIframe.setAttribute(
+            "src",
+            PERA_WEB_EMBEED_WALLET_URL[this.network].TRANSACTION_SIGN
+          );
 
-        if (peraWalletIframe.contentWindow) {
-          appTellerManager.sendMessage({
-            message: {
-              type: "SIGN_TXN",
-              txn: signTxnRequestParams
-            },
+          peraWalletSignTxnModal?.appendChild(peraWalletIframe);
 
-            origin: PERA_WEB_EMBEED_WALLET_URL[this.network].ROOT,
-            targetWindow: peraWalletIframe.contentWindow
-          });
-        }
+          if (peraWalletIframe.contentWindow) {
+            appTellerManager.sendMessage({
+              message: {
+                type: "SIGN_TXN",
+                txn: signTxnRequestParams
+              },
 
-        // Returns a promise that waits for the response from the web wallet.
-        // The promise is resolved when the web wallet responds with the signed txn.
-        // The promise is rejected when the web wallet responds with an error.
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+              origin: PERA_WEB_EMBEED_WALLET_URL[this.network].ROOT,
+              targetWindow: peraWalletIframe.contentWindow
+            });
+          }
+
+          // Returns a promise that waits for the response from the web wallet.
+          // The promise is resolved when the web wallet responds with the signed txn.
+          // The promise is rejected when the web wallet responds with an error.
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } else {
+      newPeraWalletTab = window.open(
+        PERA_WEB_WALLET_URL[this.network].TRANSACTION_SIGN,
+        "_blank"
+      );
+
+      if (newPeraWalletTab && newPeraWalletTab.opener) {
+        appTellerManager.sendMessage({
+          message: {
+            type: "SIGN_TXN",
+            txn: signTxnRequestParams
+          },
+
+          origin: PERA_WEB_WALLET_URL[this.network].ROOT,
+          targetWindow: newPeraWalletTab
+        });
+      }
+    }
 
     return new Promise<Uint8Array[]>((resolve, reject) => {
       appTellerManager.setupListener({
         onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
           if (event.data.message.type === "SIGN_TXN_CALLBACK") {
-            document.getElementById("pera-wallet-iframe")?.remove();
+            if (browser === "chrome") {
+              document.getElementById("pera-wallet-iframe")?.remove();
+              closePeraWalletSignTxnModal();
+            }
+
+            newPeraWalletTab?.close();
 
             resolve(
               event.data.message.signedTxns.map((txn) =>
@@ -418,7 +446,12 @@ class PeraWalletConnect {
           }
 
           if (event.data.message.type === "SESSION_DISCONNECTED") {
-            document.getElementById("pera-wallet-iframe")?.remove();
+            if (browser === "chrome") {
+              document.getElementById("pera-wallet-iframe")?.remove();
+              closePeraWalletSignTxnModal();
+            }
+
+            newPeraWalletTab?.close();
 
             resetWalletDetailsFromStorage();
 
