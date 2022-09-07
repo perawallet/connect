@@ -28,12 +28,9 @@ import {
 } from "./util/transaction/transactionUtils";
 import {detectBrowser, isMobile} from "./util/device/deviceUtils";
 import {AppMeta, PeraWalletNetwork} from "./util/peraWalletTypes";
-import {getPeraWalletAppMeta} from "./util/peraWalletUtils";
+import {generateEmbeddedWalletURL, getPeraWalletAppMeta} from "./util/peraWalletUtils";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
-import {
-  PERA_WEB_EMBEED_WALLET_URL,
-  PERA_WEB_WALLET_URL
-} from "./util/peraWalletConstants";
+import {PERA_WEB_WALLET_URL} from "./util/peraWalletConstants";
 import {getMetaInfo} from "./util/dom/domUtils";
 
 interface PeraWalletConnectOptions {
@@ -162,7 +159,10 @@ class PeraWalletConnect {
         )[0];
 
         peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
-        peraWalletIframe.setAttribute("src", PERA_WEB_EMBEED_WALLET_URL[network].CONNECT);
+        peraWalletIframe.setAttribute(
+          "src",
+          generateEmbeddedWalletURL(PERA_WEB_WALLET_URL[network].CONNECT)
+        );
 
         peraWalletWebWalletTab.appendChild(peraWalletIframe);
 
