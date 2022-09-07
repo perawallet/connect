@@ -1,0 +1,17 @@
+.pera-wallet-sign-txn-modal.pera-wallet-modal {
+  .pera-wallet-modal__body {
+    width: 480px;
+    height: 640px;
+
+    #pera-wallet-iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 100%;
+
+      border-radius: 16px;
+    }
+  }
+}

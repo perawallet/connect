@@ -1,14 +1,14 @@
-import CloseIcon from "../asset/icon/Close.svg";
-import CloseIconDark from "../asset/icon/Close--dark.svg";
-
 import "./_pera-wallet-modal.scss";
 
-import React from "react";
+import React, {useEffect} from "react";
 
 import {useIsSmallScreen} from "../util/screen/useMediaQuery";
 import PeraWalletConnectModalTouchScreenMode from "./mode/touch-screen/PeraWalletConnectModalTouchScreenMode";
 import PeraWalletConnectModalDesktopMode from "./mode/desktop/PeraWalletConnectModalDesktopMode";
 import useSetDynamicVhValue from "../util/screen/useSetDynamicVhValue";
+import {detectBrowser} from "../util/device/deviceUtils";
+import PeraWalletModalHeader from "./header/PeraWalletModalHeader";
+import {PERA_WALLET_MODAL_CLASSNAME} from "./peraWalletConnectModalUtils";
 
 interface PeraWalletConnectModalProps {
   uri: string;
@@ -22,21 +22,20 @@ function PeraWalletConnectModal({
   onWebWalletConnect
 }: PeraWalletConnectModalProps) {
   const isSmallScreen = useIsSmallScreen();
+  const browser = detectBrowser();
 
   useSetDynamicVhValue();
 
+  useEffect(() => {
+    if (browser === "chrome") {
+      onWebWalletConnect();
+    }
+  }, [onWebWalletConnect, browser]);
+
   return (
-    <div className={"pera-wallet-connect-modal"}>
-      <div className={"pera-wallet-connect-modal__body"}>
-        <div className={"pera-wallet-connect-modal__body__header"}>
-          <button
-            className={
-              "pera-wallet-connect-button pera-wallet-connect-modal__close-button"
-            }
-            onClick={onClose}>
-            <img src={isSmallScreen ? CloseIconDark : CloseIcon} />
-          </button>
-        </div>
+    <div className={PERA_WALLET_MODAL_CLASSNAME}>
+      <div className={"pera-wallet-modal__body"}>
+        <PeraWalletModalHeader onClose={onClose} />
 
         {isSmallScreen ? (
           <PeraWalletConnectModalTouchScreenMode uri={uri} />

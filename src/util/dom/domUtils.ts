@@ -68,4 +68,25 @@ function getFavicons() {
   return icons;
 }
 
-export {getMetaInfo, getFavicons};
+function waitForElementCreatedAtDOM(className: string): Promise<Element> {
+  // eslint-disable-next-line consistent-return
+  return new Promise<Element>((resolve) => {
+    if (document.getElementsByClassName(className)[0]) {
+      return resolve(document.getElementsByClassName(className)[0]);
+    }
+
+    const observer = new MutationObserver(() => {
+      if (document.getElementsByClassName(className)[0]) {
+        resolve(document.getElementsByClassName(className)[0]);
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  });
+}
+
+export {getMetaInfo, getFavicons, waitForElementCreatedAtDOM};

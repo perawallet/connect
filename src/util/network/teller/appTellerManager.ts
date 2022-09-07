@@ -14,8 +14,20 @@ export type PeraTeller =
       type: "CONNECT_CALLBACK";
       data: {
         name?: string;
-        address: string;
+        addresses: string[];
       };
+    }
+  | {
+      type: "CREATE_PASSCODE_EMBEDDED";
+    }
+  | {
+      type: "SELECT_ACCOUNT_EMBEDDED";
+    }
+  | {
+      type: "CREATE_PASSCODE_EMBEDDED_CALLBACK";
+    }
+  | {
+      type: "SELECT_ACCOUNT_EMBEDDED_CALLBACK";
     }
   | {
       type: "SIGN_TXN";

@@ -1,5 +1,7 @@
 import PeraWalletLogoCircleYellow from "../asset/icon/PeraWallet--circle-yellow.svg";
-import PeraWalletLogoCircleBlack from "../asset/icon/PeraWallet--circle-black.svg";
+import QrIcon from "../asset/icon/Qr.svg";
+import PeraWebIcon from "../asset/icon/PeraWeb.svg";
+import ChevronRighIcon from "../asset/icon/ChevronRight.svg";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -10,6 +12,9 @@ import PeraWalletConnectError from "../util/PeraWalletConnectError";
 import PeraWalletConnectModal from "./PeraWalletConnectModal";
 import PeraWalletRedirectModal from "./redirect/PeraWalletRedirectModal";
 import PeraWalletSignTxnToast from "./sign-toast/PeraWalletSignTxnToast";
+import {detectBrowser} from "../util/device/deviceUtils";
+import PeraWalletSignTxnModal from "./sign-txn/PeraWalletSignTxnModal";
+import {waitForElementCreatedAtDOM} from "../util/dom/domUtils";
 
 // The ID of the wrapper element for PeraWalletConnectModal
 const PERA_WALLET_CONNECT_MODAL_ID = "pera-wallet-connect-modal-wrapper";
@@ -19,6 +24,19 @@ const PERA_WALLET_REDIRECT_MODAL_ID = "pera-wallet-redirect-modal-wrapper";
 
 // The ID of the wrapper element for PeraWalletSignTxnToast
 const PERA_WALLET_SIGN_TXN_TOAST_ID = "pera-wallet-sign-txn-toast-wrapper";
+
+// The ID of the wrapper element for PeraWalletSignTxnModal
+const PERA_WALLET_SIGN_TXN_MODAL_ID = "pera-wallet-sign-txn-modal-wrapper";
+
+// The ID of the Pera wallet iframe
+const PERA_WALLET_IFRAME_ID = "pera-wallet-iframe";
+
+// The classname of Pera wallet modal
+const PERA_WALLET_MODAL_CLASSNAME = "pera-wallet-modal";
+
+// The classname of Web Wallet IFrame
+const PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME =
+  "pera-wallet-connect-modal-desktop-mode__web-wallet-iframe";
 
 /**
  * @returns {HTMLDivElement} wrapper element for PeraWalletConnectModal
@@ -94,7 +112,26 @@ function openPeraWalletRedirectModal() {
 }
 
 /**
- * Creates a PeraWalletSignTxnToast instance and renders it on the DOM.
+ * Creates a PeraWalletSignTxnModal instance and renders it on the DOM.
+ *
+ * @returns PeraWalletSignTxnModal element
+ */
+function openPeraWalletSignTxnModal() {
+  const root = ReactDOM.createRoot(
+    createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_MODAL_ID)
+  );
+
+  root.render(<PeraWalletSignTxnModal onClose={closePeraWalletSignTxnModal} />);
+
+  return waitForElementCreatedAtDOM("pera-wallet-sign-txn-modal__body__content");
+}
+
+function closePeraWalletSignTxnModal() {
+  removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
+}
+
+/**
+ * Creates a PeraWalletSignTxnModal
  *
  * @returns {void}
  */
@@ -124,77 +161,106 @@ function removeModalWrapperFromDOM(modalId: string) {
 
 interface PeraWalletConnectModalAccordionProps {
   uri: string;
+  handleSetView: VoidFunction;
   onWebWalletConnect: VoidFunction;
 }
 
 function getPeraConnectModalAccordionData({
   uri,
+  handleSetView,
   onWebWalletConnect
 }: PeraWalletConnectModalAccordionProps): AccordionData[] {
+  const browser = detectBrowser();
+
   return [
     {
       id: "web-wallet",
-      title: "Web Wallet",
-      description: (
-        <>
-          <p className={"pera-wallet-connect-modal-desktop-mode__accordion__description"}>
-            {"Click to connect to Pera Wallet Web"}
-          </p>
+      title: (
+        <div className={"pera-wallet-accordion-button__content-with-label"}>
+          <div>
+            <span>{"Connect with"}</span>
 
-          <div
-            className={"pera-wallet-connect-modal-desktop-mode__connect-button-wrapper"}>
+            <span className={"pera-wallet-accordion-button__bold-color"}>
+              {" Pera Web"}
+            </span>
+          </div>
+
+          <span className={"pera-wallet-accordion-button__label"}>{"NEW"}</span>
+        </div>
+      ),
+      description:
+        browser === "chrome" ? (
+          <div className={PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME} />
+        ) : (
+          <div className={"pera-wallet-connect-modal-desktop-mode__web-wallet"}>
+            <div
+              className={
+                "pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper"
+              }>
+              <img src={PeraWebIcon} />
+            </div>
+
+            <p
+              className={
+                "pera-wallet-connect-modal-desktop-mode__web-wallet__description"
+              }>
+              {"Connect with Pera Web to continue"}
+            </p>
+
             <button
-              className={"pera-wallet-connect-modal-desktop-mode__connect-button"}
-              onClick={onWebWalletConnect}>
-              {"Connect"}
+              onClick={onWebWalletConnect}
+              className={
+                "pera-wallet-connect-modal-desktop-mode__web-wallet__launch-button"
+              }>
+              {"Launch Pera Web"}
+
+              <img src={ChevronRighIcon} />
             </button>
           </div>
-        </>
-      )
+        )
     },
     {
       id: "scan-to-connect",
-      title: "Scan to connect",
+      title: (
+        <>
+          {"Connect with"}
+
+          <span className={"pera-wallet-accordion-button__bold-color"}>
+            {" Pera Mobile"}
+          </span>
+        </>
+      ),
       description: (
         <>
-          <p className={"pera-wallet-connect-modal-desktop-mode__accordion__description"}>
-            {"Scan the QR code below with Pera Wallet's scan feature."}
-          </p>
-
           <QRCode
             id={"pera-wallet-connect-modal-desktop-mode__qr-code"}
             logoImage={PeraWalletLogoCircleYellow}
             value={uri}
             qrStyle={"dots"}
-            quietZone={20}
-            logoWidth={48}
-            logoHeight={48}
+            size={190}
+            quietZone={10}
+            logoWidth={64}
+            logoHeight={64}
             // eslint-disable no-magic-numbers
             eyeRadius={5}
           />
-        </>
-      )
-    },
-    {
-      id: "new-to-pera-wallet",
-      title: "New to Pera Wallet?",
-      description: (
-        <>
-          <p className={"pera-wallet-connect-modal-desktop-mode__accordion__description"}>
-            {"Scan the QR code with your phone to download Pera Wallet."}
-          </p>
 
-          <QRCode
-            id={"pera-wallet-connect-modal-desktop-mode__qr-code"}
-            logoImage={PeraWalletLogoCircleBlack}
-            value={"https://perawallet.app/download/"}
-            qrStyle={"dots"}
-            quietZone={20}
-            logoWidth={48}
-            logoHeight={48}
-            // eslint-disable no-magic-numbers
-            eyeRadius={5}
-          />
+          <div>
+            <p
+              className={
+                "pera-wallet-connect-modal-desktop-mode__download-pera-description"
+              }>
+              {"Don’t have Pera Wallet app?"}
+            </p>
+
+            <button
+              className={"pera-wallet-connect-modal-desktop-mode__download-pera-button"}
+              onClick={handleSetView}>
+              <img src={QrIcon} alt={"QR Icon"} />
+
+              {"Download Pera Wallet"}
+            </button>
+          </div>
         </>
       )
     }
@@ -207,9 +273,15 @@ export {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_REDIRECT_MODAL_ID,
   PERA_WALLET_SIGN_TXN_TOAST_ID,
+  PERA_WALLET_SIGN_TXN_MODAL_ID,
+  PERA_WALLET_MODAL_CLASSNAME,
+  PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME,
+  PERA_WALLET_IFRAME_ID,
   openPeraWalletConnectModal,
   openPeraWalletRedirectModal,
   openPeraWalletSignTxnToast,
   closePeraWalletSignTxnToast,
-  removeModalWrapperFromDOM
+  removeModalWrapperFromDOM,
+  openPeraWalletSignTxnModal,
+  closePeraWalletSignTxnModal
 };

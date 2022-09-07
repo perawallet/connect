@@ -10,25 +10,26 @@
 }
 
 .pera-wallet-connect-modal-information-section__title {
-  margin-bottom: 82px;
+  margin-bottom: 148px;
 
-  color: #2c3559;
+  color: #3c3c49;
 
-  font-size: 22px;
-  line-height: 30px;
-  letter-spacing: -0.4px;
+  font-size: 20px;
   font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.5px;
 }
 
 .pera-wallet-connect-modal-information-section__secondary-title {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 
-  color: #69708d;
+  color: #9d9dae;
 
-  font-size: 10px;
-  line-height: 20px;
-  letter-spacing: 2px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: 0.06px;
+
   text-transform: uppercase;
 }
 
@@ -39,7 +40,7 @@
   gap: 16px;
 
   &:not(:last-of-type) {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
 }
 
@@ -57,12 +58,12 @@
 }
 
 .pera-wallet-connect-modal-information-section__features-item__description {
-  color: #2c3559;
+  color: #6a6a81;
 
   font-size: 12px;
-  line-height: 20px;
-  letter-spacing: 0.01px;
   font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.01px;
 }
 
 @include for-small-screens {
@@ -77,7 +78,7 @@
   .pera-wallet-connect-modal-information-section__connect-pera-title {
     margin-bottom: 8px;
 
-    color: #2c3559;
+    color: #3c3c49;
 
     font-size: 18px;
     font-weight: 600;
@@ -88,7 +89,7 @@
   .pera-wallet-connect-modal-information-section__title {
     margin-bottom: 40px;
 
-    color: #2c3559;
+    color: #3c3c49;
 
     font-size: 14px;
     line-height: 24px;
@@ -101,6 +102,6 @@
   }
 
   .pera-wallet-connect-modal-information-section__features-item__description {
-    color: #69708d;
+    color: #6a6a81;
   }
 }

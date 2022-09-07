@@ -27,7 +27,7 @@ function PeraWalletConnectModalPendingMessage({
 
       <button
         className={
-          "pera-wallet-connect-button pera-wallet-connect-modal-pending-message__cancel-button"
+          "pera-wallet-button pera-wallet-connect-modal-pending-message__cancel-button"
         }
         onClick={handleCancelClick}>
         {"Cancel"}
