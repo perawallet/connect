@@ -12,7 +12,10 @@ import {
   openPeraWalletSignTxnToast,
   PERA_WALLET_SIGN_TXN_TOAST_ID,
   openPeraWalletSignTxnModal,
-  closePeraWalletSignTxnModal
+  closePeraWalletSignTxnModal,
+  PERA_WALLET_IFRAME_ID,
+  PERA_WALLET_MODAL_CLASSNAME,
+  PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
@@ -115,13 +118,18 @@ class PeraWalletConnect {
 
         onClose();
 
-        document.getElementById("pera-wallet-iframe")?.remove();
+        document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
       } else if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
-        const peraWalletConnectModal =
-          document.getElementsByClassName("pera-wallet-modal")[0];
+        const peraWalletConnectModal = document.getElementsByClassName(
+          PERA_WALLET_MODAL_CLASSNAME
+        )[0];
 
-        peraWalletConnectModal.classList.add("pera-wallet-modal--create-passcode");
-        peraWalletConnectModal.classList.remove("pera-wallet-modal--select-account");
+        peraWalletConnectModal.classList.add(
+          `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
+        );
+        peraWalletConnectModal.classList.remove(
+          `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
+        );
 
         appTellerManager.sendMessage({
           message: {
@@ -132,11 +140,16 @@ class PeraWalletConnect {
           targetWindow: peraWalletIframe.contentWindow!
         });
       } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
-        const peraWalletConnectModal =
-          document.getElementsByClassName("pera-wallet-modal")[0];
+        const peraWalletConnectModal = document.getElementsByClassName(
+          PERA_WALLET_MODAL_CLASSNAME
+        )[0];
 
-        peraWalletConnectModal.classList.add("pera-wallet-modal--select-account");
-        peraWalletConnectModal.classList.remove("pera-wallet-modal--create-passcode");
+        peraWalletConnectModal.classList.add(
+          `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
+        );
+        peraWalletConnectModal.classList.remove(
+          `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
+        );
 
         appTellerManager.sendMessage({
           message: {
@@ -152,10 +165,10 @@ class PeraWalletConnect {
     function onWebWalletConnect() {
       if (browser === "chrome") {
         const peraWalletWebWalletTab = document.getElementsByClassName(
-          "pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
+          PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME
         )[0];
 
-        peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
+        peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
         peraWalletIframe.setAttribute("src", PERA_WEB_EMBEED_WALLET_URL[network].CONNECT);
 
         peraWalletWebWalletTab.appendChild(peraWalletIframe);
@@ -381,7 +394,7 @@ class PeraWalletConnect {
           const peraWalletSignTxnModal = modal;
           const peraWalletIframe = document.createElement("iframe");
 
-          peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
+          peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
           peraWalletIframe.setAttribute(
             "src",
             PERA_WEB_EMBEED_WALLET_URL[this.network].TRANSACTION_SIGN
@@ -432,7 +445,7 @@ class PeraWalletConnect {
         onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
           if (event.data.message.type === "SIGN_TXN_CALLBACK") {
             if (browser === "chrome") {
-              document.getElementById("pera-wallet-iframe")?.remove();
+              document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
               closePeraWalletSignTxnModal();
             }
 
@@ -447,7 +460,7 @@ class PeraWalletConnect {
 
           if (event.data.message.type === "SESSION_DISCONNECTED") {
             if (browser === "chrome") {
-              document.getElementById("pera-wallet-iframe")?.remove();
+              document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
               closePeraWalletSignTxnModal();
             }
 
@@ -498,8 +511,6 @@ class PeraWalletConnect {
         if (Array.isArray(signers)) {
           txnRequestParams.signers = signers;
         }
-
-        console.log(signers);
 
         return txnRequestParams;
       })

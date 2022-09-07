@@ -10,6 +10,7 @@ import {
   getPeraWalletAppMeta
 } from "../../util/peraWalletUtils";
 import useSetDynamicVhValue from "../../util/screen/useSetDynamicVhValue";
+import {PERA_WALLET_MODAL_CLASSNAME} from "../peraWalletConnectModalUtils";
 
 interface PeraWalletRedirectModalProps {
   onClose: () => void;
@@ -32,7 +33,7 @@ function PeraWalletRedirectModal({onClose}: PeraWalletRedirectModalProps) {
 
   return (
     <div
-      className={"pera-wallet-modal"}
+      className={PERA_WALLET_MODAL_CLASSNAME}
       style={{"--pera-wallet-main-color": main_color} as React.CSSProperties}>
       <div className={"pera-wallet-modal__body"}>
         <div className={"pera-wallet-redirect-modal"}>

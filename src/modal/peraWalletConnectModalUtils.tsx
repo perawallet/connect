@@ -25,8 +25,18 @@ const PERA_WALLET_REDIRECT_MODAL_ID = "pera-wallet-redirect-modal-wrapper";
 // The ID of the wrapper element for PeraWalletSignTxnToast
 const PERA_WALLET_SIGN_TXN_TOAST_ID = "pera-wallet-sign-txn-toast-wrapper";
 
-// The ID of the wrapper element for PeraWalletSignTxnToast
+// The ID of the wrapper element for PeraWalletSignTxnModal
 const PERA_WALLET_SIGN_TXN_MODAL_ID = "pera-wallet-sign-txn-modal-wrapper";
+
+// The ID of the Pera wallet iframe
+const PERA_WALLET_IFRAME_ID = "pera-wallet-iframe";
+
+// The classname of Pera wallet modal
+const PERA_WALLET_MODAL_CLASSNAME = "pera-wallet-modal";
+
+// The classname of Web Wallet IFrame
+const PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME =
+  "pera-wallet-connect-modal-desktop-mode__web-wallet-iframe";
 
 /**
  * @returns {HTMLDivElement} wrapper element for PeraWalletConnectModal
@@ -180,7 +190,7 @@ function getPeraConnectModalAccordionData({
       ),
       description:
         browser === "chrome" ? (
-          <div className={"pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"} />
+          <div className={PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME} />
         ) : (
           <div className={"pera-wallet-connect-modal-desktop-mode__web-wallet"}>
             <div
@@ -264,6 +274,9 @@ export {
   PERA_WALLET_REDIRECT_MODAL_ID,
   PERA_WALLET_SIGN_TXN_TOAST_ID,
   PERA_WALLET_SIGN_TXN_MODAL_ID,
+  PERA_WALLET_MODAL_CLASSNAME,
+  PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME,
+  PERA_WALLET_IFRAME_ID,
   openPeraWalletConnectModal,
   openPeraWalletRedirectModal,
   openPeraWalletSignTxnToast,
