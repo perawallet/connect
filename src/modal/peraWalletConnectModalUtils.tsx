@@ -131,7 +131,7 @@ function closePeraWalletSignTxnModal() {
 }
 
 /**
- * Creates a PeraWalletSignTxnModal
+ * Creates a PeraWalletSignTxnToast instance and renders it on the DOM.
  *
  * @returns {void}
  */
@@ -189,7 +189,7 @@ function getPeraConnectModalAccordionData({
         </div>
       ),
       description:
-        browser === "chrome" ? (
+        browser === "Chrome" ? (
           <div className={PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME} />
         ) : (
           <div className={"pera-wallet-connect-modal-desktop-mode__web-wallet"}>

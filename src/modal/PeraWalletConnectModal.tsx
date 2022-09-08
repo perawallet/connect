@@ -27,7 +27,7 @@ function PeraWalletConnectModal({
   useSetDynamicVhValue();
 
   useEffect(() => {
-    if (browser === "chrome") {
+    if (browser === "Chrome") {
       onWebWalletConnect();
     }
   }, [onWebWalletConnect, browser]);

@@ -101,6 +101,8 @@ class PeraWalletConnect {
   private connectWithWebWallet(resolve: (accounts: string[]) => void) {
     const browser = detectBrowser();
 
+    console.log(browser);
+
     const {network} = this;
 
     const peraWalletIframe = document.createElement("iframe");
@@ -116,27 +118,11 @@ class PeraWalletConnect {
         onClose();
 
         document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
-      } else if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
-        const peraWalletConnectModal = document.getElementsByClassName(
-          PERA_WALLET_MODAL_CLASSNAME
-        )[0];
-
-        peraWalletConnectModal.classList.add(
-          `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
-        );
-        peraWalletConnectModal.classList.remove(
-          `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
-        );
-
-        appTellerManager.sendMessage({
-          message: {
-            type: "CREATE_PASSCODE_EMBEDDED_CALLBACK"
-          },
-
-          origin: PERA_WEB_WALLET_URL[network].CONNECT,
-          targetWindow: peraWalletIframe.contentWindow!
-        });
-      } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
+      } else if (
+        ["CREATE_PASSCODE_EMBEDDED", "SELECT_ACCOUNT_EMBEDDED"].includes(
+          event.data.message.type
+        )
+      ) {
         const peraWalletConnectModal = document.getElementsByClassName(
           PERA_WALLET_MODAL_CLASSNAME
         )[0];
@@ -147,31 +133,41 @@ class PeraWalletConnect {
         peraWalletConnectModal.classList.remove(
           `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
         );
+        let messageType:
+          | "CREATE_PASSCODE_EMBEDDED_CALLBACK"
+          | "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
+          | null = null;
 
-        appTellerManager.sendMessage({
-          message: {
-            type: "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
-          },
-
-          origin: PERA_WEB_WALLET_URL[network].CONNECT,
-          targetWindow: peraWalletIframe.contentWindow!
-        });
+        if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
+          messageType = "CREATE_PASSCODE_EMBEDDED_CALLBACK";
+        } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
+          messageType = "SELECT_ACCOUNT_EMBEDDED_CALLBACK";
+        }
+        if (messageType) {
+          appTellerManager.sendMessage({
+            message: {
+              type: messageType
+            },
+            origin: PERA_WEB_WALLET_URL[network].CONNECT,
+            targetWindow: peraWalletIframe.contentWindow!
+          });
+        }
       }
     }
 
     function onWebWalletConnect() {
-      if (browser === "chrome") {
-        const peraWalletWebWalletTab = document.getElementsByClassName(
+      if (browser === "Chrome") {
+        const peraWalletIframeWrapper = document.getElementsByClassName(
           PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME
         )[0];
 
-        peraWalletIframe.setAttribute("id", "pera-wallet-iframe");
+        peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
         peraWalletIframe.setAttribute(
           "src",
           generateEmbeddedWalletURL(PERA_WEB_WALLET_URL[network].CONNECT)
         );
 
-        peraWalletWebWalletTab.appendChild(peraWalletIframe);
+        peraWalletIframeWrapper.appendChild(peraWalletIframe);
 
         if (peraWalletIframe.contentWindow) {
           appTellerManager.sendMessage({
@@ -388,7 +384,7 @@ class PeraWalletConnect {
     const browser = detectBrowser();
     let newPeraWalletTab: Window | null;
 
-    if (browser === "chrome") {
+    if (browser === "Chrome") {
       openPeraWalletSignTxnModal()
         .then((modal) => {
           const peraWalletSignTxnModal = modal;
@@ -444,7 +440,7 @@ class PeraWalletConnect {
       appTellerManager.setupListener({
         onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
           if (event.data.message.type === "SIGN_TXN_CALLBACK") {
-            if (browser === "chrome") {
+            if (browser === "Chrome") {
               document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
               closePeraWalletSignTxnModal();
             }
@@ -459,7 +455,7 @@ class PeraWalletConnect {
           }
 
           if (event.data.message.type === "SESSION_DISCONNECTED") {
-            if (browser === "chrome") {
+            if (browser === "Chrome") {
               document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
               closePeraWalletSignTxnModal();
             }
