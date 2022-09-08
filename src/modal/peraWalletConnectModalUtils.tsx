@@ -16,6 +16,8 @@ import {detectBrowser} from "../util/device/deviceUtils";
 import PeraWalletSignTxnModal from "./sign-txn/PeraWalletSignTxnModal";
 import {waitForElementCreatedAtDOM} from "../util/dom/domUtils";
 
+export type PERA_CONNECT_MODAL_VIEWS = "default" | "download-pera";
+
 // The ID of the wrapper element for PeraWalletConnectModal
 const PERA_WALLET_CONNECT_MODAL_ID = "pera-wallet-connect-modal-wrapper";
 

@@ -1,25 +1,28 @@
 import "./_pera-wallet-connect-modal-desktop-mode.scss";
 
-import React, {useState} from "react";
+import React from "react";
 
 import Accordion from "../../component/accordion/Accordion";
-import {getPeraConnectModalAccordionData} from "../../peraWalletConnectModalUtils";
+import {
+  getPeraConnectModalAccordionData,
+  PERA_CONNECT_MODAL_VIEWS
+} from "../../peraWalletConnectModalUtils";
 import PeraWalletConnectModalInformationSection from "../../section/information/PeraWalletConnectModalInformationSection";
 import PeraWalletConnectModalDownloadPeraView from "./view/download-pera/PeraWalletConnectModalDownloadPeraView";
 
 interface PeraWalletConnectModalDesktopModeProps {
   uri: string;
   onWebWalletConnect: VoidFunction;
+  view: PERA_CONNECT_MODAL_VIEWS;
+  handleSetView: VoidFunction;
 }
-
-type PERA_CONNECT_MODAL_VIEWS = "default" | "download-pera";
 
 function PeraWalletConnectModalDesktopMode({
   uri,
-  onWebWalletConnect
+  onWebWalletConnect,
+  view,
+  handleSetView
 }: PeraWalletConnectModalDesktopModeProps) {
-  const [view, setView] = useState<PERA_CONNECT_MODAL_VIEWS>("default");
-
   return (
     <div className={"pera-wallet-connect-modal-desktop-mode"}>
       <PeraWalletConnectModalInformationSection />
@@ -39,14 +42,6 @@ function PeraWalletConnectModalDesktopMode({
       )}
     </div>
   );
-
-  function handleSetView() {
-    if (view === "default") {
-      setView("download-pera");
-    } else if (view === "download-pera") {
-      setView("default");
-    }
-  }
 }
 
 export default PeraWalletConnectModalDesktopMode;

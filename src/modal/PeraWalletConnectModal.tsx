@@ -1,6 +1,6 @@
 import "./_pera-wallet-modal.scss";
 
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 
 import {useIsSmallScreen} from "../util/screen/useMediaQuery";
 import PeraWalletConnectModalTouchScreenMode from "./mode/touch-screen/PeraWalletConnectModalTouchScreenMode";
@@ -8,7 +8,10 @@ import PeraWalletConnectModalDesktopMode from "./mode/desktop/PeraWalletConnectM
 import useSetDynamicVhValue from "../util/screen/useSetDynamicVhValue";
 import {detectBrowser} from "../util/device/deviceUtils";
 import PeraWalletModalHeader from "./header/PeraWalletModalHeader";
-import {PERA_WALLET_MODAL_CLASSNAME} from "./peraWalletConnectModalUtils";
+import {
+  PERA_CONNECT_MODAL_VIEWS,
+  PERA_WALLET_MODAL_CLASSNAME
+} from "./peraWalletConnectModalUtils";
 
 interface PeraWalletConnectModalProps {
   uri: string;
@@ -23,14 +26,15 @@ function PeraWalletConnectModal({
 }: PeraWalletConnectModalProps) {
   const isSmallScreen = useIsSmallScreen();
   const browser = detectBrowser();
+  const [view, setView] = useState<PERA_CONNECT_MODAL_VIEWS>("default");
 
   useSetDynamicVhValue();
 
   useEffect(() => {
-    if (browser === "Chrome") {
+    if (browser === "Chrome" && view === "default") {
       onWebWalletConnect();
     }
-  }, [onWebWalletConnect, browser]);
+  }, [onWebWalletConnect, browser, view]);
 
   return (
     <div className={PERA_WALLET_MODAL_CLASSNAME}>
@@ -43,11 +47,21 @@ function PeraWalletConnectModal({
           <PeraWalletConnectModalDesktopMode
             uri={uri}
             onWebWalletConnect={onWebWalletConnect}
+            view={view}
+            handleSetView={handleSetView}
           />
         )}
       </div>
     </div>
   );
+
+  function handleSetView() {
+    if (view === "default") {
+      setView("download-pera");
+    } else if (view === "download-pera") {
+      setView("default");
+    }
+  }
 }
 
 export default PeraWalletConnectModal;
