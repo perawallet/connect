@@ -127,20 +127,28 @@ class PeraWalletConnect {
           PERA_WALLET_MODAL_CLASSNAME
         )[0];
 
-        peraWalletConnectModal.classList.add(
-          `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
-        );
-        peraWalletConnectModal.classList.remove(
-          `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
-        );
         let messageType:
           | "CREATE_PASSCODE_EMBEDDED_CALLBACK"
           | "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
           | null = null;
 
         if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
+          peraWalletConnectModal.classList.add(
+            `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
+          );
+          peraWalletConnectModal.classList.remove(
+            `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
+          );
+
           messageType = "CREATE_PASSCODE_EMBEDDED_CALLBACK";
         } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
+          peraWalletConnectModal.classList.add(
+            `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
+          );
+          peraWalletConnectModal.classList.remove(
+            `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
+          );
+
           messageType = "SELECT_ACCOUNT_EMBEDDED_CALLBACK";
         }
         if (messageType) {
