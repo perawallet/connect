@@ -470,7 +470,16 @@ class PeraWalletConnect {
 
             newPeraWalletTab?.close();
 
-            resetWalletDetailsFromStorage();
+            reject(event.data.message.error);
+          }
+
+          if (event.data.message.type === "SIGN_TXN_CALLBACK_ERROR") {
+            if (browser === "Chrome") {
+              document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
+              closePeraWalletSignTxnModal();
+            }
+
+            newPeraWalletTab?.close();
 
             reject(event.data.message.error);
           }
