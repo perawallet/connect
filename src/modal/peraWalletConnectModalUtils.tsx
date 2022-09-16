@@ -2,7 +2,7 @@ import PeraWalletLogoCircleYellow from "../asset/icon/PeraWallet--circle-yellow.
 import PeraWalletLogoCircleBlack from "../asset/icon/PeraWallet--circle-black.svg";
 
 import React from "react";
-import ReactDOM from "react-dom/client";
+import ReactDOM from "react-dom";
 import {QRCode} from "react-qrcode-logo";
 
 import {AccordionData} from "./component/accordion/util/accordionTypes";
@@ -43,12 +43,11 @@ function createModalWrapperOnDOM(modalId: string) {
  */
 function openPeraWalletConnectModal(rejectPromise?: (error: any) => void) {
   return (uri: string, closeCallback: VoidFunction) => {
-    const root = ReactDOM.createRoot(
-      createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID)
-    );
+    const wrapper = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
 
-    root.render(
-      <PeraWalletConnectModal onClose={handleClosePeraWalletConnectModal} uri={uri} />
+    ReactDOM.render(
+      <PeraWalletConnectModal onClose={handleClosePeraWalletConnectModal} uri={uri} />,
+      wrapper
     );
 
     function handleClosePeraWalletConnectModal() {
@@ -75,11 +74,12 @@ function openPeraWalletConnectModal(rejectPromise?: (error: any) => void) {
  * @returns {void}
  */
 function openPeraWalletRedirectModal() {
-  const root = ReactDOM.createRoot(
-    createModalWrapperOnDOM(PERA_WALLET_REDIRECT_MODAL_ID)
-  );
+  const wrapper = createModalWrapperOnDOM(PERA_WALLET_REDIRECT_MODAL_ID);
 
-  root.render(<PeraWalletRedirectModal onClose={handleClosePeraWalletRedirectModal} />);
+  ReactDOM.render(
+    <PeraWalletRedirectModal onClose={handleClosePeraWalletRedirectModal} />,
+    wrapper
+  );
 
   function handleClosePeraWalletRedirectModal() {
     removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
@@ -92,11 +92,12 @@ function openPeraWalletRedirectModal() {
  * @returns {void}
  */
 function openPeraWalletSignTxnToast() {
-  const root = ReactDOM.createRoot(
-    createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_TOAST_ID)
-  );
+  const wrapper = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
 
-  root.render(<PeraWalletSignTxnToast onClose={closePeraWalletSignTxnToast} />);
+  ReactDOM.render(
+    <PeraWalletSignTxnToast onClose={closePeraWalletSignTxnToast} />,
+    wrapper
+  );
 }
 
 function closePeraWalletSignTxnToast() {
