@@ -169,14 +169,14 @@ class PeraWalletConnect {
     }
   }
 
-  disconnect() {
+  async disconnect() {
     const killPromise = this.connector?.killSession();
 
     killPromise?.then(() => {
       this.connector = null;
     });
 
-    resetWalletDetailsFromStorage();
+    await resetWalletDetailsFromStorage();
 
     return killPromise;
   }
