@@ -481,7 +481,14 @@ class PeraWalletConnect {
 
             newPeraWalletTab?.close();
 
-            reject(event.data.message.error);
+            reject(
+              new PeraWalletConnectError(
+                {
+                  type: "SIGN_TRANSACTIONS_CANCELLED"
+                },
+                event.data.message.error
+              )
+            );
           }
         }
       });
