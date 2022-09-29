@@ -118,18 +118,36 @@ function openPeraWalletRedirectModal() {
  *
  * @returns PeraWalletSignTxnModal element
  */
-function openPeraWalletSignTxnModal() {
+function openPeraWalletSignTxnModal(rejectPromise?: (error: any) => void) {
   const root = ReactDOM.createRoot(
     createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_MODAL_ID)
   );
 
-  root.render(<PeraWalletSignTxnModal onClose={closePeraWalletSignTxnModal} />);
+  root.render(
+    <PeraWalletSignTxnModal
+      // eslint-disable-next-line react/jsx-no-bind
+      onClose={() => {
+        closePeraWalletSignTxnModal(rejectPromise);
+      }}
+    />
+  );
 
   return waitForElementCreatedAtDOM("pera-wallet-sign-txn-modal__body__content");
 }
 
-function closePeraWalletSignTxnModal() {
+function closePeraWalletSignTxnModal(rejectPromise?: (error: any) => void) {
   removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
+
+  if (rejectPromise) {
+    rejectPromise(
+      new PeraWalletConnectError(
+        {
+          type: "SIGN_TRANSACTIONS_CANCELLED"
+        },
+        "Transaction sign is cancelled"
+      )
+    );
+  }
 }
 
 /**

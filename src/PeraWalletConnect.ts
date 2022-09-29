@@ -389,62 +389,64 @@ class PeraWalletConnect {
   }
 
   private signTransactionWithWeb(signTxnRequestParams: PeraWalletTransaction[]) {
-    const browser = detectBrowser();
-    let newPeraWalletTab: Window | null;
-
-    if (browser === "Chrome") {
-      openPeraWalletSignTxnModal()
-        .then((modal) => {
-          const peraWalletSignTxnModal = modal;
-          const peraWalletIframe = document.createElement("iframe");
-
-          peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
-          peraWalletIframe.setAttribute(
-            "src",
-            generateEmbeddedWalletURL(PERA_WEB_WALLET_URL[this.network].TRANSACTION_SIGN)
-          );
-
-          peraWalletSignTxnModal?.appendChild(peraWalletIframe);
-
-          if (peraWalletIframe.contentWindow) {
-            appTellerManager.sendMessage({
-              message: {
-                type: "SIGN_TXN",
-                txn: signTxnRequestParams
-              },
-
-              origin: generateEmbeddedWalletURL(PERA_WEB_WALLET_URL[this.network].ROOT),
-              targetWindow: peraWalletIframe.contentWindow
-            });
-          }
-
-          // Returns a promise that waits for the response from the web wallet.
-          // The promise is resolved when the web wallet responds with the signed txn.
-          // The promise is rejected when the web wallet responds with an error.
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } else {
-      newPeraWalletTab = window.open(
-        PERA_WEB_WALLET_URL[this.network].TRANSACTION_SIGN,
-        "_blank"
-      );
-
-      if (newPeraWalletTab && newPeraWalletTab.opener) {
-        appTellerManager.sendMessage({
-          message: {
-            type: "SIGN_TXN",
-            txn: signTxnRequestParams
-          },
-
-          origin: PERA_WEB_WALLET_URL[this.network].ROOT,
-          targetWindow: newPeraWalletTab
-        });
-      }
-    }
-
     return new Promise<Uint8Array[]>((resolve, reject) => {
+      const browser = detectBrowser();
+      let newPeraWalletTab: Window | null;
+
+      if (browser === "Chrome") {
+        openPeraWalletSignTxnModal(reject)
+          .then((modal) => {
+            const peraWalletSignTxnModal = modal;
+            const peraWalletIframe = document.createElement("iframe");
+
+            peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
+            peraWalletIframe.setAttribute(
+              "src",
+              generateEmbeddedWalletURL(
+                PERA_WEB_WALLET_URL[this.network].TRANSACTION_SIGN
+              )
+            );
+
+            peraWalletSignTxnModal?.appendChild(peraWalletIframe);
+
+            if (peraWalletIframe.contentWindow) {
+              appTellerManager.sendMessage({
+                message: {
+                  type: "SIGN_TXN",
+                  txn: signTxnRequestParams
+                },
+
+                origin: generateEmbeddedWalletURL(PERA_WEB_WALLET_URL[this.network].ROOT),
+                targetWindow: peraWalletIframe.contentWindow
+              });
+            }
+
+            // Returns a promise that waits for the response from the web wallet.
+            // The promise is resolved when the web wallet responds with the signed txn.
+            // The promise is rejected when the web wallet responds with an error.
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else {
+        newPeraWalletTab = window.open(
+          PERA_WEB_WALLET_URL[this.network].TRANSACTION_SIGN,
+          "_blank"
+        );
+
+        if (newPeraWalletTab && newPeraWalletTab.opener) {
+          appTellerManager.sendMessage({
+            message: {
+              type: "SIGN_TXN",
+              txn: signTxnRequestParams
+            },
+
+            origin: PERA_WEB_WALLET_URL[this.network].ROOT,
+            targetWindow: newPeraWalletTab
+          });
+        }
+      }
+
       appTellerManager.setupListener({
         onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
           if (event.data.message.type === "SIGN_TXN_CALLBACK") {
