@@ -1,0 +1,112 @@
+import ShieldTickIcon from "../../../asset/icon/ShieldTick.svg";
+import LayerIcon from "../../../asset/icon/Layer.svg";
+import NoteIcon from "../../../asset/icon/Note.svg";
+import PeraWalletWithText from "../../../asset/icon/PeraWallet--with-text.svg";
+
+import {isSmallScreen} from "../../../util/screen/screenSizeUtils";
+import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
+import styles from "./_pera-wallet-connect-modal-information-section.scss";
+
+const {logo, name} = getPeraWalletAppMeta();
+
+const peraWalletConnectModalInformationSectionTemplate =
+  document.createElement("template");
+
+peraWalletConnectModalInformationSectionTemplate.innerHTML = `
+  <section class="pera-wallet-connect-modal-information-section">
+    <img
+      id="pera-wallet-connect-modal-information-section-pera-icon"
+      src="${logo}"
+      class="pera-wallet-connect-modal-information-section__pera-icon"
+      alt="Pera Wallet Logo"
+    />
+
+    <h1 id="pera-wallet-connect-modal-information-section-connect-pera-mobile" class="pera-wallet-connect-modal-information-section__connect-pera-title">
+        Connect to ${name}
+    </h1>
+
+    <h1 class="pera-wallet-connect-modal-information-section__title">
+      Simply the best Algorand wallet
+    </h1>
+
+    <h2 id="pera-wallet-connect-modal-information-section-secondary-title" class="pera-wallet-connect-modal-information-section__secondary-title">
+      Features
+    </h2>
+
+    <ul>
+      <li class="pera-wallet-connect-modal-information-section__features-item">
+        <div class="pera-wallet-connect-modal-information-section__features-item__icon-wrapper">
+          <img src="${LayerIcon}" alt="Layer Icon" />
+        </div>
+        
+        <p
+          class="pera-wallet-connect-modal-information-section__features-item__description">
+          Connect to any Algorand dApp securely
+        </p>
+      </li>
+
+      <li class="pera-wallet-connect-modal-information-section__features-item">
+        <div
+          class="pera-wallet-connect-modal-information-section__features-item__icon-wrapper">
+          <img src="${ShieldTickIcon}" alt="Tick Icon" />
+        </div>
+
+        <p
+          class="pera-wallet-connect-modal-information-section__features-item__description">
+          Your private keys are safely stored locally
+        </p>
+      </li>
+
+      <li class="pera-wallet-connect-modal-information-section__features-item">
+        <div
+          class="pera-wallet-connect-modal-information-section__features-item__icon-wrapper">
+          <img src="${NoteIcon}" alt="Note Icon" />
+        </div>
+
+        <p
+          class="pera-wallet-connect-modal-information-section__features-item__description">
+          View NFTs, buy and swap crypto and more
+        </p>
+      </li>
+    </ul>
+  </section>
+`;
+
+export class PeraWalletConnectModalInformationSection extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({mode: "open"});
+
+    if (this.shadowRoot) {
+      const styleSheet = document.createElement("style");
+
+      styleSheet.textContent = styles;
+
+      this.shadowRoot.append(
+        peraWalletConnectModalInformationSectionTemplate.content.cloneNode(true),
+        styleSheet
+      );
+
+      if (isSmallScreen()) {
+        this.shadowRoot
+          .getElementById("pera-wallet-connect-modal-information-section-title")
+          ?.setAttribute("style", "display: none;");
+
+        this.shadowRoot
+          .getElementById("pera-wallet-connect-modal-information-section-secondary-title")
+          ?.setAttribute("style", "display: none;");
+      }
+
+      if (!isSmallScreen()) {
+        this.shadowRoot
+          .getElementById("pera-wallet-connect-modal-information-section-pera-icon")
+          ?.setAttribute("src", PeraWalletWithText);
+        this.shadowRoot
+          .getElementById(
+            "pera-wallet-connect-modal-information-section-connect-pera-mobile"
+          )
+          ?.setAttribute("style", "display: none;");
+      }
+    }
+  }
+}

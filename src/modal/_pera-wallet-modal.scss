@@ -1,15 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "../ui/styles/media-queries";
 
-#pera-wallet-iframe {
-  width: 280px;
-  height: 376px;
-
-  margin: 0 auto;
-
-  border: none;
-}
-
 .pera-wallet-modal {
   --pera-wallet-modal-font-family: "Inter", sans-serif;
 
@@ -31,47 +22,20 @@
       width: 480px;
 
       background-color: #ffffff;
-
-      .pera-wallet-connect-modal-desktop-mode__web-wallet-iframe {
-        position: unset;
-      }
-
-      .pera-wallet-connect-modal-desktop-mode {
-        width: 100%;
-        height: 100%;
-      }
-
-      .pera-wallet-accordion {
-        overflow: hidden;
-      }
-
-      #pera-wallet-iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-
-        width: 480px;
-
-        border-radius: 16px;
-      }
     }
   }
 
   &--create-passcode {
-    .pera-wallet-modal__body {
-      height: 634px;
-
-      #pera-wallet-iframe {
+    .pera-wallet-modal {
+      .pera-wallet-modal__body {
         height: 634px;
       }
     }
   }
 
   &--select-account {
-    .pera-wallet-modal__body {
-      height: 569px;
-
-      #pera-wallet-iframe {
+    .pera-wallet-modal {
+      .pera-wallet-modal__body {
         height: 569px;
       }
     }

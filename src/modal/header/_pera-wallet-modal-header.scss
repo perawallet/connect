@@ -1,14 +1,14 @@
 @import "../../ui/styles/media-queries";
 
 .pera-wallet-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
   position: absolute;
   top: -44px;
   right: 0px;
   left: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .pera-wallet-modal-header__brand {
@@ -23,6 +23,27 @@
 
   color: #ffffff;
 }
+
+.pera-wallet-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: auto;
+  height: 48px;
+
+  padding: 14px;
+
+  border: none;
+  border-radius: 12px;
+  outline: none;
+
+  cursor: pointer;
+
+  font-family: var(--pera-wallet-modal-font-family);
+  font-size: 14px;
+}
+
 .pera-wallet-modal-header__close-button {
   width: 32px;
   height: 32px;

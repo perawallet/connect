@@ -14,8 +14,7 @@ import {
   openPeraWalletSignTxnModal,
   closePeraWalletSignTxnModal,
   PERA_WALLET_IFRAME_ID,
-  PERA_WALLET_MODAL_CLASSNAME,
-  PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME
+  PERA_WALLET_MODAL_CLASSNAME
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
@@ -46,12 +45,9 @@ interface PeraWalletConnectOptions {
   network?: PeraWalletNetwork;
 }
 
-function generatePeraWalletConnectModalActions(
-  onWebWalletConnect: VoidFunction,
-  rejectPromise?: (error: any) => void
-) {
+function generatePeraWalletConnectModalActions() {
   return {
-    open: openPeraWalletConnectModal(onWebWalletConnect, rejectPromise),
+    open: openPeraWalletConnectModal(),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
 }
@@ -101,8 +97,6 @@ class PeraWalletConnect {
   private connectWithWebWallet(resolve: (accounts: string[]) => void) {
     const browser = detectBrowser();
 
-    console.log(browser);
-
     const {network} = this;
 
     const peraWalletIframe = document.createElement("iframe");
@@ -123,30 +117,58 @@ class PeraWalletConnect {
           event.data.message.type
         )
       ) {
-        const peraWalletConnectModal = document.getElementsByClassName(
-          PERA_WALLET_MODAL_CLASSNAME
-        )[0];
+        const peraWalletConnectModalWrapper = document.getElementById(
+          PERA_WALLET_CONNECT_MODAL_ID
+        );
+
+        const peraWalletConnectModal = peraWalletConnectModalWrapper
+          ?.querySelector("pera-wallet-connect-modal")
+          ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
+
+        const peraWalletConnectModalDesktopMode = peraWalletConnectModal
+          ?.querySelector("pera-wallet-modal-desktop-mode")
+          ?.shadowRoot?.querySelector(".pera-wallet-connect-modal-desktop-mode");
 
         let messageType:
           | "CREATE_PASSCODE_EMBEDDED_CALLBACK"
           | "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
           | null = null;
 
-        if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
+        if (
+          peraWalletConnectModal &&
+          peraWalletConnectModalDesktopMode &&
+          event.data.message.type === "CREATE_PASSCODE_EMBEDDED"
+        ) {
           peraWalletConnectModal.classList.add(
             `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
           );
           peraWalletConnectModal.classList.remove(
             `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
+          );
+          peraWalletConnectModalDesktopMode.classList.add(
+            `pera-wallet-connect-modal-desktop-mode--create-passcode`
+          );
+          peraWalletConnectModalDesktopMode.classList.remove(
+            `pera-wallet-connect-modal-desktop-mode--select-account`
           );
 
           messageType = "CREATE_PASSCODE_EMBEDDED_CALLBACK";
-        } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
+        } else if (
+          peraWalletConnectModal &&
+          peraWalletConnectModalDesktopMode &&
+          event.data.message.type === "SELECT_ACCOUNT_EMBEDDED"
+        ) {
           peraWalletConnectModal.classList.add(
             `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
           );
           peraWalletConnectModal.classList.remove(
             `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
+          );
+          peraWalletConnectModalDesktopMode.classList.add(
+            `pera-wallet-connect-modal-desktop-mode--select-account`
+          );
+          peraWalletConnectModalDesktopMode.classList.remove(
+            `pera-wallet-connect-modal-desktop-mode--create-passcode`
           );
 
           messageType = "SELECT_ACCOUNT_EMBEDDED_CALLBACK";
@@ -163,12 +185,8 @@ class PeraWalletConnect {
       }
     }
 
-    function onWebWalletConnect() {
+    function onWebWalletConnect(peraWalletIframeWrapper: Element) {
       if (browser === "Chrome") {
-        const peraWalletIframeWrapper = document.getElementsByClassName(
-          PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME
-        )[0];
-
         peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
         peraWalletIframe.setAttribute(
           "src",
@@ -254,10 +272,13 @@ class PeraWalletConnect {
 
         const {onWebWalletConnect} = this.connectWithWebWallet(resolve);
 
+        // @ts-ignore ts-2339
+        window.onWebWalletConnect = onWebWalletConnect;
+
         // Create Connector instance
         this.connector = new WalletConnect({
           bridge: this.bridge || bridgeURL,
-          qrcodeModal: generatePeraWalletConnectModalActions(onWebWalletConnect, reject)
+          qrcodeModal: generatePeraWalletConnectModalActions()
         });
 
         await this.connector.createSession({
@@ -394,7 +415,7 @@ class PeraWalletConnect {
       let newPeraWalletTab: Window | null;
 
       if (browser === "Chrome") {
-        openPeraWalletSignTxnModal(reject)
+        openPeraWalletSignTxnModal()
           .then((modal) => {
             const peraWalletSignTxnModal = modal;
             const peraWalletIframe = document.createElement("iframe");
