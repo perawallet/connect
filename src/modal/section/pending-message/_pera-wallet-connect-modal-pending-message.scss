@@ -33,7 +33,9 @@
 }
 
 .pera-wallet-connect-modal-pending-message__cancel-button {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   width: 100%;
 

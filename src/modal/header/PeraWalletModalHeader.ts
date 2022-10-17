@@ -5,19 +5,25 @@ import CloseIconDark from "../../asset/icon/Close--dark.svg";
 import styles from "./_pera-wallet-modal-header.scss";
 import {isSmallScreen} from "../../util/screen/screenSizeUtils";
 import {removeModalWrapperFromDOM} from "../peraWalletConnectModalUtils";
+import {isMobile} from "../../util/device/deviceUtils";
 
 const peraWalletModalHeader = document.createElement("template");
 
+const headerClassName = isMobile()
+  ? "pera-wallet-modal-header pera-wallet-modal-header--mobile"
+  : "pera-wallet-modal-header pera-wallet-modal-header--desktop";
+
 peraWalletModalHeader.innerHTML = `
-  <div class="pera-wallet-modal-header">
+  <div class="${headerClassName}">
       ${
-        isSmallScreen()
+        isSmallScreen() && isMobile()
           ? ""
           : `<div class="pera-wallet-modal-header__brand">
-            <img src="${PeraConnectIcon}" />
+              <img src="${PeraConnectIcon}" />
 
-            Pera Connect
-        </div>`
+              Pera Connect
+            </div>
+            `
       } 
 
       <button
@@ -25,7 +31,7 @@ peraWalletModalHeader.innerHTML = `
         class="pera-wallet-button pera-wallet-modal-header__close-button">
         <img
           class="pera-wallet-modal-header__close-button__close-icon"
-          src="${isSmallScreen() ? CloseIconDark : CloseIcon}"
+          src="${isSmallScreen() && isMobile() ? CloseIconDark : CloseIcon}"
         />
       </button>
     </div>

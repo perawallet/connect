@@ -9,6 +9,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  &--mobile {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    position: static;
+
+    .pera-wallet-modal-header__close-button {
+      width: 24px;
+      height: 24px;
+
+      margin: 0;
+      padding: 0;
+
+      background: transparent;
+      border: unset;
+      box-shadow: unset;
+    }
+  }
 }
 
 .pera-wallet-modal-header__brand {
@@ -59,26 +79,4 @@
 .pera-wallet-modal-header__close-button__close-icon {
   width: 20px;
   height: 20px;
-}
-
-@include for-small-screens {
-  .pera-wallet-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-
-    position: static;
-  }
-
-  .pera-wallet-modal-header__close-button {
-    width: 24px;
-    height: 24px;
-
-    margin: 0;
-    padding: 0;
-
-    background: transparent;
-    border: unset;
-    box-shadow: unset;
-  }
 }

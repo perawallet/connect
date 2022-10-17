@@ -6,14 +6,18 @@ import PeraWalletWithText from "../../../asset/icon/PeraWallet--with-text.svg";
 import {isSmallScreen} from "../../../util/screen/screenSizeUtils";
 import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
 import styles from "./_pera-wallet-connect-modal-information-section.scss";
+import {isMobile} from "../../../util/device/deviceUtils";
 
 const {logo, name} = getPeraWalletAppMeta();
 
 const peraWalletConnectModalInformationSectionTemplate =
   document.createElement("template");
+const informationSectionClassNames = isMobile()
+  ? "pera-wallet-connect-modal-information-section pera-wallet-connect-modal-information-section--mobile"
+  : "pera-wallet-connect-modal-information-section pera-wallet-connect-modal-information-section--desktop";
 
 peraWalletConnectModalInformationSectionTemplate.innerHTML = `
-  <section class="pera-wallet-connect-modal-information-section">
+  <section class="${informationSectionClassNames}">
     <img
       id="pera-wallet-connect-modal-information-section-pera-icon"
       src="${logo}"
@@ -87,17 +91,11 @@ export class PeraWalletConnectModalInformationSection extends HTMLElement {
         styleSheet
       );
 
-      if (isSmallScreen()) {
+      if (isSmallScreen() && isMobile()) {
         this.shadowRoot
           .getElementById("pera-wallet-connect-modal-information-section-title")
           ?.setAttribute("style", "display: none;");
-
-        this.shadowRoot
-          .getElementById("pera-wallet-connect-modal-information-section-secondary-title")
-          ?.setAttribute("style", "display: none;");
-      }
-
-      if (!isSmallScreen()) {
+      } else {
         this.shadowRoot
           .getElementById("pera-wallet-connect-modal-information-section-pera-icon")
           ?.setAttribute("src", PeraWalletWithText);

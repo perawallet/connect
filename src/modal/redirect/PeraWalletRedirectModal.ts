@@ -10,9 +10,9 @@ import styles from "./_pera-wallet-redirect-modal.scss";
 const peraWalletRedirectModalTemplate = document.createElement("template");
 
 peraWalletRedirectModalTemplate.innerHTML = `
-  <div class="pera-wallet-connect-modal">
-    <div class="pera-wallet-connect-modal__body">
-      <div class="pera-wallet-wallet-redirect-modal">
+  <div class="pera-wallet-modal pera-wallet-modal--mobile">
+    <div class="pera-wallet-modal__body">
+      <div class="pera-wallet-redirect-modal">
         <div class="pera-wallet-redirect-modal__content">
           <img src="${PeraRedirectIcon}" />
 
@@ -30,7 +30,6 @@ peraWalletRedirectModalTemplate.innerHTML = `
             
             <a
               id="pera-wallet-redirect-modal-download-pera-link"
-              onClick={handleCloseRedirectModal}
               class="pera-wallet-redirect-modal__content__install-pera-text__link"
               href="https://perawallet.app/download/"
               rel="noopener noreferrer"
@@ -42,7 +41,6 @@ peraWalletRedirectModalTemplate.innerHTML = `
 
         <a
           id="pera-wallet-redirect-modal-launch-pera-link"
-          onClick={handleCloseRedirectModal}
           class="pera-wallet-redirect-modal__launch-pera-wallet-button"
           rel="noopener noreferrer"
           target="_blank">
