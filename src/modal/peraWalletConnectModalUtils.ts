@@ -50,9 +50,8 @@ function openPeraWalletConnectModal() {
  */
 function openPeraWalletRedirectModal() {
   const root = createModalWrapperOnDOM(PERA_WALLET_REDIRECT_MODAL_ID);
-  const redirectModal = document.createElement("div", {is: "pera-wallet-redirect-modal"});
 
-  root.appendChild(redirectModal);
+  root.innerHTML = "<pera-wallet-redirect-modal></pera-wallet-redirect-modal>";
 }
 
 function openPeraWalletSignTxnModal() {
@@ -93,7 +92,7 @@ function closePeraWalletSignTxnModal(rejectPromise?: (error: any) => void) {
 function openPeraWalletSignTxnToast() {
   const root = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
 
-  root.innerHTML = `<pera-wallet-sign-txn-toast></pera-wallet-sign-txn-toast>`;
+  root.innerHTML = "<pera-wallet-sign-txn-toast></pera-wallet-sign-txn-toast>";
 }
 
 function closePeraWalletSignTxnToast() {

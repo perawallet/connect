@@ -524,6 +524,8 @@ class PeraWalletConnect {
   ): Promise<Uint8Array[]> {
     const walletDetails = getWalletDetailsFromStorage();
 
+    openPeraWalletRedirectModal();
+
     if (walletDetails?.type === "pera-wallet") {
       if (isMobile()) {
         // This is to automatically open the wallet app when trying to sign with it.

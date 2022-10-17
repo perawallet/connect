@@ -1,3 +1,4 @@
+import {isMobile} from "../util/device/deviceUtils";
 import {isSmallScreen} from "../util/screen/screenSizeUtils";
 import {
   PERA_WALLET_CONNECT_MODAL_ID,
@@ -6,6 +7,9 @@ import {
 import styles from "./_pera-wallet-modal.scss";
 
 const peraWalletConnectModal = document.createElement("template");
+const peraWalletConnectModalClassNames = isMobile()
+  ? `${PERA_WALLET_MODAL_CLASSNAME} ${PERA_WALLET_MODAL_CLASSNAME}--mobile`
+  : `${PERA_WALLET_MODAL_CLASSNAME} ${PERA_WALLET_MODAL_CLASSNAME}--desktop`;
 
 export class PeraWalletConnectModal extends HTMLElement {
   constructor() {
@@ -17,9 +21,9 @@ export class PeraWalletConnectModal extends HTMLElement {
 
       styleSheet.textContent = styles;
 
-      if (isSmallScreen()) {
+      if (isSmallScreen() && isMobile()) {
         peraWalletConnectModal.innerHTML = `
-        <div class="${PERA_WALLET_MODAL_CLASSNAME}">
+        <div class="${peraWalletConnectModalClassNames}">
           <div class="pera-wallet-modal__body" part="body">
             <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header/>
       
@@ -36,7 +40,7 @@ export class PeraWalletConnectModal extends HTMLElement {
         );
       } else {
         peraWalletConnectModal.innerHTML = `
-          <div class="${PERA_WALLET_MODAL_CLASSNAME}">
+          <div class="${peraWalletConnectModalClassNames}">
             <div class="pera-wallet-modal__body">
               <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header/>
         
