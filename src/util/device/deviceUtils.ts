@@ -13,7 +13,7 @@ function isIOS() {
 }
 
 function isMobile() {
-  return isNavigatorAvailable() && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  return isNavigatorAvailable() && /iPhone|iPod|Android/i.test(navigator.userAgent);
 }
 
 /**

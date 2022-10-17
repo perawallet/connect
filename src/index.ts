@@ -6,8 +6,8 @@ if (typeof window !== "undefined") {
 }
 
 // Components
+import "./App";
 import PeraWalletConnect from "./PeraWalletConnect";
-// Utilities
 import {closePeraWalletSignTxnToast} from "./modal/peraWalletConnectModalUtils";
 
 export {PeraWalletConnect, closePeraWalletSignTxnToast};

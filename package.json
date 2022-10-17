@@ -1,8 +1,7 @@
 {
+  "version": "1.0.0",
   "name": "@perawallet/connect",
-  "version": "0.2.3",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
-  "main": "dist/index.js",
   "scripts": {
     "dev": "./node_modules/.bin/rollup -c -w",
     "build": "npm run eslint && ./node_modules/.bin/rollup -c",
@@ -37,13 +36,11 @@
     "@walletconnect/client": "^1.7.7",
     "bowser": "^2.11.0",
     "buffer": "^6.0.3",
-    "lottie-react": "^2.3.1",
-    "react-qrcode-logo": "^2.7.0"
+    "lottie-web": "^5.9.6",
+    "qr-code-styling": "^1.6.0-rc.1"
   },
   "peerDependencies": {
-    "algosdk": "^1.18.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "algosdk": "^1.18.1"
   },
   "types": "./dist/index.d.ts",
   "repository": {
