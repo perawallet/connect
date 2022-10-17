@@ -48,21 +48,10 @@
       left: 0;
       z-index: 3;
 
-      width: 480px;
+      width: 100%;
+      height: 100%;
 
       border-radius: 16px;
-    }
-  }
-
-  &--create-passcode {
-    #pera-wallet-iframe {
-      height: 634px;
-    }
-  }
-
-  &--select-account {
-    #pera-wallet-iframe {
-      height: 569px;
     }
   }
 }
