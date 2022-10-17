@@ -26,7 +26,7 @@ function PeraWalletConnectModalTouchScreenMode({
           : ""
       }`}>
       {view === "launching-app" ? (
-        <PeraWalletConnectModalPendingMessage onClose={handleChangeModalView} />
+        <PeraWalletConnectModalPendingMessage />
       ) : (
         <>
           <PeraWalletConnectModalInformationSection />

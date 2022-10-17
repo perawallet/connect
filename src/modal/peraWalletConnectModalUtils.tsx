@@ -43,12 +43,14 @@ function createModalWrapperOnDOM(modalId: string) {
  */
 function openPeraWalletConnectModal(rejectPromise?: (error: any) => void) {
   return (uri: string, closeCallback: VoidFunction) => {
+    const URI = `${uri}&algorand=true`;
+
     const root = ReactDOM.createRoot(
       createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID)
     );
 
     root.render(
-      <PeraWalletConnectModal onClose={handleClosePeraWalletConnectModal} uri={uri} />
+      <PeraWalletConnectModal onClose={handleClosePeraWalletConnectModal} uri={URI} />
     );
 
     function handleClosePeraWalletConnectModal() {
