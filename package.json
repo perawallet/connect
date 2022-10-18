@@ -2,6 +2,7 @@
   "version": "1.0.0",
   "name": "@perawallet/connect",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "./node_modules/.bin/rollup -c -w",
     "build": "npm run eslint && ./node_modules/.bin/rollup -c",
