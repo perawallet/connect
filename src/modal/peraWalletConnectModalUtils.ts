@@ -38,8 +38,9 @@ function createModalWrapperOnDOM(modalId: string) {
 function openPeraWalletConnectModal() {
   return (uri: string) => {
     const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
+    const URI = `${uri}&algorand=true`;
 
-    root.innerHTML = `<pera-wallet-connect-modal uri="${uri}"></pera-wallet-connect-modal>`;
+    root.innerHTML = `<pera-wallet-connect-modal uri="${URI}"></pera-wallet-connect-modal>`;
   };
 }
 
