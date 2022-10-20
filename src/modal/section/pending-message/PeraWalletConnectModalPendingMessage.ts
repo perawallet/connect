@@ -78,7 +78,7 @@ const peraWalletConnectTryAgainView = `
         </div>
       </a>
 
-      <button class="pera-wallet-connect-button pera-wallet-connect-modal-pending-message--try-again-view__button">
+      <button id="pera-wallet-connect-modal-pending-message-try-again-button" class="pera-wallet-connect-button pera-wallet-connect-modal-pending-message--try-again-view__button">
         Try Again
       </button>
     </div>
@@ -106,8 +106,15 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
       const cancelButton = this.shadowRoot?.getElementById(
         "pera-wallet-connect-modal-pending-message-cancel-button"
       );
+      const tryAgainButton = this.shadowRoot?.getElementById(
+        "pera-wallet-connect-modal-pending-message-try-again-button"
+      );
 
       cancelButton?.addEventListener("click", () => {
+        this.onClose();
+      });
+
+      tryAgainButton?.addEventListener("click", () => {
         this.onClose();
       });
 
