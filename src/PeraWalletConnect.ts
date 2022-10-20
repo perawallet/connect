@@ -21,9 +21,10 @@ import {
   getLocalStorage,
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage,
-  getNetworkFromStorage
+  getNetworkFromStorage,
+  getWalletConnectObjectFromStorage
 } from "./util/storage/storageUtils";
-import {assignBridgeURL, listBridgeServers} from "./util/api/peraWalletConnectApi";
+import {getWalletConnectConfig} from "./util/api/peraWalletConnectApi";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
@@ -45,9 +46,9 @@ interface PeraWalletConnectOptions {
   network?: PeraWalletNetwork;
 }
 
-function generatePeraWalletConnectModalActions() {
+function generatePeraWalletConnectModalActions(isWebWalletAvaliable: boolean) {
   return {
-    open: openPeraWalletConnectModal(),
+    open: openPeraWalletConnectModal(isWebWalletAvaliable),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
 }
@@ -59,10 +60,7 @@ class PeraWalletConnect {
   network = getNetworkFromStorage();
 
   constructor(options?: PeraWalletConnectOptions) {
-    this.bridge =
-      options?.bridge ||
-      getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL) ||
-      "";
+    this.bridge = options?.bridge || "https://bridge.walletconnect.org";
 
     if (options?.deep_link) {
       getLocalStorage()?.setItem(
@@ -264,11 +262,7 @@ class PeraWalletConnect {
           await this.connector.killSession();
         }
 
-        let bridgeURL = "";
-
-        if (!this.bridge) {
-          bridgeURL = await assignBridgeURL();
-        }
+        const {isWebWalletAvaliable, bridgeURL} = await getWalletConnectConfig();
 
         const {onWebWalletConnect} = this.connectWithWebWallet(resolve);
 
@@ -277,8 +271,8 @@ class PeraWalletConnect {
 
         // Create Connector instance
         this.connector = new WalletConnect({
-          bridge: this.bridge || bridgeURL,
-          qrcodeModal: generatePeraWalletConnectModalActions()
+          bridge: bridgeURL || this.bridge,
+          qrcodeModal: generatePeraWalletConnectModalActions(isWebWalletAvaliable)
         });
 
         await this.connector.createSession({
@@ -312,56 +306,61 @@ class PeraWalletConnect {
     });
   }
 
-  async reconnectSession() {
-    try {
-      const walletDetails = getWalletDetailsFromStorage();
+  reconnectSession() {
+    return new Promise<string[]>(async (resolve, reject) => {
+      try {
+        const walletDetails = getWalletDetailsFromStorage();
 
-      // ================================================= //
-      // Pera Wallet Web flow
-      if (walletDetails?.type === "pera-wallet-web") {
-        return walletDetails.accounts || [];
+        // ================================================= //
+        // Pera Wallet Web flow
+        if (walletDetails?.type === "pera-wallet-web") {
+          resolve(walletDetails.accounts || []);
+        }
+        // ================================================= //
+
+        // ================================================= //
+        // Pera Mobile Wallet flow
+        if (this.connector) {
+          resolve(this.connector.accounts || []);
+        }
+
+        this.bridge = getWalletConnectObjectFromStorage()?.bridge || "";
+
+        if (this.bridge) {
+          this.connector = new WalletConnect({
+            bridge: this.bridge
+          });
+
+          resolve(this.connector?.accounts || []);
+        }
+
+        reject(
+          new PeraWalletConnectError(
+            {
+              type: "SESSION_RECONNECT",
+              detail: ""
+            },
+            "The bridge server is not active anymore. Disconnecting."
+          )
+        );
+        // ================================================= //
+      } catch (error: any) {
+        // If the bridge is not active, then disconnect
+        await this.disconnect();
+
+        const {name} = getPeraWalletAppMeta();
+
+        reject(
+          new PeraWalletConnectError(
+            {
+              type: "SESSION_RECONNECT",
+              detail: error
+            },
+            error.message || `There was an error while reconnecting to ${name}`
+          )
+        );
       }
-      // ================================================= //
-
-      // ================================================= //
-      // Pera Mobile Wallet flow
-      if (this.connector) {
-        return this.connector.accounts || [];
-      }
-
-      // Fetch the active bridge servers
-      const response = await listBridgeServers();
-
-      if (response.servers.includes(this.bridge)) {
-        this.connector = new WalletConnect({
-          bridge: this.bridge
-        });
-
-        return this.connector?.accounts || [];
-      }
-
-      throw new PeraWalletConnectError(
-        {
-          type: "SESSION_RECONNECT",
-          detail: ""
-        },
-        "The bridge server is not active anymore. Disconnecting."
-      );
-      // ================================================= //
-    } catch (error: any) {
-      // If the bridge is not active, then disconnect
-      this.disconnect();
-
-      const {name} = getPeraWalletAppMeta();
-
-      throw new PeraWalletConnectError(
-        {
-          type: "SESSION_RECONNECT",
-          detail: error
-        },
-        error.message || `There was an error while reconnecting to ${name}`
-      );
-    }
+    });
   }
 
   async disconnect() {

@@ -26,7 +26,7 @@ const peraWalletConnectModalDesktopModeDefaultView = `
       <pera-wallet-connect-modal-information-section></pera-wallet-connect-modal-information-section>
 
       <div class="pera-wallet-connect-modal-desktop-mode__default-view">
-        <div class="pera-wallet-accordion-item pera-wallet-accordion-item--active">
+        <div class="pera-wallet-accordion-item pera-wallet-accordion-item--active pera-wallet-accordion-item--web-wallet">
           <a class="pera-wallet-accordion-toggle">
             <button class="pera-wallet-accordion-toggle__button"></button>
 
@@ -205,8 +205,6 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
           this.webWalletConnect();
         });
       }
-
-      this.renderQRCode();
     }
   }
 
@@ -221,6 +219,9 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
         window.onWebWalletConnect(iframeWrapper);
       }
     }
+
+    this.renderQRCode();
+    this.checkWebWalletAvaliability();
   }
 
   webWalletConnect() {
@@ -259,11 +260,15 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
 
   renderQRCode() {
     const URI = this.getAttribute("uri");
+    const isWebWalletAvaliable = this.getAttribute("is-web-wallet-avaliable");
+
+    // eslint-disable-next-line no-magic-numbers
+    const size = isWebWalletAvaliable === "false" ? 250 : 205;
 
     if (URI) {
       const qrCode = new QRCodeStyling({
-        width: 205,
-        height: 205,
+        width: size,
+        height: size,
         type: "svg",
         data: URI,
         image: PeraWalletLogoWithBlackBackground,
@@ -322,6 +327,18 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
           "pera-wallet-connect-modal-desktop-mode--download"
         );
       }
+    }
+  }
+
+  checkWebWalletAvaliability() {
+    if (this.getAttribute("is-web-wallet-avaliable") === "false") {
+      const desktopModeDefaultView = this.shadowRoot?.querySelector(
+        ".pera-wallet-connect-modal-desktop-mode__default-view"
+      );
+
+      desktopModeDefaultView?.classList.add(
+        "pera-wallet-connect-modal-desktop-mode__default-view--web-wallet-not-avaliable"
+      );
     }
   }
 }

@@ -35,6 +35,7 @@
   "dependencies": {
     "@json-rpc-tools/utils": "^1.7.6",
     "@walletconnect/client": "^1.7.7",
+    "@walletconnect/types": "^1.8.0",
     "bowser": "^2.11.0",
     "buffer": "^6.0.3",
     "lottie-web": "^5.9.6",
