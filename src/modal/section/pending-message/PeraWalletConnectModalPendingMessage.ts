@@ -11,7 +11,7 @@ import {
 } from "../../peraWalletConnectModalUtils";
 import styles from "./_pera-wallet-connect-modal-pending-message.scss";
 
-const CONNECT_TIMEOUT_INTERVAL = 15000;
+const CONNECT_TIMEOUT_INTERVAL = 30000;
 
 const {logo} = getPeraWalletAppMeta();
 const peraWalletConnectModalPendingMessageTemplate = document.createElement("template");
