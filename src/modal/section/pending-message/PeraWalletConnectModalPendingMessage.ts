@@ -106,15 +106,8 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
       const cancelButton = this.shadowRoot?.getElementById(
         "pera-wallet-connect-modal-pending-message-cancel-button"
       );
-      const tryAgainButton = this.shadowRoot?.getElementById(
-        "pera-wallet-connect-modal-pending-message-try-again-button"
-      );
 
       cancelButton?.addEventListener("click", () => {
-        this.onClose();
-      });
-
-      tryAgainButton?.addEventListener("click", () => {
         this.onClose();
       });
 
@@ -138,6 +131,14 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
           peraWalletConnectModalPendingMessageTemplate.content.cloneNode(true),
           styleSheet
         );
+
+        const tryAgainButton = this.shadowRoot?.getElementById(
+          "pera-wallet-connect-modal-pending-message-try-again-button"
+        );
+
+        tryAgainButton?.addEventListener("click", () => {
+          this.onClose();
+        });
       }
     }, CONNECT_TIMEOUT_INTERVAL);
   }
