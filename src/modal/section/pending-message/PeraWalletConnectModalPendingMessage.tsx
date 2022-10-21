@@ -9,13 +9,12 @@ import Lottie from "lottie-react";
 
 import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
 import {
-  openPeraWalletConnectModal,
   PERA_WALLET_CONNECT_MODAL_ID,
   removeModalWrapperFromDOM
 } from "../../peraWalletConnectModalUtils";
 
 type PENDING_MESSAGE_VIEWS = "wait" | "try-again";
-const TIMEOUT_INTERVAL = 15000;
+const TIMEOUT_INTERVAL = 30000;
 
 function PeraWalletConnectModalPendingMessage() {
   const {name, logo} = getPeraWalletAppMeta();
@@ -66,7 +65,9 @@ function PeraWalletConnectModalPendingMessage() {
               className={
                 "pera-wallet-connect-modal-pending-message--try-again-view__description"
               }>
-              {"Feel free to try again or have a look at the helpful articles below."}
+              {
+                "Having issues? Before trying again, make sure to read the support article below and apply the possible solutions."
+              }
             </p>
           </div>
 
@@ -118,7 +119,7 @@ function PeraWalletConnectModalPendingMessage() {
                 "pera-wallet-connect-button pera-wallet-connect-modal-pending-message--try-again-view__button"
               }
               onClick={handleTryAgain}>
-              {"Try Again"}
+              {"Close & Try Again"}
             </button>
           </div>
         </div>
@@ -128,7 +129,6 @@ function PeraWalletConnectModalPendingMessage() {
 
   function handleTryAgain() {
     removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
-    openPeraWalletConnectModal();
   }
 
   function handleCancelClick() {

@@ -13,10 +13,10 @@ import {
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getLocalStorage,
+  getWalletConnectObjectFromStorage,
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage
 } from "./util/storage/storageUtils";
-import {assignBridgeURL, listBridgeServers} from "./util/api/peraWalletConnectApi";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
@@ -29,6 +29,7 @@ import {
   generatePeraWalletAppDeepLink,
   getPeraWalletAppMeta
 } from "./util/peraWalletUtils";
+import {getWalletConnectConfig} from "./util/api/peraWalletConnectApi";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -50,10 +51,7 @@ class PeraWalletConnect {
   shouldShowSignTxnToast: boolean;
 
   constructor(options?: PeraWalletConnectOptions) {
-    this.bridge =
-      options?.bridge ||
-      getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL) ||
-      "";
+    this.bridge = options?.bridge || "https://bridge.walletconnect.org";
 
     if (options?.deep_link) {
       getLocalStorage()?.setItem(
@@ -85,15 +83,11 @@ class PeraWalletConnect {
           await this.connector.killSession();
         }
 
-        let bridgeURL = "";
-
-        if (!this.bridge) {
-          bridgeURL = await assignBridgeURL();
-        }
+        const {bridgeURL} = await getWalletConnectConfig();
 
         // Create Connector instance
         this.connector = new WalletConnect({
-          bridge: this.bridge || bridgeURL,
+          bridge: bridgeURL || this.bridge,
           qrcodeModal: generatePeraWalletConnectModalActions(reject)
         });
 
@@ -128,45 +122,50 @@ class PeraWalletConnect {
     });
   }
 
-  async reconnectSession() {
-    try {
-      if (this.connector) {
-        return this.connector.accounts || [];
+  reconnectSession() {
+    return new Promise<string[]>(async (resolve, reject) => {
+      try {
+        if (this.connector) {
+          resolve(this.connector.accounts || []);
+        }
+
+        this.bridge = getWalletConnectObjectFromStorage()?.bridge || "";
+
+        if (this.bridge) {
+          this.connector = new WalletConnect({
+            bridge: this.bridge
+          });
+
+          resolve(this.connector?.accounts || []);
+        }
+
+        reject(
+          new PeraWalletConnectError(
+            {
+              type: "SESSION_RECONNECT",
+              detail: ""
+            },
+            "The bridge server is not active anymore. Disconnecting."
+          )
+        );
+        // ================================================= //
+      } catch (error: any) {
+        // If the bridge is not active, then disconnect
+        await this.disconnect();
+
+        const {name} = getPeraWalletAppMeta();
+
+        reject(
+          new PeraWalletConnectError(
+            {
+              type: "SESSION_RECONNECT",
+              detail: error
+            },
+            error.message || `There was an error while reconnecting to ${name}`
+          )
+        );
       }
-
-      // Fetch the active bridge servers
-      const response = await listBridgeServers();
-
-      if (response.servers.includes(this.bridge)) {
-        this.connector = new WalletConnect({
-          bridge: this.bridge,
-          qrcodeModal: generatePeraWalletConnectModalActions()
-        });
-
-        return this.connector?.accounts || [];
-      }
-
-      throw new PeraWalletConnectError(
-        {
-          type: "SESSION_RECONNECT",
-          detail: ""
-        },
-        "The bridge server is not active anymore. Disconnecting."
-      );
-    } catch (error: any) {
-      // If the bridge is not active, then disconnect
-      this.disconnect();
-
-      const {name} = getPeraWalletAppMeta();
-
-      throw new PeraWalletConnectError(
-        {
-          type: "SESSION_RECONNECT",
-          detail: error
-        },
-        error.message || `There was an error while reconnecting to ${name}`
-      );
-    }
+    });
   }
 
   async disconnect() {
