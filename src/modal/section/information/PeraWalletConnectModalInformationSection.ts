@@ -30,7 +30,7 @@ peraWalletConnectModalInformationSectionTemplate.innerHTML = `
     </h1>
 
     <h1 class="pera-wallet-connect-modal-information-section__title">
-      Simply the best Algorand wallet
+      Simply the best Algorand wallet.
     </h1>
 
     <h2 id="pera-wallet-connect-modal-information-section-secondary-title" class="pera-wallet-connect-modal-information-section__secondary-title">

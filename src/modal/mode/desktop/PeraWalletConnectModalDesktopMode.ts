@@ -1,5 +1,6 @@
 import QrIcon from "../../../asset/icon/Qr.svg";
 import ArrowRight from "../../../asset/icon/Right.svg";
+import ArrowLeft from "../../../asset/icon/Left.svg";
 import AppStoreIcon from "../../../asset/icon/AppStoreIcon.svg";
 import PlayStoreIcon from "../../../asset/icon/PlayStoreIcon.svg";
 import DownloadIcon from "../../../asset/icon/Download.svg";
@@ -113,8 +114,8 @@ const peraWalletConnectModalDesktopModeDefaultView = `
           id="pera-wallet-connect-modal-download-pera-view-back-button"
           class="pera-wallet-connect-modal-download-pera-view__back-button">
           <img
-            class="pera-wallet-connect-modal-download-pera-view__back-button__arrow-icon"
-            src="${ArrowRight}"
+            src="${ArrowLeft}"
+            alt="Back Arrow"
           />
 
           Back
@@ -133,22 +134,22 @@ const peraWalletConnectModalDesktopModeDefaultView = `
             <a
               href="https://apps.apple.com/us/app/algorand-wallet/id1459898525"
               target="_blank"
-              rel="noreferrer">
+              rel="noopener noreferrer">
               <img src="${AppStoreIcon}" alt="App Store icon" />
             </a>
 
             <a
               href="https://play.google.com/store/apps/details?id=com.algorand.android"
               target="_blank"
-              rel="noreferrer">
+              rel="noopener noreferrer">
               <img src="${PlayStoreIcon}" alt="Play Store icon" />
             </a>
 
             <a
               class="pera-wallet-connect-modal-download-pera-view__footer__button"
-              href="https://perawallet.s3-eu-west-3.amazonaws.com/android-releases/app-pera-prod-release-bitrise-signed.apk"
+              href="https://pera-wallet.s3.ap-southeast-1.amazonaws.com/pera-wallet.apk"
               target="_blank"
-              rel="noreferrer">
+              rel="noopener noreferrer">
               <img src="${DownloadIcon}" alt="Download icon" />
 
               Download APK File
@@ -177,40 +178,13 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
       this.shadowRoot.addEventListener("click", (event) => {
         this.handleAccordion(event as MouseEvent);
       });
-
-      const downloadPeraButton = this.shadowRoot?.getElementById(
-        "pera-wallet-connect-modal-desktop-mode-download-pera-button"
-      );
-      const backButton = this.shadowRoot?.getElementById(
-        "pera-wallet-connect-modal-download-pera-view-back-button"
-      );
-      const webWalletLaunchButton = this.shadowRoot?.getElementById(
-        "pera-wallet-connect-web-wallet-launch-button"
-      );
-
-      if (downloadPeraButton) {
-        downloadPeraButton.addEventListener("click", () => {
-          this.onClickDownload();
-        });
-      }
-
-      if (backButton) {
-        backButton.addEventListener("click", () => {
-          this.onClickBack();
-        });
-      }
-
-      if (webWalletLaunchButton) {
-        webWalletLaunchButton.addEventListener("click", () => {
-          this.webWalletConnect();
-        });
-      }
-
-      this.renderQRCode();
     }
   }
 
   connectedCallback() {
+    this.handleChangeView();
+    this.renderQRCode();
+
     if (detectBrowser() === "Chrome" && this.shadowRoot) {
       const iframeWrapper = this.shadowRoot.querySelector(
         ".pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
@@ -223,14 +197,42 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
     }
   }
 
+  handleChangeView() {
+    const downloadPeraButton = this.shadowRoot?.getElementById(
+      "pera-wallet-connect-modal-desktop-mode-download-pera-button"
+    );
+    const backButton = this.shadowRoot?.getElementById(
+      "pera-wallet-connect-modal-download-pera-view-back-button"
+    );
+    const webWalletLaunchButton = this.shadowRoot?.getElementById(
+      "pera-wallet-connect-web-wallet-launch-button"
+    );
+
+    if (downloadPeraButton) {
+      downloadPeraButton.addEventListener("click", () => {
+        this.onClickDownload();
+      });
+    }
+
+    if (backButton) {
+      backButton.addEventListener("click", () => {
+        this.onClickBack();
+      });
+    }
+
+    if (webWalletLaunchButton) {
+      webWalletLaunchButton.addEventListener("click", () => {
+        this.webWalletConnect();
+      });
+    }
+  }
+
   webWalletConnect() {
     // @ts-ignore ts-2339
     window.onWebWalletConnect();
   }
 
   handleAccordion(event: MouseEvent) {
-    event.preventDefault();
-
     if (event.target instanceof Element) {
       if (!event.target.classList.contains("pera-wallet-accordion-toggle__button"))
         return;
