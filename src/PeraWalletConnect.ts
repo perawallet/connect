@@ -51,7 +51,7 @@ class PeraWalletConnect {
   shouldShowSignTxnToast: boolean;
 
   constructor(options?: PeraWalletConnectOptions) {
-    this.bridge = options?.bridge || "https://bridge.walletconnect.org";
+    this.bridge = options?.bridge || "";
 
     if (options?.deep_link) {
       getLocalStorage()?.setItem(
@@ -87,7 +87,7 @@ class PeraWalletConnect {
 
         // Create Connector instance
         this.connector = new WalletConnect({
-          bridge: bridgeURL || this.bridge,
+          bridge: this.bridge || bridgeURL || "https://bridge.walletconnect.org",
           qrcodeModal: generatePeraWalletConnectModalActions(reject)
         });
 
