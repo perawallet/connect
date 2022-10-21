@@ -11,7 +11,7 @@ import {
 } from "../../peraWalletConnectModalUtils";
 import styles from "./_pera-wallet-connect-modal-pending-message.scss";
 
-const CONNECT_TIMEOUT_INTERVAL = 30000;
+const CONNECT_TIMEOUT_INTERVAL = 100;
 
 const {logo} = getPeraWalletAppMeta();
 const peraWalletConnectModalPendingMessageTemplate = document.createElement("template");
@@ -44,7 +44,7 @@ const peraWalletConnectTryAgainView = `
       </h1>
 
       <p class="pera-wallet-connect-modal-pending-message--try-again-view__description">
-        Feel free to try again or have a look at the helpful articles below.
+        Having issues? Before trying again, make sure to read the support article below and apply the possible solutions.
       </p>
     </div>
 
@@ -73,13 +73,13 @@ const peraWalletConnectTryAgainView = `
 
           <p
             class="pera-wallet-connect-modal-pending-message--try-again-view__resolving-anchor__description">
-              Unfortunately there are several known issues related to WalletConnect that our team is working on. Some of these issues are related to the WalletConnect JavaScript implementation on the dApp ...
+            Unfortunately there are several known issues related to WalletConnect that our team is working on. Some of these issues are related to the WalletConnect JavaScript implementation on the dApp ...
           </p>
         </div>
       </a>
 
       <button id="pera-wallet-connect-modal-pending-message-try-again-button" class="pera-wallet-connect-button pera-wallet-connect-modal-pending-message--try-again-view__button">
-        Try Again
+        Close & Try Again
       </button>
     </div>
   </div>

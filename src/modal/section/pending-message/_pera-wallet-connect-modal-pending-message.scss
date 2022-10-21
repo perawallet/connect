@@ -1,4 +1,5 @@
 @import "../../pera-wallet-modal";
+@import "../../../ui/styles/util-mixins";
 
 .pera-wallet-connect-modal-pending-message-section {
   display: grid;
@@ -111,6 +112,8 @@
       }
 
       &__description {
+        @include truncate-multiple-line(2);
+
         margin: 0;
 
         font-size: 12px;
