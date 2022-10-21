@@ -132,18 +132,24 @@ const peraWalletConnectModalDesktopModeDefaultView = `
 
           <div class="pera-wallet-connect-modal-download-pera-view__footer">
             <a
-              id="pera-wallet-connect-modal-download-pera-view-download-ios-link">
+              href="https://apps.apple.com/us/app/algorand-wallet/id1459898525"
+              target="_blank"
+              rel="noopener noreferrer">
               <img src="${AppStoreIcon}" alt="App Store icon" />
             </a>
 
             <a
-              id="pera-wallet-connect-modal-download-pera-view-download-android-link">
+              href="https://play.google.com/store/apps/details?id=com.algorand.android"
+              target="_blank"
+              rel="noopener noreferrer">
               <img src="${PlayStoreIcon}" alt="Play Store icon" />
             </a>
 
             <a
-              id="pera-wallet-connect-modal-download-pera-view-download-apk-link"
-              class="pera-wallet-connect-modal-download-pera-view__footer__button">
+              class="pera-wallet-connect-modal-download-pera-view__footer__button"
+              href="https://pera-wallet.s3.ap-southeast-1.amazonaws.com/pera-wallet.apk"
+              target="_blank"
+              rel="noopener noreferrer">
               <img src="${DownloadIcon}" alt="Download icon" />
 
               Download APK File
@@ -178,7 +184,6 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
   connectedCallback() {
     this.handleChangeView();
     this.renderQRCode();
-    this.initDownloadLinks();
 
     if (detectBrowser() === "Chrome" && this.shadowRoot) {
       const iframeWrapper = this.shadowRoot.querySelector(
@@ -222,53 +227,12 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
     }
   }
 
-  initDownloadLinks() {
-    const downloadIOS = this.shadowRoot?.getElementById(
-      "pera-wallet-connect-modal-download-pera-view-download-ios-link"
-    );
-    const downloadAndroid = this.shadowRoot?.getElementById(
-      "pera-wallet-connect-modal-download-pera-view-download-android-link"
-    );
-    const downloadAPK = this.shadowRoot?.getElementById(
-      "pera-wallet-connect-modal-download-pera-view-download-apk-link"
-    );
-
-    if (downloadIOS) {
-      downloadIOS.addEventListener("click", () => {
-        window.open(
-          "https://apps.apple.com/us/app/algorand-wallet/id1459898525",
-          "_blank"
-        );
-      });
-    }
-
-    if (downloadAndroid) {
-      downloadAndroid.addEventListener("click", () => {
-        window.open(
-          "https://play.google.com/store/apps/details?id=com.algorand.android",
-          "_blank"
-        );
-      });
-    }
-
-    if (downloadAPK) {
-      downloadAPK.addEventListener("click", () => {
-        window.open(
-          "https://pera-wallet.s3.ap-southeast-1.amazonaws.com/pera-wallet.apk",
-          "_blank"
-        );
-      });
-    }
-  }
-
   webWalletConnect() {
     // @ts-ignore ts-2339
     window.onWebWalletConnect();
   }
 
   handleAccordion(event: MouseEvent) {
-    event.preventDefault();
-
     if (event.target instanceof Element) {
       if (!event.target.classList.contains("pera-wallet-accordion-toggle__button"))
         return;
