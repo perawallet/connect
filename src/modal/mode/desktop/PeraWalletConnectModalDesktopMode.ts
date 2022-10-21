@@ -147,7 +147,7 @@ const peraWalletConnectModalDesktopModeDefaultView = `
 
             <a
               class="pera-wallet-connect-modal-download-pera-view__footer__button"
-              href="https://pera-wallet.s3.ap-southeast-1.amazonaws.com/pera-wallet.apk"
+              href="https://perawallet.s3-eu-west-3.amazonaws.com/android-releases/app-pera-prod-release-bitrise-signed.apk"
               target="_blank"
               rel="noopener noreferrer">
               <img src="${DownloadIcon}" alt="Download icon" />
