@@ -2,15 +2,15 @@ import {shuffleArray} from "../array/arrayUtils";
 import {PeraWalletNetwork} from "../peraWalletTypes";
 import fetcher from "./fetcher";
 
-const WALLET_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config.json";
-const WALLET_CONNECT_CONFIG_STAGING_URL = "https://wc.perawallet.app/config-staging.json";
+const PERA_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config.json";
+const PERA_CONNECT_CONFIG_STAGING_URL = "https://wc.perawallet.app/config-staging.json";
 
 /**
  * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvaliable: boolean}
  */
-function fetchWalletConnectConfig(network: PeraWalletNetwork) {
+function fetchPeraConnectConfig(network: PeraWalletNetwork) {
   const configURL =
-    network === "mainnet" ? WALLET_CONNECT_CONFIG_URL : WALLET_CONNECT_CONFIG_STAGING_URL;
+    network === "mainnet" ? PERA_CONNECT_CONFIG_URL : PERA_CONNECT_CONFIG_STAGING_URL;
 
   return fetcher<{
     web_wallet: boolean;
@@ -22,8 +22,8 @@ function fetchWalletConnectConfig(network: PeraWalletNetwork) {
 /**
  * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvaliable: boolean}
  */
-async function getWalletConnectConfig(network: PeraWalletNetwork) {
-  const response = await fetchWalletConnectConfig(network);
+async function getPeraConnectConfig(network: PeraWalletNetwork) {
+  const response = await fetchPeraConnectConfig(network);
 
   return {
     bridgeURL: shuffleArray(response.servers)[0],
@@ -32,4 +32,4 @@ async function getWalletConnectConfig(network: PeraWalletNetwork) {
   };
 }
 
-export {getWalletConnectConfig, fetchWalletConnectConfig};
+export {getPeraConnectConfig, fetchPeraConnectConfig};

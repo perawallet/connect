@@ -24,7 +24,7 @@ import {
   getNetworkFromStorage,
   getWalletConnectObjectFromStorage
 } from "./util/storage/storageUtils";
-import {getWalletConnectConfig} from "./util/api/peraWalletConnectApi";
+import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
@@ -262,9 +262,7 @@ class PeraWalletConnect {
         }
 
         const {isWebWalletAvaliable, bridgeURL, webWalletURL} =
-          await getWalletConnectConfig(this.network);
-
-        console.log(webWalletURL);
+          await getPeraConnectConfig(this.network);
 
         const {onWebWalletConnect} = this.connectWithWebWallet(resolve, webWalletURL);
 
@@ -562,7 +560,7 @@ class PeraWalletConnect {
     // ================================================= //
     // Pera Wallet Web flow
     if (walletDetails?.type === "pera-wallet-web") {
-      const {webWalletURL} = await getWalletConnectConfig(this.network);
+      const {webWalletURL} = await getPeraConnectConfig(this.network);
 
       return this.signTransactionWithWeb(signTxnRequestParams, webWalletURL);
     }
