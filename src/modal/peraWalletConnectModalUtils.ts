@@ -38,8 +38,9 @@ function createModalWrapperOnDOM(modalId: string) {
 function openPeraWalletConnectModal(isWebWalletAvaliable: boolean) {
   return (uri: string) => {
     const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
+    const newURI = `${uri}&algorand=true`;
 
-    root.innerHTML = `<pera-wallet-connect-modal uri="${uri}" is-web-wallet-avaliable="${isWebWalletAvaliable}"></pera-wallet-connect-modal>`;
+    root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvaliable}"></pera-wallet-connect-modal>`;
   };
 }
 
