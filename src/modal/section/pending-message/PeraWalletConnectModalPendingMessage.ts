@@ -10,8 +10,11 @@ import {
   removeModalWrapperFromDOM
 } from "../../peraWalletConnectModalUtils";
 import styles from "./_pera-wallet-connect-modal-pending-message.scss";
-
-const CONNECT_TIMEOUT_INTERVAL = 30000;
+import {isIOS} from "../../../util/device/deviceUtils";
+import {
+  CONNECT_AUDIO_URL,
+  CONNECT_TIMEOUT_INTERVAL
+} from "./util/peraWalletConnectModalPendingMessageConstants";
 
 const {logo} = getPeraWalletAppMeta();
 const peraWalletConnectModalPendingMessageTemplate = document.createElement("template");
@@ -32,6 +35,8 @@ peraWalletConnectModalPendingMessageTemplate.innerHTML = `
         Cancel
     </button>
   </div>
+
+  <div id="pera-wallet-connect-modal-pending-message-audio-wrapper"></div>
 `;
 
 const peraWalletConnectTryAgainView = `
@@ -99,23 +104,21 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
         peraWalletConnectModalPendingMessageTemplate.content.cloneNode(true),
         styleSheet
       );
-      this.shadowRoot
-        .getElementById("pera-wallet-connect-modal-pending-message-section-pera-icon")
-        ?.setAttribute("src", logo);
-
-      const cancelButton = this.shadowRoot?.getElementById(
-        "pera-wallet-connect-modal-pending-message-cancel-button"
-      );
-
-      cancelButton?.addEventListener("click", () => {
-        this.onClose();
-      });
-
-      this.renderLottieAnimation();
     }
   }
 
   connectedCallback() {
+    const cancelButton = this.shadowRoot?.getElementById(
+      "pera-wallet-connect-modal-pending-message-cancel-button"
+    );
+
+    cancelButton?.addEventListener("click", () => {
+      this.onClose();
+    });
+
+    this.addAudioForConnection();
+    this.renderLottieAnimation();
+
     setTimeout(() => {
       peraWalletConnectModalPendingMessageTemplate.innerHTML =
         peraWalletConnectTryAgainView;
@@ -145,6 +148,22 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
 
   onClose() {
     removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+  }
+
+  addAudioForConnection() {
+    if (isIOS()) {
+      const connectAudioWrapper = this.shadowRoot?.getElementById(
+        "pera-wallet-connect-modal-pending-message-audio-wrapper"
+      );
+
+      const audio = document.createElement("audio");
+
+      audio.src = CONNECT_AUDIO_URL;
+      audio.autoplay = true;
+      audio.loop = true;
+
+      connectAudioWrapper?.appendChild(audio);
+    }
   }
 
   renderLottieAnimation() {
