@@ -51,15 +51,17 @@ const peraWalletConnectModalDesktopModeDefaultView = `
             detectBrowser() === "Chrome"
               ? `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"></div>`
               : `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet">
-          <div
-            class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
-            <img src="${PeraWebIcon}" />
-          </div>
+          <div>
+            <div
+              class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
+              <img src="${PeraWebIcon}" />
+            </div>
 
-          <p
-            class="pera-wallet-connect-modal-desktop-mode__web-wallet__description">
-            Connect with Pera Web to continue
-          </p>
+            <p
+              class="pera-wallet-connect-modal-desktop-mode__web-wallet__description">
+              Connect with Pera Web to continue
+            </p>
+          </div>
 
           <button
             id="pera-wallet-connect-web-wallet-launch-button"

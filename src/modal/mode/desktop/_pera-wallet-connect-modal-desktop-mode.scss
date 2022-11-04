@@ -65,7 +65,6 @@
     }
   }
 
-  &--create-passcode,
   &--select-account {
     width: 100%;
     height: 100%;
@@ -102,7 +101,13 @@
 }
 
 .pera-wallet-connect-modal-desktop-mode__web-wallet {
-  padding: 20px 52px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  height: calc(100% - 88px);
+
+  padding: 48px 52px 40px;
   margin: 0 auto;
 }
 
@@ -122,8 +127,6 @@
 }
 
 .pera-wallet-connect-modal-desktop-mode__web-wallet__description {
-  max-width: 228px;
-
   margin: 0 auto 32px;
 
   font-size: 14px;

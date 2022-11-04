@@ -16,24 +16,12 @@
 
   background-color: rgba(0, 0, 0, 0.3);
 
-  &--create-passcode,
   &--select-account {
     .pera-wallet-modal__body {
       width: 480px;
+      height: 569px;
 
       background-color: #ffffff;
-    }
-  }
-
-  &--create-passcode {
-    .pera-wallet-modal__body {
-      height: 634px;
-    }
-  }
-
-  &--select-account {
-    .pera-wallet-modal__body {
-      height: 569px;
     }
   }
 
