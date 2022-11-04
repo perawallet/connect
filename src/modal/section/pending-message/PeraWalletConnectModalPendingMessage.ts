@@ -151,7 +151,9 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
   }
 
   addAudioForConnection() {
-    if (isIOS()) {
+    const shouldUseSound = this.getAttribute("should-use-sound");
+
+    if (shouldUseSound === "true" && isIOS()) {
       const connectAudioWrapper = this.shadowRoot?.getElementById(
         "pera-wallet-connect-modal-pending-message-audio-wrapper"
       );

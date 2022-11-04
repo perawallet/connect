@@ -29,7 +29,9 @@ export class PeraWalletConnectModal extends HTMLElement {
       
             <pera-wallet-modal-touch-screen-mode uri="${this.getAttribute(
               "uri"
-            )}"></pera-wallet-modal-touch-screen-mode>
+            )}" should-use-sound="${this.getAttribute(
+          "should-use-sound"
+        )}"></pera-wallet-modal-touch-screen-mode>
           </div>
         </div>
       `;
@@ -48,6 +50,8 @@ export class PeraWalletConnectModal extends HTMLElement {
                 "uri"
               )}" is-web-wallet-avaliable="${this.getAttribute(
           "is-web-wallet-avaliable"
+        )}" should-display-new-badge="${this.getAttribute(
+          "should-display-new-badge"
         )}"></pera-wallet-modal-desktop-mode>
             </div>
           </div>

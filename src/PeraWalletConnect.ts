@@ -14,7 +14,8 @@ import {
   openPeraWalletSignTxnModal,
   closePeraWalletSignTxnModal,
   PERA_WALLET_IFRAME_ID,
-  PERA_WALLET_MODAL_CLASSNAME
+  PERA_WALLET_MODAL_CLASSNAME,
+  PeraWalletModalConfig
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
@@ -46,9 +47,17 @@ interface PeraWalletConnectOptions {
   network?: PeraWalletNetwork;
 }
 
-function generatePeraWalletConnectModalActions(isWebWalletAvaliable: boolean) {
+function generatePeraWalletConnectModalActions({
+  isWebWalletAvaliable,
+  shouldDisplayNewBadge,
+  shouldUseSound
+}: PeraWalletModalConfig) {
   return {
-    open: openPeraWalletConnectModal(isWebWalletAvaliable),
+    open: openPeraWalletConnectModal({
+      isWebWalletAvaliable,
+      shouldDisplayNewBadge,
+      shouldUseSound
+    }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
 }
@@ -139,10 +148,7 @@ class PeraWalletConnect {
           peraWalletConnectModalDesktopMode &&
           event.data.message.type === "CREATE_PASSCODE_EMBEDDED"
         ) {
-          const newPeraWalletTab = window.open(
-            PERA_WEB_WALLET_URL[network].CONNECT,
-            "_blank"
-          );
+          const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
 
           if (newPeraWalletTab && newPeraWalletTab.opener) {
             appTellerManager.sendMessage({
@@ -151,7 +157,7 @@ class PeraWalletConnect {
                 data: getMetaInfo()
               },
 
-              origin: PERA_WEB_WALLET_URL[network].CONNECT,
+              origin: webWalletURLs.CONNECT,
               targetWindow: newPeraWalletTab
             });
           }
@@ -279,8 +285,13 @@ class PeraWalletConnect {
           await this.connector.killSession();
         }
 
-        const {isWebWalletAvaliable, bridgeURL, webWalletURL} =
-          await getPeraConnectConfig(this.network);
+        const {
+          isWebWalletAvaliable,
+          bridgeURL,
+          webWalletURL,
+          shouldDisplayNewBadge,
+          shouldUseSound
+        } = await getPeraConnectConfig(this.network);
 
         const {onWebWalletConnect} = this.connectWithWebWallet(resolve, webWalletURL);
 
@@ -290,7 +301,11 @@ class PeraWalletConnect {
         // Create Connector instance
         this.connector = new WalletConnect({
           bridge: this.bridge || bridgeURL || "https://bridge.walletconnect.org",
-          qrcodeModal: generatePeraWalletConnectModalActions(isWebWalletAvaliable)
+          qrcodeModal: generatePeraWalletConnectModalActions({
+            isWebWalletAvaliable,
+            shouldDisplayNewBadge,
+            shouldUseSound
+          })
         });
 
         await this.connector.createSession({

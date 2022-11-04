@@ -42,7 +42,7 @@ const peraWalletConnectModalDesktopModeDefaultView = `
                 </span>
               </div>
 
-              <span class="pera-wallet-accordion-toggle__label">NEW</span>
+              <span id="pera-web-new-label" class="pera-wallet-accordion-toggle__label">NEW</span>
             </div>
           </a>
 
@@ -184,6 +184,13 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
   }
 
   connectedCallback() {
+    const shouldDisplayNewBadge = this.getAttribute("should-display-new-badge");
+    const peraWalletNewLabel = this.shadowRoot?.getElementById("pera-web-new-label");
+
+    if (shouldDisplayNewBadge === "false") {
+      peraWalletNewLabel?.setAttribute("style", "display:none");
+    }
+
     this.handleChangeView();
 
     if (detectBrowser() === "Chrome" && this.shadowRoot) {

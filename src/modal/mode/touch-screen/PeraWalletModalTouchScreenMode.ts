@@ -40,12 +40,6 @@ const touchScreenDefaultMode = `
   </div>
 `;
 
-const touchScreenLaunchingAppMode = `
-  <div class="pera-wallet-connect-modal-touch-screen-mode pera-wallet-connect-modal-touch-screen-mode--pending-message-view">
-    <pera-wallet-connect-modal-pending-message-section></pera-wallet-connect-modal-pending-message-section>
-  </div>
-`;
-
 export class PeraWalletModalTouchScreenMode extends HTMLElement {
   constructor() {
     super();
@@ -78,7 +72,13 @@ export class PeraWalletModalTouchScreenMode extends HTMLElement {
   }
 
   onClickLaunch() {
-    peraWalletModalTouchScreenMode.innerHTML = touchScreenLaunchingAppMode;
+    peraWalletModalTouchScreenMode.innerHTML = `
+    <div class="pera-wallet-connect-modal-touch-screen-mode pera-wallet-connect-modal-touch-screen-mode--pending-message-view">
+      <pera-wallet-connect-modal-pending-message-section should-use-sound="${this.getAttribute(
+        "should-use-sound"
+      )}"></pera-wallet-connect-modal-pending-message-section>
+    </div>
+  `;
 
     if (this.shadowRoot) {
       const styleSheet = document.createElement("style");

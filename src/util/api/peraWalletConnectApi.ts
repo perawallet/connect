@@ -15,6 +15,8 @@ function fetchPeraConnectConfig(network: PeraWalletNetwork) {
   return fetcher<{
     web_wallet: boolean;
     web_wallet_url: string;
+    use_sound: boolean;
+    display_new_badge: boolean;
     servers: string[];
   }>(configURL);
 }
@@ -28,7 +30,9 @@ async function getPeraConnectConfig(network: PeraWalletNetwork) {
   return {
     bridgeURL: shuffleArray(response.servers)[0],
     webWalletURL: response.web_wallet_url,
-    isWebWalletAvaliable: response.web_wallet
+    isWebWalletAvaliable: response.web_wallet,
+    shouldDisplayNewBadge: response.display_new_badge,
+    shouldUseSound: response.use_sound
   };
 }
 

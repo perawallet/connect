@@ -3,6 +3,12 @@ import {waitForElementCreatedAtShadowDOM} from "../util/dom/domUtils";
 
 export type PERA_CONNECT_MODAL_VIEWS = "default" | "download-pera";
 
+export interface PeraWalletModalConfig {
+  isWebWalletAvaliable: boolean;
+  shouldDisplayNewBadge: boolean;
+  shouldUseSound: boolean;
+}
+
 // The ID of the wrapper element for PeraWalletConnectModal
 const PERA_WALLET_CONNECT_MODAL_ID = "pera-wallet-connect-modal-wrapper";
 
@@ -35,12 +41,13 @@ function createModalWrapperOnDOM(modalId: string) {
   return wrapper;
 }
 
-function openPeraWalletConnectModal(isWebWalletAvaliable: boolean) {
+function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
   return (uri: string) => {
     const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
     const newURI = `${uri}&algorand=true`;
+    const {isWebWalletAvaliable, shouldDisplayNewBadge, shouldUseSound} = modalConfig;
 
-    root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvaliable}"></pera-wallet-connect-modal>`;
+    root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvaliable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}"></pera-wallet-connect-modal>`;
   };
 }
 
