@@ -367,15 +367,6 @@ class PeraWalletConnect {
           resolve(this.connector?.accounts || []);
         }
 
-        reject(
-          new PeraWalletConnectError(
-            {
-              type: "SESSION_RECONNECT",
-              detail: ""
-            },
-            "The bridge server is not active anymore. Disconnecting."
-          )
-        );
         // ================================================= //
       } catch (error: any) {
         // If the bridge is not active, then disconnect
@@ -523,6 +514,8 @@ class PeraWalletConnect {
             }
 
             newPeraWalletTab?.close();
+
+            resetWalletDetailsFromStorage();
 
             reject(event.data.message.error);
           }
