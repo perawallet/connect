@@ -14,16 +14,18 @@ import {
   openPeraWalletSignTxnModal,
   closePeraWalletSignTxnModal,
   PERA_WALLET_IFRAME_ID,
-  PERA_WALLET_MODAL_CLASSNAME
+  PERA_WALLET_MODAL_CLASSNAME,
+  PeraWalletModalConfig
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
   getLocalStorage,
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage,
-  getNetworkFromStorage
+  getNetworkFromStorage,
+  getWalletConnectObjectFromStorage
 } from "./util/storage/storageUtils";
-import {assignBridgeURL, listBridgeServers} from "./util/api/peraWalletConnectApi";
+import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
@@ -34,7 +36,7 @@ import {detectBrowser, isMobile} from "./util/device/deviceUtils";
 import {AppMeta, PeraWalletNetwork} from "./util/peraWalletTypes";
 import {generateEmbeddedWalletURL, getPeraWalletAppMeta} from "./util/peraWalletUtils";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
-import {PERA_WEB_WALLET_URL} from "./util/peraWalletConstants";
+import {getPeraWebWalletURL} from "./util/peraWalletConstants";
 import {getMetaInfo} from "./util/dom/domUtils";
 
 interface PeraWalletConnectOptions {
@@ -45,9 +47,17 @@ interface PeraWalletConnectOptions {
   network?: PeraWalletNetwork;
 }
 
-function generatePeraWalletConnectModalActions() {
+function generatePeraWalletConnectModalActions({
+  isWebWalletAvaliable,
+  shouldDisplayNewBadge,
+  shouldUseSound
+}: PeraWalletModalConfig) {
   return {
-    open: openPeraWalletConnectModal(),
+    open: openPeraWalletConnectModal({
+      isWebWalletAvaliable,
+      shouldDisplayNewBadge,
+      shouldUseSound
+    }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
 }
@@ -59,10 +69,7 @@ class PeraWalletConnect {
   network = getNetworkFromStorage();
 
   constructor(options?: PeraWalletConnectOptions) {
-    this.bridge =
-      options?.bridge ||
-      getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL) ||
-      "";
+    this.bridge = options?.bridge || "";
 
     if (options?.deep_link) {
       getLocalStorage()?.setItem(
@@ -94,10 +101,12 @@ class PeraWalletConnect {
         : options.shouldShowSignTxnToast;
   }
 
-  private connectWithWebWallet(resolve: (accounts: string[]) => void) {
+  private connectWithWebWallet(
+    resolve: (accounts: string[]) => void,
+    webWalletURL: string
+  ) {
     const browser = detectBrowser();
-
-    const {network} = this;
+    const webWalletURLs = getPeraWebWalletURL(webWalletURL, this.network);
 
     const peraWalletIframe = document.createElement("iframe");
 
@@ -139,10 +148,7 @@ class PeraWalletConnect {
           peraWalletConnectModalDesktopMode &&
           event.data.message.type === "CREATE_PASSCODE_EMBEDDED"
         ) {
-          const newPeraWalletTab = window.open(
-            PERA_WEB_WALLET_URL[network].CONNECT,
-            "_blank"
-          );
+          const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
 
           if (newPeraWalletTab && newPeraWalletTab.opener) {
             appTellerManager.sendMessage({
@@ -151,7 +157,7 @@ class PeraWalletConnect {
                 data: getMetaInfo()
               },
 
-              origin: PERA_WEB_WALLET_URL[network].CONNECT,
+              origin: webWalletURLs.CONNECT,
               targetWindow: newPeraWalletTab
             });
           }
@@ -196,7 +202,7 @@ class PeraWalletConnect {
             message: {
               type: messageType
             },
-            origin: PERA_WEB_WALLET_URL[network].CONNECT,
+            origin: webWalletURLs.CONNECT,
             targetWindow: peraWalletIframe.contentWindow!
           });
         }
@@ -208,7 +214,7 @@ class PeraWalletConnect {
         peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
         peraWalletIframe.setAttribute(
           "src",
-          generateEmbeddedWalletURL(PERA_WEB_WALLET_URL[network].CONNECT)
+          generateEmbeddedWalletURL(webWalletURLs.CONNECT)
         );
 
         peraWalletIframeWrapper.appendChild(peraWalletIframe);
@@ -220,7 +226,7 @@ class PeraWalletConnect {
               data: getMetaInfo()
             },
 
-            origin: PERA_WEB_WALLET_URL[network].CONNECT,
+            origin: webWalletURLs.CONNECT,
             targetWindow: peraWalletIframe.contentWindow
           });
         }
@@ -229,10 +235,7 @@ class PeraWalletConnect {
           onReceiveMessage
         });
       } else {
-        const newPeraWalletTab = window.open(
-          PERA_WEB_WALLET_URL[network].CONNECT,
-          "_blank"
-        );
+        const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
 
         if (newPeraWalletTab && newPeraWalletTab.opener) {
           appTellerManager.sendMessage({
@@ -241,7 +244,7 @@ class PeraWalletConnect {
               data: getMetaInfo()
             },
 
-            origin: PERA_WEB_WALLET_URL[network].CONNECT,
+            origin: webWalletURLs.CONNECT,
             targetWindow: newPeraWalletTab
           });
         }
@@ -282,21 +285,27 @@ class PeraWalletConnect {
           await this.connector.killSession();
         }
 
-        let bridgeURL = "";
+        const {
+          isWebWalletAvaliable,
+          bridgeURL,
+          webWalletURL,
+          shouldDisplayNewBadge,
+          shouldUseSound
+        } = await getPeraConnectConfig(this.network);
 
-        if (!this.bridge) {
-          bridgeURL = await assignBridgeURL();
-        }
-
-        const {onWebWalletConnect} = this.connectWithWebWallet(resolve);
+        const {onWebWalletConnect} = this.connectWithWebWallet(resolve, webWalletURL);
 
         // @ts-ignore ts-2339
         window.onWebWalletConnect = onWebWalletConnect;
 
         // Create Connector instance
         this.connector = new WalletConnect({
-          bridge: this.bridge || bridgeURL,
-          qrcodeModal: generatePeraWalletConnectModalActions()
+          bridge: this.bridge || bridgeURL || "https://bridge.walletconnect.org",
+          qrcodeModal: generatePeraWalletConnectModalActions({
+            isWebWalletAvaliable,
+            shouldDisplayNewBadge,
+            shouldUseSound
+          })
         });
 
         await this.connector.createSession({
@@ -330,56 +339,52 @@ class PeraWalletConnect {
     });
   }
 
-  async reconnectSession() {
-    try {
-      const walletDetails = getWalletDetailsFromStorage();
+  reconnectSession() {
+    return new Promise<string[]>(async (resolve, reject) => {
+      try {
+        const walletDetails = getWalletDetailsFromStorage();
 
-      // ================================================= //
-      // Pera Wallet Web flow
-      if (walletDetails?.type === "pera-wallet-web") {
-        return walletDetails.accounts || [];
+        // ================================================= //
+        // Pera Wallet Web flow
+        if (walletDetails?.type === "pera-wallet-web") {
+          resolve(walletDetails.accounts || []);
+        }
+        // ================================================= //
+
+        // ================================================= //
+        // Pera Mobile Wallet flow
+        if (this.connector) {
+          resolve(this.connector.accounts || []);
+        }
+
+        this.bridge = getWalletConnectObjectFromStorage()?.bridge || "";
+
+        if (this.bridge) {
+          this.connector = new WalletConnect({
+            bridge: this.bridge
+          });
+
+          resolve(this.connector?.accounts || []);
+        }
+
+        // ================================================= //
+      } catch (error: any) {
+        // If the bridge is not active, then disconnect
+        await this.disconnect();
+
+        const {name} = getPeraWalletAppMeta();
+
+        reject(
+          new PeraWalletConnectError(
+            {
+              type: "SESSION_RECONNECT",
+              detail: error
+            },
+            error.message || `There was an error while reconnecting to ${name}`
+          )
+        );
       }
-      // ================================================= //
-
-      // ================================================= //
-      // Pera Mobile Wallet flow
-      if (this.connector) {
-        return this.connector.accounts || [];
-      }
-
-      // Fetch the active bridge servers
-      const response = await listBridgeServers();
-
-      if (response.servers.includes(this.bridge)) {
-        this.connector = new WalletConnect({
-          bridge: this.bridge
-        });
-
-        return this.connector?.accounts || [];
-      }
-
-      throw new PeraWalletConnectError(
-        {
-          type: "SESSION_RECONNECT",
-          detail: ""
-        },
-        "The bridge server is not active anymore. Disconnecting."
-      );
-      // ================================================= //
-    } catch (error: any) {
-      // If the bridge is not active, then disconnect
-      this.disconnect();
-
-      const {name} = getPeraWalletAppMeta();
-
-      throw new PeraWalletConnectError(
-        {
-          type: "SESSION_RECONNECT",
-          detail: error
-        },
-        error.message || `There was an error while reconnecting to ${name}`
-      );
-    }
+    });
   }
 
   async disconnect() {
@@ -427,8 +432,12 @@ class PeraWalletConnect {
     }
   }
 
-  private signTransactionWithWeb(signTxnRequestParams: PeraWalletTransaction[]) {
+  private signTransactionWithWeb(
+    signTxnRequestParams: PeraWalletTransaction[],
+    webWalletURL: string
+  ) {
     return new Promise<Uint8Array[]>((resolve, reject) => {
+      const webWalletURLs = getPeraWebWalletURL(webWalletURL, this.network);
       const browser = detectBrowser();
       let newPeraWalletTab: Window | null;
 
@@ -441,9 +450,7 @@ class PeraWalletConnect {
             peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
             peraWalletIframe.setAttribute(
               "src",
-              generateEmbeddedWalletURL(
-                PERA_WEB_WALLET_URL[this.network].TRANSACTION_SIGN
-              )
+              generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN)
             );
 
             peraWalletSignTxnModal?.appendChild(peraWalletIframe);
@@ -455,7 +462,7 @@ class PeraWalletConnect {
                   txn: signTxnRequestParams
                 },
 
-                origin: generateEmbeddedWalletURL(PERA_WEB_WALLET_URL[this.network].ROOT),
+                origin: generateEmbeddedWalletURL(webWalletURLs.ROOT),
                 targetWindow: peraWalletIframe.contentWindow
               });
             }
@@ -468,10 +475,7 @@ class PeraWalletConnect {
             console.log(error);
           });
       } else {
-        newPeraWalletTab = window.open(
-          PERA_WEB_WALLET_URL[this.network].TRANSACTION_SIGN,
-          "_blank"
-        );
+        newPeraWalletTab = window.open(webWalletURLs.TRANSACTION_SIGN, "_blank");
 
         if (newPeraWalletTab && newPeraWalletTab.opener) {
           appTellerManager.sendMessage({
@@ -480,7 +484,7 @@ class PeraWalletConnect {
               txn: signTxnRequestParams
             },
 
-            origin: PERA_WEB_WALLET_URL[this.network].ROOT,
+            origin: webWalletURLs.ROOT,
             targetWindow: newPeraWalletTab
           });
         }
@@ -511,6 +515,8 @@ class PeraWalletConnect {
 
             newPeraWalletTab?.close();
 
+            resetWalletDetailsFromStorage();
+
             reject(event.data.message.error);
           }
 
@@ -536,7 +542,7 @@ class PeraWalletConnect {
     });
   }
 
-  signTransaction(
+  async signTransaction(
     txGroups: SignerTransaction[][],
     signerAddress?: string
   ): Promise<Uint8Array[]> {
@@ -580,7 +586,9 @@ class PeraWalletConnect {
     // ================================================= //
     // Pera Wallet Web flow
     if (walletDetails?.type === "pera-wallet-web") {
-      return this.signTransactionWithWeb(signTxnRequestParams);
+      const {webWalletURL} = await getPeraConnectConfig(this.network);
+
+      return this.signTransactionWithWeb(signTxnRequestParams, webWalletURL);
     }
     // ================================================= //
 

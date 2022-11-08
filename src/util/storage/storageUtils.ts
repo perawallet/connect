@@ -1,3 +1,5 @@
+import {IWalletConnectSession} from "@walletconnect/types";
+
 import {PeraWalletDetails, PeraWalletNetwork} from "../peraWalletTypes";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storageConstants";
 
@@ -39,11 +41,29 @@ function getNetworkFromStorage(): PeraWalletNetwork {
   return storedNetwork || "mainnet";
 }
 
+function getWalletConnectObjectFromStorage(): IWalletConnectSession | null {
+  const storedWalletConnectObject = getLocalStorage()?.getItem(
+    PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
+  );
+
+  if (storedWalletConnectObject) {
+    return JSON.parse(storedWalletConnectObject) as IWalletConnectSession;
+  }
+
+  return null;
+}
+
 function resetWalletDetailsFromStorage() {
-  getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT);
-  getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET);
-  getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL);
-  getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK);
+  return new Promise<undefined>((resolve, reject) => {
+    try {
+      getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT);
+      getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET);
+      getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK);
+      resolve(undefined);
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 export {
@@ -51,5 +71,6 @@ export {
   saveWalletDetailsToStorage,
   resetWalletDetailsFromStorage,
   getWalletDetailsFromStorage,
-  getNetworkFromStorage
+  getNetworkFromStorage,
+  getWalletConnectObjectFromStorage
 };
