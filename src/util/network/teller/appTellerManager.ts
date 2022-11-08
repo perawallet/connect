@@ -8,6 +8,7 @@ export type PeraTeller =
         title: string;
         url: string;
         favicon?: string;
+        chainId?: number;
       };
     }
   | {
@@ -16,6 +17,10 @@ export type PeraTeller =
         name?: string;
         addresses: string[];
       };
+    }
+  | {
+      type: "CONNECT_NETWORK_MISMATCH";
+      error: string;
     }
   | {
       type: "CREATE_PASSCODE_EMBEDDED";
@@ -39,6 +44,10 @@ export type PeraTeller =
         txnId: string;
         signedTxn: string;
       }[];
+    }
+  | {
+      type: "SIGN_TXN_NETWORK_MISMATCH";
+      error: string;
     }
   | {
       type: "SIGN_TXN_CALLBACK_ERROR";

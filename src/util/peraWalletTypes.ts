@@ -4,7 +4,7 @@ interface AppMeta {
   main_color: string;
 }
 
-type PeraWalletNetwork = "dev" | "mainnet" | "testnet";
+type PeraWalletNetwork = "dev" | "testnet" | "mainnet";
 type PeraWalletType = "pera-wallet" | "pera-wallet-web";
 
 interface PeraWalletDetails {
