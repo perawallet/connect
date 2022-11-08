@@ -43,7 +43,9 @@ interface PeraWalletConnectOptions {
   app_meta?: AppMeta;
   shouldShowSignTxnToast?: boolean;
   network?: PeraWalletNetwork;
-  chainId?: number;
+
+  // eslint-disable-next-line no-magic-numbers
+  chainId?: 416001 | 416002 | 416003 | 4160;
 }
 
 function generatePeraWalletConnectModalActions() {
