@@ -23,7 +23,8 @@ import {
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage,
   getNetworkFromStorage,
-  getWalletConnectObjectFromStorage
+  getWalletConnectObjectFromStorage,
+  getWalletPlatformFromStorage
 } from "./util/storage/storageUtils";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
@@ -105,6 +106,20 @@ class PeraWalletConnect {
         : options.shouldShowSignTxnToast;
 
     this.chainId = options?.chainId;
+  }
+
+  get platform() {
+    return getWalletPlatformFromStorage();
+  }
+
+  get isConnected() {
+    if (this.platform === "mobile") {
+      return !!this.connector;
+    } else if (this.platform === "web") {
+      return !!getWalletDetailsFromStorage()?.accounts.length;
+    }
+
+    return false;
   }
 
   private connectWithWebWallet(

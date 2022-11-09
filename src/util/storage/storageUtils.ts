@@ -1,6 +1,10 @@
 import {IWalletConnectSession} from "@walletconnect/types";
 
-import {PeraWalletDetails, PeraWalletNetwork} from "../peraWalletTypes";
+import {
+  PeraWalletDetails,
+  PeraWalletNetwork,
+  PeraWalletPlatformType
+} from "../peraWalletTypes";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storageConstants";
 
 function getLocalStorage() {
@@ -66,11 +70,25 @@ function resetWalletDetailsFromStorage() {
   });
 }
 
+function getWalletPlatformFromStorage() {
+  const walletDetails = getWalletDetailsFromStorage();
+  let walletType: PeraWalletPlatformType = null;
+
+  if (walletDetails?.type === "pera-wallet") {
+    walletType = "mobile";
+  } else if (walletDetails?.type === "pera-wallet-web") {
+    walletType = "web";
+  }
+
+  return walletType;
+}
+
 export {
   getLocalStorage,
   saveWalletDetailsToStorage,
   resetWalletDetailsFromStorage,
   getWalletDetailsFromStorage,
   getNetworkFromStorage,
-  getWalletConnectObjectFromStorage
+  getWalletConnectObjectFromStorage,
+  getWalletPlatformFromStorage
 };
