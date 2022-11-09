@@ -29,7 +29,9 @@ export default [
       "algosdk",
       "lottie-web",
       "bowser",
-      "qr-code-styling"
+      "qr-code-styling",
+      "bufferutil",
+      "utf-8-validate"
     ],
     plugins: [
       image(),
