@@ -45,6 +45,9 @@ interface PeraWalletConnectOptions {
   app_meta?: AppMeta;
   shouldShowSignTxnToast?: boolean;
   network?: PeraWalletNetwork;
+
+  // eslint-disable-next-line no-magic-numbers
+  chainId?: 416001 | 416002 | 416003 | 4160;
 }
 
 function generatePeraWalletConnectModalActions({
@@ -67,6 +70,7 @@ class PeraWalletConnect {
   connector: WalletConnect | null;
   shouldShowSignTxnToast: boolean;
   network = getNetworkFromStorage();
+  chainId?: number;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
@@ -99,11 +103,15 @@ class PeraWalletConnect {
       typeof options?.shouldShowSignTxnToast === "undefined"
         ? true
         : options.shouldShowSignTxnToast;
+
+    this.chainId = options?.chainId;
   }
 
   private connectWithWebWallet(
     resolve: (accounts: string[]) => void,
-    webWalletURL: string
+    reject: (reason?: any) => void,
+    webWalletURL: string,
+    chainId: number | undefined
   ) {
     const browser = detectBrowser();
     const webWalletURLs = getPeraWebWalletURL(webWalletURL, this.network);
@@ -117,6 +125,21 @@ class PeraWalletConnect {
         saveWalletDetailsToStorage(accounts, "pera-wallet-web");
 
         resolve(accounts);
+
+        onClose();
+
+        document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
+      } else if (event.data.message.type === "CONNECT_NETWORK_MISMATCH") {
+        reject(
+          new PeraWalletConnectError(
+            {
+              type: "CONNECT_NETWORK_MISMATCH",
+              detail: event.data.message.error
+            },
+            event.data.message.error ||
+              `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
+          )
+        );
 
         onClose();
 
@@ -154,7 +177,10 @@ class PeraWalletConnect {
             appTellerManager.sendMessage({
               message: {
                 type: "CONNECT",
-                data: getMetaInfo()
+                data: {
+                  ...getMetaInfo(),
+                  chainId
+                }
               },
 
               origin: webWalletURLs.CONNECT,
@@ -223,7 +249,10 @@ class PeraWalletConnect {
           appTellerManager.sendMessage({
             message: {
               type: "CONNECT",
-              data: getMetaInfo()
+              data: {
+                ...getMetaInfo(),
+                chainId
+              }
             },
 
             origin: webWalletURLs.CONNECT,
@@ -241,7 +270,10 @@ class PeraWalletConnect {
           appTellerManager.sendMessage({
             message: {
               type: "CONNECT",
-              data: getMetaInfo()
+              data: {
+                ...getMetaInfo(),
+                chainId
+              }
             },
 
             origin: webWalletURLs.CONNECT,
@@ -257,6 +289,21 @@ class PeraWalletConnect {
               saveWalletDetailsToStorage(accounts, "pera-wallet-web");
 
               resolve(accounts);
+
+              onClose();
+
+              newPeraWalletTab?.close();
+            } else if (event.data.message.type === "CONNECT_NETWORK_MISMATCH") {
+              reject(
+                new PeraWalletConnectError(
+                  {
+                    type: "CONNECT_NETWORK_MISMATCH",
+                    detail: event.data.message.error
+                  },
+                  event.data.message.error ||
+                    `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
+                )
+              );
 
               onClose();
 
@@ -293,7 +340,12 @@ class PeraWalletConnect {
           shouldUseSound
         } = await getPeraConnectConfig(this.network);
 
-        const {onWebWalletConnect} = this.connectWithWebWallet(resolve, webWalletURL);
+        const {onWebWalletConnect} = this.connectWithWebWallet(
+          resolve,
+          reject,
+          webWalletURL,
+          this.chainId
+        );
 
         // @ts-ignore ts-2339
         window.onWebWalletConnect = onWebWalletConnect;
@@ -309,7 +361,8 @@ class PeraWalletConnect {
         });
 
         await this.connector.createSession({
-          chainId: 4160
+          // eslint-disable-next-line no-magic-numbers
+          chainId: this.chainId || 4160
         });
 
         this.connector.on("connect", (error, _payload) => {
@@ -462,7 +515,7 @@ class PeraWalletConnect {
                   txn: signTxnRequestParams
                 },
 
-                origin: generateEmbeddedWalletURL(webWalletURLs.ROOT),
+                origin: generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN),
                 targetWindow: peraWalletIframe.contentWindow
               });
             }
@@ -484,7 +537,7 @@ class PeraWalletConnect {
               txn: signTxnRequestParams
             },
 
-            origin: webWalletURLs.ROOT,
+            origin: webWalletURLs.TRANSACTION_SIGN,
             targetWindow: newPeraWalletTab
           });
         }
@@ -503,6 +556,18 @@ class PeraWalletConnect {
             resolve(
               event.data.message.signedTxns.map((txn) =>
                 base64ToUint8Array(txn.signedTxn)
+              )
+            );
+          }
+
+          if (event.data.message.type === "SIGN_TXN_NETWORK_MISMATCH") {
+            reject(
+              new PeraWalletConnectError(
+                {
+                  type: "SIGN_TXN_NETWORK_MISMATCH",
+                  detail: event.data.message.error
+                },
+                event.data.message.error || "Network mismatch"
               )
             );
           }
