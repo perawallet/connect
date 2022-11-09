@@ -11,7 +11,7 @@ export default [
     },
     output: {
       dir: "dist",
-      format: "umd",
+      format: "cjs",
       name: "PeraConnect",
       globals: {
         "@walletconnect/client": "WalletConnect",

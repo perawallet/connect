@@ -8,6 +8,38 @@
   &--default {
     .pera-wallet-connect-modal-desktop-mode__default-view {
       display: block;
+
+      &--web-wallet-not-avaliable {
+        .pera-wallet-accordion-item--web-wallet {
+          display: none;
+        }
+
+        .pera-wallet-accordion-item {
+          .pera-wallet-accordion-toggle {
+            padding: 26px 24px 12px;
+
+            border-radius: 24px 24px 0 0;
+
+            transition: all ease-in 0.2s;
+          }
+
+          .pera-wallet-accordion-item__content {
+            height: 434px;
+
+            border-radius: 0 0 24px 24px;
+
+            transition: height ease-in 0.2s;
+          }
+
+          .pera-wallet-accordion-icon {
+            transform: rotate(90deg);
+          }
+        }
+
+        .pera-wallet-connect-modal-desktop-mode__download-pera-description {
+          margin-top: 50px;
+        }
+      }
     }
 
     .pera-wallet-connect-modal-desktop-mode__download-view {
@@ -173,8 +205,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
-  margin-top: 24px;
 }
 
 .pera-wallet-download-qr-code__image {
@@ -268,7 +298,7 @@
   justify-content: center;
   gap: 12px;
 
-  margin-top: 56px;
+  margin-top: 53px;
 }
 
 .pera-wallet-connect-modal-download-pera-view__footer__button {

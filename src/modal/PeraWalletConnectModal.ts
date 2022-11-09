@@ -27,9 +27,11 @@ export class PeraWalletConnectModal extends HTMLElement {
           <div class="pera-wallet-modal__body" part="body">
             <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header/>
       
-            <pera-wallet-modal-touch-screen-mode id="pera-wallet-modal-desktop-mode" uri="${this.getAttribute(
+            <pera-wallet-modal-touch-screen-mode uri="${this.getAttribute(
               "uri"
-            )}"></pera-wallet-modal-touch-screen-mode>
+            )}" should-use-sound="${this.getAttribute(
+          "should-use-sound"
+        )}"></pera-wallet-modal-touch-screen-mode>
           </div>
         </div>
       `;
@@ -46,7 +48,11 @@ export class PeraWalletConnectModal extends HTMLElement {
         
               <pera-wallet-modal-desktop-mode id="pera-wallet-modal-desktop-mode" uri="${this.getAttribute(
                 "uri"
-              )}"></pera-wallet-modal-desktop-mode>
+              )}" is-web-wallet-avaliable="${this.getAttribute(
+          "is-web-wallet-avaliable"
+        )}" should-display-new-badge="${this.getAttribute(
+          "should-display-new-badge"
+        )}"></pera-wallet-modal-desktop-mode>
             </div>
           </div>
         `;
@@ -55,20 +61,6 @@ export class PeraWalletConnectModal extends HTMLElement {
           peraWalletConnectModal.content.cloneNode(true),
           styleSheet
         );
-      }
-
-      const peraWalletDesktopMode = this.shadowRoot.getElementById(
-        "pera-wallet-modal-desktop-mode"
-      );
-      const URI = this.getAttribute("uri");
-      const network = this.getAttribute("network");
-
-      if (URI && peraWalletDesktopMode) {
-        peraWalletDesktopMode.setAttribute("uri", URI);
-      }
-
-      if (network && peraWalletDesktopMode) {
-        peraWalletDesktopMode.setAttribute("network", network);
       }
     }
   }

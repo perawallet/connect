@@ -3,10 +3,10 @@ if (typeof window !== "undefined") {
   (window as any).global = window;
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   window.Buffer = window.Buffer || require("buffer").Buffer;
+
+  import("./App");
 }
 
-// Components
-import "./App";
 import PeraWalletConnect from "./PeraWalletConnect";
 import {closePeraWalletSignTxnToast} from "./modal/peraWalletConnectModalUtils";
 
