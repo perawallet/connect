@@ -38,7 +38,7 @@ import {AppMeta, PeraWalletNetwork} from "./util/peraWalletTypes";
 import {generateEmbeddedWalletURL, getPeraWalletAppMeta} from "./util/peraWalletUtils";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "./util/peraWalletConstants";
-import {getMetaInfo} from "./util/dom/domUtils";
+import {getMetaInfo, waitForTabOpenning} from "./util/dom/domUtils";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -279,52 +279,52 @@ class PeraWalletConnect {
           onReceiveMessage
         });
       } else {
-        const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
+        waitForTabOpenning(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
+          if (newPeraWalletTab && newPeraWalletTab.opener) {
+            appTellerManager.sendMessage({
+              message: {
+                type: "CONNECT",
+                data: {
+                  ...getMetaInfo(),
+                  chainId
+                }
+              },
 
-        if (newPeraWalletTab && newPeraWalletTab.opener) {
-          appTellerManager.sendMessage({
-            message: {
-              type: "CONNECT",
-              data: {
-                ...getMetaInfo(),
-                chainId
-              }
-            },
-
-            origin: webWalletURLs.CONNECT,
-            targetWindow: newPeraWalletTab
-          });
-        }
-
-        appTellerManager.setupListener({
-          onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
-            if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
-              const accounts = event.data.message.data.addresses;
-
-              saveWalletDetailsToStorage(accounts, "pera-wallet-web");
-
-              resolve(accounts);
-
-              onClose();
-
-              newPeraWalletTab?.close();
-            } else if (event.data.message.type === "CONNECT_NETWORK_MISMATCH") {
-              reject(
-                new PeraWalletConnectError(
-                  {
-                    type: "CONNECT_NETWORK_MISMATCH",
-                    detail: event.data.message.error
-                  },
-                  event.data.message.error ||
-                    `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
-                )
-              );
-
-              onClose();
-
-              newPeraWalletTab?.close();
-            }
+              origin: webWalletURLs.CONNECT,
+              targetWindow: newPeraWalletTab
+            });
           }
+
+          appTellerManager.setupListener({
+            onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
+              if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
+                const accounts = event.data.message.data.addresses;
+
+                saveWalletDetailsToStorage(accounts, "pera-wallet-web");
+
+                resolve(accounts);
+
+                onClose();
+
+                newPeraWalletTab?.close();
+              } else if (event.data.message.type === "CONNECT_NETWORK_MISMATCH") {
+                reject(
+                  new PeraWalletConnectError(
+                    {
+                      type: "CONNECT_NETWORK_MISMATCH",
+                      detail: event.data.message.error
+                    },
+                    event.data.message.error ||
+                      `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
+                  )
+                );
+
+                onClose();
+
+                newPeraWalletTab?.close();
+              }
+            }
+          });
         });
       }
     }
@@ -543,19 +543,25 @@ class PeraWalletConnect {
             console.log(error);
           });
       } else {
-        newPeraWalletTab = window.open(webWalletURLs.TRANSACTION_SIGN, "_blank");
+        waitForTabOpenning(webWalletURLs.TRANSACTION_SIGN)
+          .then((newTab) => {
+            newPeraWalletTab = newTab;
 
-        if (newPeraWalletTab && newPeraWalletTab.opener) {
-          appTellerManager.sendMessage({
-            message: {
-              type: "SIGN_TXN",
-              txn: signTxnRequestParams
-            },
+            if (newPeraWalletTab && newPeraWalletTab.opener) {
+              appTellerManager.sendMessage({
+                message: {
+                  type: "SIGN_TXN",
+                  txn: signTxnRequestParams
+                },
 
-            origin: webWalletURLs.TRANSACTION_SIGN,
-            targetWindow: newPeraWalletTab
+                origin: webWalletURLs.TRANSACTION_SIGN,
+                targetWindow: newPeraWalletTab
+              });
+            }
+          })
+          .catch((error) => {
+            console.log(error);
           });
-        }
       }
 
       appTellerManager.setupListener({

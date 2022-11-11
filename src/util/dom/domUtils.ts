@@ -94,4 +94,16 @@ function waitForElementCreatedAtShadowDOM(
   });
 }
 
-export {getMetaInfo, getFavicons, waitForElementCreatedAtShadowDOM};
+function waitForTabOpenning(url: string): Promise<Window | null> {
+  return new Promise((resolve, reject) => {
+    try {
+      const newWindow = window.open(url, "_blank");
+
+      resolve(newWindow);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+export {getMetaInfo, getFavicons, waitForElementCreatedAtShadowDOM, waitForTabOpenning};
