@@ -15,7 +15,8 @@ import {
   closePeraWalletSignTxnModal,
   PERA_WALLET_IFRAME_ID,
   PERA_WALLET_MODAL_CLASSNAME,
-  PeraWalletModalConfig
+  PeraWalletModalConfig,
+  PERA_WALLET_SIGN_TXN_MODAL_ID
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
@@ -512,7 +513,8 @@ class PeraWalletConnect {
       if (browser === "Chrome") {
         openPeraWalletSignTxnModal()
           .then((modal) => {
-            const peraWalletSignTxnModal = modal;
+            const peraWalletSignTxnModalIFrameWrapper = modal;
+
             const peraWalletIframe = document.createElement("iframe");
 
             peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
@@ -521,7 +523,32 @@ class PeraWalletConnect {
               generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN)
             );
 
-            peraWalletSignTxnModal?.appendChild(peraWalletIframe);
+            peraWalletSignTxnModalIFrameWrapper?.appendChild(peraWalletIframe);
+
+            const peraWalletSignTxnModalHeader = document
+              .getElementById(PERA_WALLET_SIGN_TXN_MODAL_ID)
+              ?.querySelector("pera-wallet-sign-txn-modal")
+              ?.shadowRoot?.querySelector(`pera-wallet-modal-header`);
+
+            const peraWalletSignTxnModalCloseButton =
+              peraWalletSignTxnModalHeader?.shadowRoot?.getElementById(
+                "pera-wallet-modal-header-close-button"
+              );
+
+            if (peraWalletSignTxnModalCloseButton) {
+              peraWalletSignTxnModalCloseButton.addEventListener("click", () => {
+                reject(
+                  new PeraWalletConnectError(
+                    {
+                      type: "SIGN_TRANSACTIONS_CANCELLED"
+                    },
+                    "Transaction signing is cancelled"
+                  )
+                );
+
+                removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
+              });
+            }
 
             if (peraWalletIframe.contentWindow) {
               appTellerManager.sendMessage({
