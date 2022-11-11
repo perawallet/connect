@@ -100,6 +100,26 @@ You can override the z-index using the `.pera-wallet-connect-modal` class so tha
 }
 ```
 
+### Options
+| option     | default    | value                                 |          |
+|------------|------------|---------------------------------------|----------|
+| `network`  |  `mainnet` | `dev`, `testnet`, `mainnet`           | optional |
+| `chainId`  |  `4160`    | `416001`, `416002`, `416003` , `4160` | optional |
+
+#### **`network`**
+Determines which Web Wallet URL is to be used. Most of the time, you don't need to provide it. If you specifically want to use the Testnet version of Web Wallet for development purposes, simply provide `network: testnet` to the `PeraWalletConnect` constructor. 
+
+#### **`chainId`**
+Determines which Algorand network your dApp uses. 
+
+**MainNet**: 416001
+
+**TestNet**: 416002
+
+**BetaNet**: 416003
+
+**All Networks**: 4160
+
 ### Your app name on Pera Wallet
 
 By default, the connect wallet drawer on Pera Wallet gets the app name from `document.title`.
