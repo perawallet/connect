@@ -1,12 +1,12 @@
 ![Pera Connect Cover Image](https://user-images.githubusercontent.com/54077855/179966121-bd9295c3-5f61-4203-b13f-851434e72d35.png)
 
-### @perawallet/connect
+## @perawallet/connect
 
 JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web applications. For more detailed information, please check our [Pera Connect Docs](https://docs.perawallet.app/references/pera-connect/).
 
 [![](https://img.shields.io/npm/v/@perawallet/connect?style=flat-square)](https://www.npmjs.com/package/@perawallet/connect) [![](https://img.shields.io/bundlephobia/min/@perawallet/connect?style=flat-square)](https://www.npmjs.com/package/@perawallet/connect)
 
-### Getting Started
+## Getting Started
 
 [Learn how to integrate with your JavaScript application](#guide)
 
@@ -14,7 +14,7 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 [Try it out using CodeSandbox](#example-applications)
 
-### Example Applications
+## Example Applications
 
 - [Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-zlvokc)
 
@@ -30,7 +30,7 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 - [Vanilla JS](https://codesandbox.io/s/perawallet-connect-vanillajs-demo-s5pjeo)
 
-### Quick Start
+## Quick Start
 
 Let's start with installing `@perawallet/connect`
 
@@ -80,16 +80,41 @@ try {
 } catch (error) {
   console.log("Couldn't sign Opt-in txns", error);
 }
-
-// Group Transaction
-try {
-  const signedTxns = await peraWallet.signTransaction([multipleTxnGroups]);
-} catch (error) {
-  console.log("Couldn't sign Opt-in txns", error);
-}
 ```
 
-### Customizing Style
+## Options
+
+| option    | default   | value                                 |          |
+| --------- | --------- | ------------------------------------- | -------- |
+| `network` | `mainnet` | `dev`, `testnet`, `mainnet`           | optional |
+| `chainId` | `4160`    | `416001`, `416002`, `416003` , `4160` | optional |
+
+#### **`network`**
+
+Determines which Web Wallet URL is to be used. Most of the time, you don't need to provide it. If you specifically want to use the Testnet version of Web Wallet for development purposes, simply provide `network: testnet` to the `PeraWalletConnect` constructor.
+
+#### **`chainId`**
+
+Determines which Algorand network your dApp uses.
+
+**MainNet**: 416001
+
+**TestNet**: 416002
+
+**BetaNet**: 416003
+
+**All Networks**: 4160
+
+## Methods
+
+#### `peraWallet.platform` 
+Returns the platform of the active session. Possible responses: *`mobile | web`*
+
+#### `peraWallet.isConnected`
+To check if there's any active session regardless of platform.
+
+
+## Customizing Style
 
 You can override the z-index using the `.pera-wallet-connect-modal` class so that the modal does not conflict with another component on your application.
 
@@ -100,28 +125,7 @@ You can override the z-index using the `.pera-wallet-connect-modal` class so tha
 }
 ```
 
-### Options
-| option     | default    | value                                 |          |
-|------------|------------|---------------------------------------|----------|
-| `network`  |  `mainnet` | `dev`, `testnet`, `mainnet`           | optional |
-| `chainId`  |  `4160`    | `416001`, `416002`, `416003` , `4160` | optional |
-
-#### **`network`**
-Determines which Web Wallet URL is to be used. Most of the time, you don't need to provide it. If you specifically want to use the Testnet version of Web Wallet for development purposes, simply provide `network: testnet` to the `PeraWalletConnect` constructor. 
-
-#### **`chainId`**
-Determines which Algorand network your dApp uses. 
-
-**MainNet**: 416001
-
-**TestNet**: 416002
-
-**BetaNet**: 416003
-
-**All Networks**: 4160
-
-### Your app name on Pera Wallet
-
+## Your app name on Pera Wallet
 By default, the connect wallet drawer on Pera Wallet gets the app name from `document.title`.
 
 In some cases, you may want to customize it. You can achieve this by adding a meta tag to your HTML between the `head` tag.
@@ -130,6 +134,6 @@ In some cases, you may want to customize it. You can achieve this by adding a me
 <meta name="name" content="My dApp" />
 ```
 
-### Contributing
+## Contributing
 
 All contributions are welcomed! To get more information about the details, please read the [contribution](./CONTRIBUTING.md) guide first.
