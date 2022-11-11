@@ -38,7 +38,7 @@ import {AppMeta, PeraWalletNetwork} from "./util/peraWalletTypes";
 import {generateEmbeddedWalletURL, getPeraWalletAppMeta} from "./util/peraWalletUtils";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "./util/peraWalletConstants";
-import {getMetaInfo, waitForTabOpenning} from "./util/dom/domUtils";
+import {getMetaInfo, waitForTabOpening} from "./util/dom/domUtils";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -279,7 +279,7 @@ class PeraWalletConnect {
           onReceiveMessage
         });
       } else {
-        waitForTabOpenning(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
+        waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
           if (newPeraWalletTab && newPeraWalletTab.opener) {
             appTellerManager.sendMessage({
               message: {
@@ -543,7 +543,7 @@ class PeraWalletConnect {
             console.log(error);
           });
       } else {
-        waitForTabOpenning(webWalletURLs.TRANSACTION_SIGN)
+        waitForTabOpening(webWalletURLs.TRANSACTION_SIGN)
           .then((newTab) => {
             newPeraWalletTab = newTab;
 

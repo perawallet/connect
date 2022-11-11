@@ -94,7 +94,7 @@ function waitForElementCreatedAtShadowDOM(
   });
 }
 
-function waitForTabOpenning(url: string): Promise<Window | null> {
+function waitForTabOpening(url: string): Promise<Window | null> {
   return new Promise((resolve, reject) => {
     try {
       const newWindow = window.open(url, "_blank");
@@ -106,4 +106,4 @@ function waitForTabOpenning(url: string): Promise<Window | null> {
   });
 }
 
-export {getMetaInfo, getFavicons, waitForElementCreatedAtShadowDOM, waitForTabOpenning};
+export {getMetaInfo, getFavicons, waitForElementCreatedAtShadowDOM, waitForTabOpening};
