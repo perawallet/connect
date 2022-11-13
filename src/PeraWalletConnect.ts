@@ -159,11 +159,7 @@ class PeraWalletConnect {
         onClose();
 
         document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
-      } else if (
-        ["CREATE_PASSCODE_EMBEDDED", "SELECT_ACCOUNT_EMBEDDED"].includes(
-          event.data.message.type
-        )
-      ) {
+      } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
         const peraWalletConnectModalWrapper = document.getElementById(
           PERA_WALLET_CONNECT_MODAL_ID
         );
@@ -176,53 +172,7 @@ class PeraWalletConnect {
           ?.querySelector("pera-wallet-modal-desktop-mode")
           ?.shadowRoot?.querySelector(".pera-wallet-connect-modal-desktop-mode");
 
-        let messageType:
-          | "CREATE_PASSCODE_EMBEDDED_CALLBACK"
-          | "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
-          | null = null;
-
-        if (
-          peraWalletConnectModal &&
-          peraWalletConnectModalDesktopMode &&
-          event.data.message.type === "CREATE_PASSCODE_EMBEDDED"
-        ) {
-          const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
-
-          if (newPeraWalletTab && newPeraWalletTab.opener) {
-            appTellerManager.sendMessage({
-              message: {
-                type: "CONNECT",
-                data: {
-                  ...getMetaInfo(),
-                  chainId
-                }
-              },
-
-              origin: webWalletURLs.CONNECT,
-              targetWindow: newPeraWalletTab
-            });
-          }
-
-          appTellerManager.setupListener({
-            onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
-              if (resolve && newTabEvent.data.message.type === "CONNECT_CALLBACK") {
-                const accounts = newTabEvent.data.message.data.addresses;
-
-                saveWalletDetailsToStorage(accounts, "pera-wallet-web");
-
-                resolve(accounts);
-
-                onClose();
-
-                newPeraWalletTab?.close();
-              }
-            }
-          });
-        } else if (
-          peraWalletConnectModal &&
-          peraWalletConnectModalDesktopMode &&
-          event.data.message.type === "SELECT_ACCOUNT_EMBEDDED"
-        ) {
+        if (peraWalletConnectModal && peraWalletConnectModalDesktopMode) {
           peraWalletConnectModal.classList.add(
             `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
           );
@@ -235,18 +185,15 @@ class PeraWalletConnect {
           peraWalletConnectModalDesktopMode.classList.remove(
             `pera-wallet-connect-modal-desktop-mode--create-passcode`
           );
+        }
 
-          messageType = "SELECT_ACCOUNT_EMBEDDED_CALLBACK";
-        }
-        if (messageType) {
-          appTellerManager.sendMessage({
-            message: {
-              type: messageType
-            },
-            origin: webWalletURLs.CONNECT,
-            targetWindow: peraWalletIframe.contentWindow!
-          });
-        }
+        appTellerManager.sendMessage({
+          message: {
+            type: "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
+          },
+          origin: webWalletURLs.CONNECT,
+          targetWindow: peraWalletIframe.contentWindow!
+        });
       }
     }
 
@@ -271,7 +218,8 @@ class PeraWalletConnect {
             },
 
             origin: webWalletURLs.CONNECT,
-            targetWindow: peraWalletIframe.contentWindow
+            targetWindow: peraWalletIframe.contentWindow,
+            timeout: 5000
           });
         }
 
@@ -291,7 +239,8 @@ class PeraWalletConnect {
               },
 
               origin: webWalletURLs.CONNECT,
-              targetWindow: newPeraWalletTab
+              targetWindow: newPeraWalletTab,
+              timeout: 5000
             });
           }
 
