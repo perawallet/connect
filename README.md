@@ -16,6 +16,9 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 ## Example Applications
 
+<details>
+  <summary>Expand details</summary>
+  
 - [Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-zlvokc)
 
 - [Using React Hooks with React@18](https://codesandbox.io/s/perawallet-connect-react-18-demo-tig2md)
@@ -29,6 +32,7 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 - [Using Nuxt.js](https://codesandbox.io/s/perawallet-connect-nuxt-js-demo-s65z58)
 
 - [Vanilla JS](https://codesandbox.io/s/perawallet-connect-vanillajs-demo-s5pjeo)
+</details>
 
 ## Quick Start
 
@@ -107,12 +111,29 @@ Determines which Algorand network your dApp uses.
 
 ## Methods
 
-#### `peraWallet.platform` 
-Returns the platform of the active session. Possible responses: *`mobile | web`*
+#### `PeraWalletConnect.connect(): Promise<string[]>`
 
-#### `peraWallet.isConnected`
-To check if there's any active session regardless of platform.
+Starts the initial connection flow and returns the array of account addresses.
 
+#### `PeraWalletConnect.reconnectSession(): Promise<string[]>`
+
+Reconnects to the wallet if there is any active connection and returns the array of account addresses.
+
+#### `PeraWalletConnect.disconnect(): Promise<void | undefined>`
+
+Disconnects from the wallet and resets the related storage items.
+
+#### `PeraWalletConnect.platform: PeraWalletPlatformType`
+
+Returns the platform of the active session. Possible responses: _`mobile | web | null`_
+
+#### `PeraWalletConnect.isConnected: boolean`
+
+Checks if there's any active session regardless of platform. Possible responses: _`true | false`_
+
+#### `PeraWalletConnect.signTransaction(txGroups: SignerTransaction[][], signerAddress?: string): Promise<Uint8Array[]>`
+
+Starts the sign process and returns the signed transaction in `Uint8Array`
 
 ## Customizing Style
 
@@ -126,6 +147,7 @@ You can override the z-index using the `.pera-wallet-connect-modal` class so tha
 ```
 
 ## Your app name on Pera Wallet
+
 By default, the connect wallet drawer on Pera Wallet gets the app name from `document.title`.
 
 In some cases, you may want to customize it. You can achieve this by adding a meta tag to your HTML between the `head` tag.
