@@ -458,6 +458,21 @@ class PeraWalletConnect {
       const browser = detectBrowser();
       let newPeraWalletTab: Window | null;
 
+      const checkTabIsAliveInterval = setInterval(() => {
+        if (newPeraWalletTab?.closed === true) {
+          reject(
+            new PeraWalletConnectError(
+              {
+                type: "SIGN_TRANSACTIONS_CANCELLED"
+              },
+              "Transaction signing is cancelled by user."
+            )
+          );
+        }
+
+        // eslint-disable-next-line no-magic-numbers
+      }, 2000);
+
       if (browser === "Chrome") {
         openPeraWalletSignTxnModal()
           .then((modal) => {
@@ -490,7 +505,7 @@ class PeraWalletConnect {
                     {
                       type: "SIGN_TRANSACTIONS_CANCELLED"
                     },
-                    "Transaction signing is cancelled"
+                    "Transaction signing is cancelled by user."
                   )
                 );
 
@@ -547,6 +562,7 @@ class PeraWalletConnect {
               closePeraWalletSignTxnModal();
             }
 
+            clearInterval(checkTabIsAliveInterval);
             newPeraWalletTab?.close();
 
             resolve(
@@ -557,6 +573,8 @@ class PeraWalletConnect {
           }
 
           if (event.data.message.type === "SIGN_TXN_NETWORK_MISMATCH") {
+            clearInterval(checkTabIsAliveInterval);
+
             reject(
               new PeraWalletConnectError(
                 {
@@ -574,6 +592,8 @@ class PeraWalletConnect {
               closePeraWalletSignTxnModal();
             }
 
+            clearInterval(checkTabIsAliveInterval);
+
             newPeraWalletTab?.close();
 
             resetWalletDetailsFromStorage();
@@ -587,6 +607,7 @@ class PeraWalletConnect {
               closePeraWalletSignTxnModal();
             }
 
+            clearInterval(checkTabIsAliveInterval);
             newPeraWalletTab?.close();
 
             reject(
