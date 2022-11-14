@@ -159,41 +159,98 @@ class PeraWalletConnect {
         onClose();
 
         document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
-      } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
-        const peraWalletConnectModalWrapper = document.getElementById(
-          PERA_WALLET_CONNECT_MODAL_ID
-        );
+      } else if (
+        ["CREATE_PASSCODE_EMBEDDED", "SELECT_ACCOUNT_EMBEDDED"].includes(
+          event.data.message.type
+        )
+      ) {
+        if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
+          const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
 
-        const peraWalletConnectModal = peraWalletConnectModalWrapper
-          ?.querySelector("pera-wallet-connect-modal")
-          ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
+          if (newPeraWalletTab && newPeraWalletTab.opener) {
+            appTellerManager.sendMessage({
+              message: {
+                type: "CONNECT",
+                data: {
+                  ...getMetaInfo(),
+                  chainId
+                }
+              },
 
-        const peraWalletConnectModalDesktopMode = peraWalletConnectModal
-          ?.querySelector("pera-wallet-modal-desktop-mode")
-          ?.shadowRoot?.querySelector(".pera-wallet-connect-modal-desktop-mode");
+              origin: webWalletURLs.CONNECT,
+              targetWindow: newPeraWalletTab
+            });
+          }
 
-        if (peraWalletConnectModal && peraWalletConnectModalDesktopMode) {
-          peraWalletConnectModal.classList.add(
-            `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
+          const checkTabIsAliveInterval = setInterval(() => {
+            if (newPeraWalletTab?.closed === true) {
+              reject(
+                new PeraWalletConnectError(
+                  {
+                    type: "CONNECT_CANCELLED"
+                  },
+                  "Connect is cancelled by user"
+                )
+              );
+
+              onClose();
+              clearInterval(checkTabIsAliveInterval);
+            }
+
+            // eslint-disable-next-line no-magic-numbers
+          }, 2000);
+
+          appTellerManager.setupListener({
+            onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
+              if (resolve && newTabEvent.data.message.type === "CONNECT_CALLBACK") {
+                const accounts = newTabEvent.data.message.data.addresses;
+
+                saveWalletDetailsToStorage(accounts, "pera-wallet-web");
+
+                resolve(accounts);
+
+                onClose();
+
+                newPeraWalletTab?.close();
+              }
+            }
+          });
+        } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
+          const peraWalletConnectModalWrapper = document.getElementById(
+            PERA_WALLET_CONNECT_MODAL_ID
           );
-          peraWalletConnectModal.classList.remove(
-            `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
-          );
-          peraWalletConnectModalDesktopMode.classList.add(
-            `pera-wallet-connect-modal-desktop-mode--select-account`
-          );
-          peraWalletConnectModalDesktopMode.classList.remove(
-            `pera-wallet-connect-modal-desktop-mode--create-passcode`
-          );
+
+          const peraWalletConnectModal = peraWalletConnectModalWrapper
+            ?.querySelector("pera-wallet-connect-modal")
+            ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
+
+          const peraWalletConnectModalDesktopMode = peraWalletConnectModal
+            ?.querySelector("pera-wallet-modal-desktop-mode")
+            ?.shadowRoot?.querySelector(".pera-wallet-connect-modal-desktop-mode");
+
+          if (peraWalletConnectModal && peraWalletConnectModalDesktopMode) {
+            peraWalletConnectModal.classList.add(
+              `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
+            );
+            peraWalletConnectModal.classList.remove(
+              `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
+            );
+            peraWalletConnectModalDesktopMode.classList.add(
+              `pera-wallet-connect-modal-desktop-mode--select-account`
+            );
+            peraWalletConnectModalDesktopMode.classList.remove(
+              `pera-wallet-connect-modal-desktop-mode--create-passcode`
+            );
+          }
+
+          appTellerManager.sendMessage({
+            message: {
+              type: "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
+            },
+            origin: webWalletURLs.CONNECT,
+            targetWindow: peraWalletIframe.contentWindow!
+          });
         }
-
-        appTellerManager.sendMessage({
-          message: {
-            type: "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
-          },
-          origin: webWalletURLs.CONNECT,
-          targetWindow: peraWalletIframe.contentWindow!
-        });
       }
     }
 
@@ -243,6 +300,24 @@ class PeraWalletConnect {
               timeout: 5000
             });
           }
+
+          const checkTabIsAliveInterval = setInterval(() => {
+            if (newPeraWalletTab?.closed === true) {
+              reject(
+                new PeraWalletConnectError(
+                  {
+                    type: "CONNECT_CANCELLED"
+                  },
+                  "Connect is cancelled by user"
+                )
+              );
+
+              clearInterval(checkTabIsAliveInterval);
+              onClose();
+            }
+
+            // eslint-disable-next-line no-magic-numbers
+          }, 2000);
 
           appTellerManager.setupListener({
             onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
@@ -327,6 +402,31 @@ class PeraWalletConnect {
         await this.connector.createSession({
           // eslint-disable-next-line no-magic-numbers
           chainId: this.chainId || 4160
+        });
+
+        const peraWalletConnectModalWrapper = document.getElementById(
+          PERA_WALLET_CONNECT_MODAL_ID
+        );
+
+        const peraWalletConnectModal = peraWalletConnectModalWrapper
+          ?.querySelector("pera-wallet-connect-modal")
+          ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
+
+        const closeButton = peraWalletConnectModal
+          ?.querySelector("pera-wallet-modal-header")
+          ?.shadowRoot?.getElementById("pera-wallet-modal-header-close-button");
+
+        closeButton?.addEventListener("click", () => {
+          reject(
+            new PeraWalletConnectError(
+              {
+                type: "CONNECT_MODAL_CLOSED"
+              },
+              "Connect modal is closed by user"
+            )
+          );
+
+          removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
         });
 
         this.connector.on("connect", (error, _payload) => {
@@ -458,6 +558,23 @@ class PeraWalletConnect {
       const browser = detectBrowser();
       let newPeraWalletTab: Window | null;
 
+      const checkTabIsAliveInterval = setInterval(() => {
+        if (newPeraWalletTab?.closed === true) {
+          reject(
+            new PeraWalletConnectError(
+              {
+                type: "SIGN_TXN_CANCELLED"
+              },
+              "Transaction signing is cancelled by user."
+            )
+          );
+
+          clearInterval(checkTabIsAliveInterval);
+        }
+
+        // eslint-disable-next-line no-magic-numbers
+      }, 2000);
+
       if (browser === "Chrome") {
         openPeraWalletSignTxnModal()
           .then((modal) => {
@@ -488,9 +605,9 @@ class PeraWalletConnect {
                 reject(
                   new PeraWalletConnectError(
                     {
-                      type: "SIGN_TRANSACTIONS_CANCELLED"
+                      type: "SIGN_TXN_CANCELLED"
                     },
-                    "Transaction signing is cancelled"
+                    "Transaction signing is cancelled by user."
                   )
                 );
 
@@ -592,7 +709,7 @@ class PeraWalletConnect {
             reject(
               new PeraWalletConnectError(
                 {
-                  type: "SIGN_TRANSACTIONS_CANCELLED"
+                  type: "SIGN_TXN_CANCELLED"
                 },
                 event.data.message.error
               )

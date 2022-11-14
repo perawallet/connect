@@ -84,7 +84,7 @@ function closePeraWalletSignTxnModal(rejectPromise?: (error: any) => void) {
     rejectPromise(
       new PeraWalletConnectError(
         {
-          type: "SIGN_TRANSACTIONS_CANCELLED"
+          type: "SIGN_TXN_CANCELLED"
         },
         "Transaction sign is cancelled"
       )
