@@ -7,6 +7,7 @@ interface TellerMessageOptions<T> {
   message: T;
   targetWindow: Window | MessageEventSource;
   origin?: string;
+  timeout?: number;
 }
 
 interface TellerMessage<T> {

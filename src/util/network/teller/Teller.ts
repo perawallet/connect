@@ -45,7 +45,12 @@ class Teller<Message> {
     window.addEventListener("message", this.listener);
   }
 
-  public sendMessage({message, targetWindow, origin}: TellerMessageOptions<Message>) {
+  public sendMessage({
+    message,
+    targetWindow,
+    origin,
+    timeout = TELLER_MESSAGE_TIMEOUT
+  }: TellerMessageOptions<Message>) {
     setTimeout(() => {
       const tellerMessage = {
         channel: this.channel,
@@ -56,7 +61,7 @@ class Teller<Message> {
         // if the origin is not specified, the message will not be origin specific
         targetOrigin: origin || "*"
       });
-    }, TELLER_MESSAGE_TIMEOUT);
+    }, timeout);
   }
 
   public close() {
