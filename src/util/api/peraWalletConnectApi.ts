@@ -18,7 +18,7 @@ function fetchPeraConnectConfig(network: PeraWalletNetwork) {
     use_sound: boolean;
     display_new_badge: boolean;
     servers: string[];
-  }>(configURL);
+  }>(configURL, {cache: "no-store"});
 }
 
 /**
