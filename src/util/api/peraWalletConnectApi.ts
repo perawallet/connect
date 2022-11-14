@@ -30,7 +30,7 @@ async function getPeraConnectConfig(network: PeraWalletNetwork) {
   return {
     bridgeURL: shuffleArray(response.servers)[0],
     webWalletURL: response.web_wallet_url,
-    isWebWalletAvaliable: response.web_wallet || true,
+    isWebWalletAvaliable: response.web_wallet,
     shouldDisplayNewBadge: response.display_new_badge,
     shouldUseSound: response.use_sound
   };
