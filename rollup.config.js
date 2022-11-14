@@ -24,7 +24,7 @@ export default [
     },
     external: [
       "@walletconnect/client",
-      "react-qrcode-logo",
+      "@walletconnect/types",
       "@json-rpc-tools/utils/dist/cjs/format",
       "algosdk",
       "lottie-web",
