@@ -4,10 +4,6 @@ import CloseIconDark from "../../asset/icon/Close--dark.svg";
 
 import styles from "./_pera-wallet-modal-header.scss";
 import {isSmallScreen} from "../../util/screen/screenSizeUtils";
-import {
-  PERA_WALLET_SIGN_TXN_MODAL_ID,
-  removeModalWrapperFromDOM
-} from "../peraWalletConnectModalUtils";
 import {isMobile} from "../../util/device/deviceUtils";
 
 const peraWalletModalHeader = document.createElement("template");
@@ -51,24 +47,6 @@ export class PeraWalletModalHeader extends HTMLElement {
       styleSheet.textContent = styles;
 
       this.shadowRoot.append(peraWalletModalHeader.content.cloneNode(true), styleSheet);
-
-      const closeButton = this.shadowRoot.getElementById(
-        "pera-wallet-modal-header-close-button"
-      );
-
-      const modalID = this.getAttribute("modal-id");
-
-      if (modalID !== PERA_WALLET_SIGN_TXN_MODAL_ID) {
-        closeButton?.addEventListener("click", this.onClose);
-      }
-    }
-  }
-
-  onClose() {
-    const modalID = this.getAttribute("modal-id");
-
-    if (modalID) {
-      removeModalWrapperFromDOM(modalID);
     }
   }
 }
