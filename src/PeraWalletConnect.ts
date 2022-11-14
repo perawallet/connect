@@ -34,7 +34,7 @@ import {
   encodeUnsignedTransactionInBase64
 } from "./util/transaction/transactionUtils";
 import {detectBrowser, isMobile} from "./util/device/deviceUtils";
-import {AppMeta, PeraWalletNetwork} from "./util/peraWalletTypes";
+import {AlgorandChainIDs, AppMeta, PeraWalletNetwork} from "./util/peraWalletTypes";
 import {generateEmbeddedWalletURL, getPeraWalletAppMeta} from "./util/peraWalletUtils";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "./util/peraWalletConstants";
@@ -47,8 +47,7 @@ interface PeraWalletConnectOptions {
   shouldShowSignTxnToast?: boolean;
   network?: PeraWalletNetwork;
 
-  // eslint-disable-next-line no-magic-numbers
-  chainId?: 416001 | 416002 | 416003 | 4160;
+  chainId?: AlgorandChainIDs;
 }
 
 function generatePeraWalletConnectModalActions({
