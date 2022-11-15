@@ -1,46 +1,39 @@
 import {shuffleArray} from "../array/arrayUtils";
-import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "../storage/storageConstants";
-import {getLocalStorage} from "../storage/storageUtils";
+import {PeraWalletNetwork} from "../peraWalletTypes";
 import fetcher from "./fetcher";
 
-const BRIDGE_SERVERS_URL = "https://wc.perawallet.app/servers.json";
+const PERA_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config.json";
+const PERA_CONNECT_CONFIG_STAGING_URL = "https://wc.perawallet.app/config-staging.json";
 
 /**
- * @returns {string[]} Bridge server list
+ * @returns {object} {web_wallet: boolean, web_wallet_url: string, use_sound: boolean, display_new_badge: boolean, servers: string[]}
  */
-function listBridgeServers() {
+function fetchPeraConnectConfig(network: PeraWalletNetwork) {
+  const configURL =
+    network === "mainnet" ? PERA_CONNECT_CONFIG_URL : PERA_CONNECT_CONFIG_STAGING_URL;
+
   return fetcher<{
+    web_wallet: boolean;
+    web_wallet_url: string;
+    use_sound: boolean;
+    display_new_badge: boolean;
     servers: string[];
-  }>(BRIDGE_SERVERS_URL);
+  }>(configURL, {cache: "no-store"});
 }
 
 /**
- * If there's a bridge URL in local storage returns it
- * otherwise fetches the available servers and picks a random one and saves it to local storage
- *
- * @returns {string} Bridge URL
+ * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvaliable: boolean, shouldDisplayNewBadge: boolean, shouldUseSound: boolean}
  */
-async function assignBridgeURL() {
-  // Retrieve bridge from local storage
-  const bridgeURL = getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL);
+async function getPeraConnectConfig(network: PeraWalletNetwork) {
+  const response = await fetchPeraConnectConfig(network);
 
-  // User is already assigned to a bridge
-  // No need to retrieve new one
-  if (bridgeURL) {
-    return bridgeURL;
-  }
-
-  // User is not assigned to a bridge
-  // Retrieve available bridges
-  const response = await listBridgeServers();
-
-  // Pick a random bridge
-  const newBridgeURL = shuffleArray(response.servers)[0];
-
-  // Save bridge URL to local storage
-  getLocalStorage()?.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.BRIDGE_URL, newBridgeURL);
-
-  return newBridgeURL;
+  return {
+    bridgeURL: shuffleArray(response.servers)[0],
+    webWalletURL: response.web_wallet_url,
+    isWebWalletAvaliable: response.web_wallet,
+    shouldDisplayNewBadge: response.display_new_badge,
+    shouldUseSound: response.use_sound
+  };
 }
 
-export {assignBridgeURL, listBridgeServers};
+export {getPeraConnectConfig, fetchPeraConnectConfig};

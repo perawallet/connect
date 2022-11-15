@@ -11,19 +11,27 @@ export default [
     },
     output: {
       dir: "dist",
-      format: "cjs"
+      format: "cjs",
+      name: "PeraConnect",
+      globals: {
+        "@walletconnect/client": "WalletConnect",
+        algosdk: "algosdk",
+        bowser: "bowser",
+        "@json-rpc-tools/utils/dist/cjs/format": "format",
+        "qr-code-styling": "QRCodeStyling",
+        "lottie-web": "lottie"
+      }
     },
     external: [
-      "react",
-      "react-dom",
-      "react-dom/client",
       "@walletconnect/client",
-      "@hipo/react-ui-toolkit",
-      "react-qrcode-logo",
+      "@walletconnect/types",
       "@json-rpc-tools/utils/dist/cjs/format",
       "algosdk",
-      "lottie-react",
-      "bowser"
+      "lottie-web",
+      "bowser",
+      "qr-code-styling",
+      "bufferutil",
+      "utf-8-validate"
     ],
     plugins: [
       image(),

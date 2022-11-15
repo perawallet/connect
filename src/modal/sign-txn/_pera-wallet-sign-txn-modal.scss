@@ -1,0 +1,29 @@
+@import "../pera-wallet-modal";
+
+.pera-wallet-sign-txn-modal.pera-wallet-modal {
+  .pera-wallet-modal__body {
+    width: 480px;
+    height: 578px;
+
+    background-color: #ffffff;
+    background-image: unset;
+
+    padding: 0;
+
+    .pera-wallet-sign-txn-modal__body__content {
+      width: 100%;
+      height: 100%;
+    }
+
+    #pera-wallet-iframe {
+      width: 100%;
+      height: 100%;
+
+      border-radius: 16px;
+
+      margin: 0 auto;
+
+      border: none;
+    }
+  }
+}

@@ -1,3 +1,18 @@
+@import "../../pera-wallet-modal";
+@import "../../../ui/styles/util-mixins";
+
+.pera-wallet-connect-modal-pending-message-section {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 48px;
+  gap: 56px;
+
+  height: 100%;
+
+  padding: 4px;
+  padding-bottom: 70px;
+}
+
 .pera-wallet-connect-modal-pending-message {
   display: flex;
   align-items: center;
@@ -5,14 +20,127 @@
   flex-direction: column;
 
   text-align: center;
+
+  &--try-again-view {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+
+    height: 100%;
+
+    margin-top: 10px;
+
+    &__title {
+      margin: 16px 0 12px;
+
+      color: #3c3c49;
+
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 24px;
+      letter-spacing: -0.26px;
+    }
+
+    &__description {
+      color: #6a6a81;
+
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 24px;
+      letter-spacing: -0.01px;
+    }
+
+    &__button {
+      display: block;
+
+      width: 100%;
+
+      padding: 14px;
+
+      border-radius: 12px;
+
+      text-decoration: none;
+      text-align: center;
+      font-size: 14px;
+      line-height: 20px;
+      letter-spacing: -0.09px;
+      font-weight: 500;
+
+      color: #ffffff;
+      background-color: #6b46fe;
+
+      border: none;
+    }
+
+    &__resolving-anchor {
+      display: flex;
+      gap: 12px;
+
+      margin-bottom: 20px;
+      padding: 16px;
+
+      background: #ffffff;
+
+      box-shadow: 0px 0px 1px rgba(12, 26, 75, 0.24),
+        0px 3px 8px -1px rgba(50, 50, 71, 0.05);
+      border-radius: 12px;
+
+      text-decoration: none;
+
+      &__image {
+        width: 24px;
+        height: 24px;
+      }
+
+      &__title-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        margin-bottom: 4px;
+      }
+
+      &__title {
+        margin: 0;
+
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        letter-spacing: -0.1px;
+
+        color: #3c3c49;
+      }
+
+      &__description {
+        @include truncate-multiple-line(2);
+
+        margin: 0;
+
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 18px;
+        letter-spacing: 0.01px;
+
+        color: #9d9dae;
+      }
+    }
+  }
+}
+
+.pera-wallet-connect-modal-pending-message__animation-wrapper {
+  width: 56px;
+  height: 56px;
+
+  background-color: #6b46fe;
+  border-radius: 50%;
 }
 
 .pera-wallet-connect-modal-pending-message__text {
   max-width: 271px;
 
-  margin-top: 20px;
+  margin-top: 24px;
 
-  color: #2c3559;
+  color: #3c3c49;
 
   font-size: 18px;
   font-weight: 500;
@@ -21,15 +149,18 @@
 }
 
 .pera-wallet-connect-modal-pending-message__cancel-button {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   width: 100%;
 
   padding: 14px;
 
-  color: #2c3559;
-  background-color: #f2f3f8;
+  color: #6a6a81;
+  background-color: #ffffff;
 
+  box-shadow: 0px 0px 1px rgba(12, 26, 75, 0.24), 0px 3px 8px -1px rgba(50, 50, 71, 0.05);
   border-radius: 12px;
 
   text-decoration: none;
@@ -38,4 +169,6 @@
   line-height: 20px;
   letter-spacing: -0.09px;
   font-weight: 500;
+
+  border: none;
 }
