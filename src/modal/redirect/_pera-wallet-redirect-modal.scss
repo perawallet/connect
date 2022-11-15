@@ -1,4 +1,6 @@
-.pera-wallet-wallet-redirect-modal {
+@import "../pera-wallet-modal";
+
+.pera-wallet-redirect-modal {
   display: grid;
   grid-template-columns: 1fr;
   gap: 56px;
@@ -20,7 +22,7 @@
 .pera-wallet-redirect-modal__content__title {
   margin: 20px 0 8px;
 
-  color: #2c3559;
+  color: #3c3c49;
 
   font-size: 18px;
   font-weight: 600;
@@ -30,7 +32,7 @@
 
 .pera-wallet-redirect-modal__content__description,
 .pera-wallet-redirect-modal__content__install-pera-text {
-  color: #2c3559;
+  color: #3c3c49;
 
   max-width: 271px;
 

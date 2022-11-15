@@ -1,6 +1,6 @@
 {
+  "version": "1.0.0",
   "name": "@perawallet/connect",
-  "version": "0.2.3",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
   "main": "dist/index.js",
   "scripts": {
@@ -12,12 +12,9 @@
   "license": "ISC",
   "devDependencies": {
     "@hipo/eslint-config-base": "^4.1.1",
-    "@hipo/eslint-config-react": "^2.2.0",
     "@hipo/eslint-config-typescript": "^1.1.0",
     "@rollup/plugin-image": "^2.1.1",
     "@rollup/plugin-json": "^4.1.0",
-    "@types/react": "^18.0.15",
-    "@types/react-dom": "^18.0.6",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "eslint": "^8.12.0",
@@ -34,16 +31,15 @@
   },
   "dependencies": {
     "@json-rpc-tools/utils": "^1.7.6",
-    "@walletconnect/client": "^1.7.7",
+    "@walletconnect/client": "^1.8.0",
+    "@walletconnect/types": "^1.8.0",
     "bowser": "^2.11.0",
     "buffer": "^6.0.3",
-    "lottie-react": "^2.3.1",
-    "react-qrcode-logo": "^2.7.0"
+    "lottie-web": "^5.9.6",
+    "qr-code-styling": "^1.6.0-rc.1"
   },
   "peerDependencies": {
-    "algosdk": "^1.18.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "algosdk": "^1.23.2"
   },
   "types": "./dist/index.d.ts",
   "repository": {

@@ -35,6 +35,14 @@ function getPeraWalletAppMeta(): AppMeta {
   };
 }
 
+function generateEmbeddedWalletURL(url: string) {
+  const newURL = new URL(url);
+
+  newURL.searchParams.append("embedded", "true");
+
+  return newURL.toString();
+}
+
 /**
  * @param {string} uri WalletConnect uri
  * @returns {string} Pera Wallet deeplink
@@ -64,5 +72,6 @@ function generatePeraWalletConnectDeepLink(uri: string): string {
 export {
   generatePeraWalletAppDeepLink,
   getPeraWalletAppMeta,
-  generatePeraWalletConnectDeepLink
+  generatePeraWalletConnectDeepLink,
+  generateEmbeddedWalletURL
 };
