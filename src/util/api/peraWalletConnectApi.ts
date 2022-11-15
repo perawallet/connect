@@ -6,7 +6,7 @@ const PERA_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config.json";
 const PERA_CONNECT_CONFIG_STAGING_URL = "https://wc.perawallet.app/config-staging.json";
 
 /**
- * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvaliable: boolean}
+ * @returns {object} {web_wallet: boolean, web_wallet_url: string, use_sound: boolean, display_new_badge: boolean, servers: string[]}
  */
 function fetchPeraConnectConfig(network: PeraWalletNetwork) {
   const configURL =
@@ -22,7 +22,7 @@ function fetchPeraConnectConfig(network: PeraWalletNetwork) {
 }
 
 /**
- * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvaliable: boolean}
+ * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvaliable: boolean, shouldDisplayNewBadge: boolean, shouldUseSound: boolean}
  */
 async function getPeraConnectConfig(network: PeraWalletNetwork) {
   const response = await fetchPeraConnectConfig(network);
