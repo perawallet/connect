@@ -464,7 +464,21 @@ class PeraWalletConnect {
         // ================================================= //
         // Pera Wallet Web flow
         if (walletDetails?.type === "pera-wallet-web") {
-          resolve(walletDetails.accounts || []);
+          const {isWebWalletAvaliable} = await getPeraConnectConfig(this.network);
+
+          if (isWebWalletAvaliable) {
+            resolve(walletDetails.accounts || []);
+          } else {
+            reject(
+              new PeraWalletConnectError(
+                {
+                  type: "SESSION_RECONNECT",
+                  detail: "Pera Web is not available"
+                },
+                "Pera Web is not available"
+              )
+            );
+          }
         }
         // ================================================= //
 
