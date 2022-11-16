@@ -4,14 +4,16 @@ import fetcher from "./fetcher";
 import {PeraWalletConfig} from "./peraWalletConnectApiTypes";
 
 const PERA_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config.json";
-const PERA_CONNECT_CONFIG_STAGING_URL = "https://wc.perawallet.app/config-staging.json";
+// const PERA_CONNECT_CONFIG_STAGING_URL = "https://wc.perawallet.app/config-staging.json";
 
 /**
  * @returns {object} {web_wallet: boolean, web_wallet_url: string, use_sound: boolean, display_new_badge: boolean, servers: string[]}
  */
 function fetchPeraConnectConfig(network: PeraWalletNetwork) {
   const configURL =
-    network === "mainnet" ? PERA_CONNECT_CONFIG_URL : PERA_CONNECT_CONFIG_STAGING_URL;
+    network === "mainnet"
+      ? PERA_CONNECT_CONFIG_URL
+      : "https://gist.githubusercontent.com/mucahit/caca30dbd32a1f5f38b9236586f3b48a/raw/9d2c799a606f2bc5faf9cc44ce53fe462182170e/config-staging-broken.json";
 
   return fetcher<{
     web_wallet: boolean | undefined;

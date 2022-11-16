@@ -195,7 +195,7 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
         ".pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
       );
 
-      if (iframeWrapper) {
+      if (iframeWrapper && this.getAttribute("is-web-wallet-avaliable") === "true") {
         // @ts-ignore ts-2339
         window.onWebWalletConnect(iframeWrapper);
       }
@@ -236,8 +236,10 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
   }
 
   webWalletConnect() {
-    // @ts-ignore ts-2339
-    window.onWebWalletConnect();
+    if (this.getAttribute("is-web-wallet-avaliable") === "true") {
+      // @ts-ignore ts-2339
+      window.onWebWalletConnect();
+    }
   }
 
   handleAccordion(event: MouseEvent) {
