@@ -5,7 +5,6 @@ import AppStoreIcon from "../../../asset/icon/AppStoreIcon.svg";
 import PlayStoreIcon from "../../../asset/icon/PlayStoreIcon.svg";
 import DownloadIcon from "../../../asset/icon/Download.svg";
 import PeraWalletLogoWithBlackBackground from "../../../asset/icon/PeraWalletWithBlackBackground.svg";
-import PeraDownloadQRCode from "../../../asset/img/PeraWalletDownloadQRCode.png";
 import PeraWebIcon from "../../../asset/icon/PeraWeb.svg";
 import ChevronRightIcon from "../../../asset/icon/ChevronRight.svg";
 
@@ -128,9 +127,7 @@ const peraWalletConnectModalDesktopModeDefaultView = `
             Download Pera Wallet
           </h1>
 
-          <div class="pera-wallet-download-qr-code-wrapper">
-            <img class="pera-wallet-download-qr-code__image" src="${PeraDownloadQRCode}" alt="Download QR Code"/>
-          </div>
+          <pera-wallet-download-qr-code></pera-wallet-download-qr-code>
 
           <div class="pera-wallet-connect-modal-download-pera-view__footer">
             <a
@@ -272,10 +269,10 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
 
   renderQRCode() {
     const URI = this.getAttribute("uri");
-    const isWebWalletAvaliable = this.getAttribute("is-web-wallet-avaliable");
+    const isWebWalletAvailable = this.getAttribute("is-web-wallet-avaliable");
 
     // eslint-disable-next-line no-magic-numbers
-    const size = isWebWalletAvaliable === "false" ? 250 : 205;
+    const size = isWebWalletAvailable === "false" ? 250 : 205;
 
     if (URI) {
       const qrCode = new QRCodeStyling({

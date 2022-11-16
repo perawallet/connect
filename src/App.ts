@@ -1,4 +1,5 @@
 import {PeraWalletModalHeader} from "./modal/header/PeraWalletModalHeader";
+import {PeraWalletDownloadQRCode} from "./modal/mode/desktop/download-qr-code/PeraWalletDownloadQRCode";
 import {PeraWalletModalDesktopMode} from "./modal/mode/desktop/PeraWalletConnectModalDesktopMode";
 import {PeraWalletModalTouchScreenMode} from "./modal/mode/touch-screen/PeraWalletModalTouchScreenMode";
 import {PeraWalletConnectModal} from "./modal/PeraWalletConnectModal";
@@ -31,3 +32,4 @@ window.customElements.define(
 );
 window.customElements.define("pera-wallet-sign-txn-toast", PeraWalletSignTxnToast);
 window.customElements.define("pera-wallet-sign-txn-modal", PeraWalletSignTxnModal);
+window.customElements.define("pera-wallet-download-qr-code", PeraWalletDownloadQRCode);

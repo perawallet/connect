@@ -13,26 +13,26 @@ function fetchPeraConnectConfig(network: PeraWalletNetwork) {
     network === "mainnet" ? PERA_CONNECT_CONFIG_URL : PERA_CONNECT_CONFIG_STAGING_URL;
 
   return fetcher<{
-    web_wallet: boolean;
-    web_wallet_url: string;
-    use_sound: boolean;
-    display_new_badge: boolean;
-    servers: string[];
+    web_wallet: boolean | undefined;
+    web_wallet_url: string | undefined;
+    use_sound: boolean | undefined;
+    display_new_badge: boolean | undefined;
+    servers: string[] | undefined;
   }>(configURL, {cache: "no-store"});
 }
 
 /**
- * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvaliable: boolean, shouldDisplayNewBadge: boolean, shouldUseSound: boolean}
+ * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvailable: boolean, shouldDisplayNewBadge: boolean, shouldUseSound: boolean}
  */
 async function getPeraConnectConfig(network: PeraWalletNetwork) {
   const response = await fetchPeraConnectConfig(network);
 
   return {
-    bridgeURL: shuffleArray(response.servers)[0],
-    webWalletURL: response.web_wallet_url,
-    isWebWalletAvaliable: response.web_wallet,
-    shouldDisplayNewBadge: response.display_new_badge,
-    shouldUseSound: response.use_sound
+    bridgeURL: shuffleArray(response.servers || [])[0] || "",
+    webWalletURL: response.web_wallet_url || "",
+    isWebWalletAvailable: response.web_wallet || false,
+    shouldDisplayNewBadge: response.display_new_badge || false,
+    shouldUseSound: response.use_sound || false
   };
 }
 
