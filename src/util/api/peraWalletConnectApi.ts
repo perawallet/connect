@@ -40,9 +40,11 @@ async function getPeraConnectConfig(network: PeraWalletNetwork) {
     peraWalletConfig = {
       bridgeURL: shuffleArray(response.servers || [])[0] || "",
       webWalletURL: response.web_wallet_url || "",
-      isWebWalletAvailable: response.web_wallet || false,
-      shouldDisplayNewBadge: response.display_new_badge || false,
-      shouldUseSound: response.use_sound || true
+      isWebWalletAvailable: response.web_wallet ? response.web_wallet : false,
+      shouldDisplayNewBadge: response.display_new_badge
+        ? response.display_new_badge
+        : false,
+      shouldUseSound: response.use_sound ? response.use_sound : true
     };
   } catch (error) {
     console.log(error);
