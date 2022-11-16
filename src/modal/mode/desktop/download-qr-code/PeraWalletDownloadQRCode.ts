@@ -3,6 +3,7 @@ import PeraWalletLogoWithBlackBackground from "../../../../asset/icon/PeraWallet
 import QRCodeStyling from "qr-code-styling";
 
 import styles from "./_pera-wallet-download-qr-code.scss";
+import {PERA_DOWNLOAD_URL} from "../../../../util/peraWalletConstants";
 
 const peraWalletDownloadQRCode = document.createElement("template");
 
@@ -32,7 +33,7 @@ export class PeraWalletDownloadQRCode extends HTMLElement {
       width: 205,
       height: 205,
       type: "svg",
-      data: "https://perawallet.app/download/",
+      data: PERA_DOWNLOAD_URL,
       image: PeraWalletLogoWithBlackBackground,
       dotsOptions: {
         color: "#000",
