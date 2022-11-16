@@ -37,15 +37,15 @@ async function getPeraConnectConfig(network: PeraWalletNetwork) {
   try {
     const response = await fetchPeraConnectConfig(network);
 
-    if (typeof response.web_wallet !== undefined && response.web_wallet_url) {
+    if (typeof response.web_wallet !== "undefined" && response.web_wallet_url) {
       peraWalletConfig.isWebWalletAvailable = response.web_wallet!;
     }
 
-    if (typeof response.display_new_badge !== undefined) {
+    if (typeof response.display_new_badge !== "undefined") {
       peraWalletConfig.shouldDisplayNewBadge = response.display_new_badge!;
     }
 
-    if (typeof response.use_sound !== undefined) {
+    if (typeof response.use_sound !== "undefined") {
       peraWalletConfig.shouldUseSound = response.use_sound!;
     }
 
