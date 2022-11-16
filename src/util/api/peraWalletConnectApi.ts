@@ -37,14 +37,22 @@ async function getPeraConnectConfig(network: PeraWalletNetwork) {
   try {
     const response = await fetchPeraConnectConfig(network);
 
+    if (typeof response.web_wallet !== undefined && response.web_wallet_url) {
+      peraWalletConfig.isWebWalletAvailable = response.web_wallet!;
+    }
+
+    if (typeof response.display_new_badge !== undefined) {
+      peraWalletConfig.shouldDisplayNewBadge = response.display_new_badge!;
+    }
+
+    if (typeof response.use_sound !== undefined) {
+      peraWalletConfig.shouldUseSound = response.use_sound!;
+    }
+
     peraWalletConfig = {
+      ...peraWalletConfig,
       bridgeURL: shuffleArray(response.servers || [])[0] || "",
-      webWalletURL: response.web_wallet_url || "",
-      isWebWalletAvailable: response.web_wallet ? response.web_wallet : false,
-      shouldDisplayNewBadge: response.display_new_badge
-        ? response.display_new_badge
-        : false,
-      shouldUseSound: response.use_sound ? response.use_sound : true
+      webWalletURL: response.web_wallet_url || ""
     };
   } catch (error) {
     console.log(error);
