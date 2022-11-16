@@ -189,8 +189,7 @@
   font-size: 13px;
 }
 
-.pera-wallet-connect-qr-code-wrapper,
-.pera-wallet-download-qr-code-wrapper {
+.pera-wallet-connect-qr-code-wrapper {
   width: fit-content;
 
   margin: 24px auto 0;
@@ -199,17 +198,6 @@
   box-shadow: 0px 20px 60px rgba(26, 35, 91, 0.15), 0px 4px 12px rgba(26, 35, 91, 0.05),
     0px 1px 4px rgba(26, 35, 91, 0.06);
   border-radius: 24px;
-}
-
-.pera-wallet-download-qr-code-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pera-wallet-download-qr-code__image {
-  width: 205px;
-  height: 205px;
 }
 
 .pera-wallet-connect-modal-desktop-mode__download-pera-description {

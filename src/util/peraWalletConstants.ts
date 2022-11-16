@@ -2,6 +2,7 @@ import {isAndroid} from "./device/deviceUtils";
 import {PeraWalletNetwork} from "./peraWalletTypes";
 
 const PERA_WALLET_APP_DEEP_LINK = isAndroid() ? "algorand://" : "algorand-wc://";
+const PERA_DOWNLOAD_URL = "https://perawallet.app/download/";
 
 function getPeraWebWalletURL(webWalletURL: string, network: PeraWalletNetwork) {
   if (network === "dev") {
@@ -19,4 +20,4 @@ function getPeraWebWalletURL(webWalletURL: string, network: PeraWalletNetwork) {
   };
 }
 
-export {PERA_WALLET_APP_DEEP_LINK, getPeraWebWalletURL};
+export {PERA_WALLET_APP_DEEP_LINK, getPeraWebWalletURL, PERA_DOWNLOAD_URL};
