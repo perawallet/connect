@@ -47,18 +47,17 @@ interface PeraWalletConnectOptions {
   app_meta?: AppMeta;
   shouldShowSignTxnToast?: boolean;
   network?: PeraWalletNetwork;
-
   chainId?: AlgorandChainIDs;
 }
 
 function generatePeraWalletConnectModalActions({
-  isWebWalletAvaliable,
+  isWebWalletAvailable,
   shouldDisplayNewBadge,
   shouldUseSound
 }: PeraWalletModalConfig) {
   return {
     open: openPeraWalletConnectModal({
-      isWebWalletAvaliable,
+      isWebWalletAvailable,
       shouldDisplayNewBadge,
       shouldUseSound
     }),
@@ -372,7 +371,7 @@ class PeraWalletConnect {
         }
 
         const {
-          isWebWalletAvaliable,
+          isWebWalletAvailable,
           bridgeURL,
           webWalletURL,
           shouldDisplayNewBadge,
@@ -386,14 +385,16 @@ class PeraWalletConnect {
           this.chainId
         );
 
-        // @ts-ignore ts-2339
-        window.onWebWalletConnect = onWebWalletConnect;
+        if (isWebWalletAvailable) {
+          // @ts-ignore ts-2339
+          window.onWebWalletConnect = onWebWalletConnect;
+        }
 
         // Create Connector instance
         this.connector = new WalletConnect({
           bridge: this.bridge || bridgeURL || "https://bridge.walletconnect.org",
           qrcodeModal: generatePeraWalletConnectModalActions({
-            isWebWalletAvaliable,
+            isWebWalletAvailable,
             shouldDisplayNewBadge,
             shouldUseSound
           })
@@ -464,9 +465,9 @@ class PeraWalletConnect {
         // ================================================= //
         // Pera Wallet Web flow
         if (walletDetails?.type === "pera-wallet-web") {
-          const {isWebWalletAvaliable} = await getPeraConnectConfig(this.network);
+          const {isWebWalletAvailable} = await getPeraConnectConfig(this.network);
 
-          if (isWebWalletAvaliable) {
+          if (isWebWalletAvailable) {
             resolve(walletDetails.accounts || []);
           } else {
             reject(
