@@ -88,10 +88,11 @@ try {
 
 ## Options
 
-| option    | default   | value                                 |          |
-| --------- | --------- | ------------------------------------- | -------- |
-| `network` | `mainnet` | `dev`, `testnet`, `mainnet`           | optional |
-| `chainId` | `4160`    | `416001`, `416002`, `416003` , `4160` | optional |
+| option                   | default   | value                                 |          |
+| ------------------------ | --------- | ------------------------------------- | -------- |
+| `network`                | `mainnet` | `dev`, `testnet`, `mainnet`           | optional |
+| `chainId`                | `4160`    | `416001`, `416002`, `416003` , `4160` | optional |
+| `shouldShowSignTxnToast` | `true`    | `boolean`                             | optional |
 
 #### **`network`**
 
@@ -108,6 +109,10 @@ Determines which Algorand network your dApp uses.
 **BetaNet**: 416003
 
 **All Networks**: 4160
+
+#### **`shouldShowSignTxnToast`**
+
+It's enabled by default but in some cases, you may not need the toast message (e.g. you already have signing guidance for users). To disable it, use the shouldShowSignTxnToast option:
 
 ## Methods
 
