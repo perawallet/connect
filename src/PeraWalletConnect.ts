@@ -498,8 +498,12 @@ class PeraWalletConnect {
 
           resolve(this.connector?.accounts || []);
         }
-
         // ================================================= //
+
+        // If there is no wallet details in storage, resolve the promise with empty array
+        if (!this.isConnected) {
+          resolve([]);
+        }
       } catch (error: any) {
         // If the bridge is not active, then disconnect
         await this.disconnect();
@@ -638,7 +642,8 @@ class PeraWalletConnect {
                 },
 
                 origin: generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN),
-                targetWindow: peraWalletIframe.contentWindow
+                targetWindow: peraWalletIframe.contentWindow,
+                timeout: 3000
               });
             }
 
@@ -662,7 +667,8 @@ class PeraWalletConnect {
                 },
 
                 origin: webWalletURLs.TRANSACTION_SIGN,
-                targetWindow: newPeraWalletTab
+                targetWindow: newPeraWalletTab,
+                timeout: 3000
               });
             }
           })
@@ -770,6 +776,18 @@ class PeraWalletConnect {
 
         if (Array.isArray(signers)) {
           txnRequestParams.signers = signers;
+        }
+
+        if (txGroupDetail.authAddr) {
+          txnRequestParams.authAddr = txGroupDetail.authAddr;
+        }
+
+        if (txGroupDetail.message) {
+          txnRequestParams.message = txGroupDetail.message;
+        }
+
+        if (txGroupDetail.msig) {
+          txnRequestParams.msig = txGroupDetail.msig;
         }
 
         return txnRequestParams;

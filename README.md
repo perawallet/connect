@@ -88,10 +88,11 @@ try {
 
 ## Options
 
-| option    | default   | value                                 |          |
-| --------- | --------- | ------------------------------------- | -------- |
-| `network` | `mainnet` | `dev`, `testnet`, `mainnet`           | optional |
-| `chainId` | `4160`    | `416001`, `416002`, `416003` , `4160` | optional |
+| option                   | default   | value                                 |          |
+| ------------------------ | --------- | ------------------------------------- | -------- |
+| `network`                | `mainnet` | `dev`, `testnet`, `mainnet`           | optional |
+| `chainId`                | `4160`    | `416001`, `416002`, `416003` , `4160` | optional |
+| `shouldShowSignTxnToast` | `true`    | `boolean`                             | optional |
 
 #### **`network`**
 
@@ -108,6 +109,12 @@ Determines which Algorand network your dApp uses.
 **BetaNet**: 416003
 
 **All Networks**: 4160
+
+#### **`shouldShowSignTxnToast`**
+
+<img width="422" alt="Group 48096937" src="https://user-images.githubusercontent.com/54077855/202682828-9ac57b62-58c1-4a83-af3b-e1b7ffad2d89.png">
+
+It's enabled by default but in some cases, you may not need the toast message (e.g. you already have signing guidance for users). To disable it, use the shouldShowSignTxnToast option:
 
 ## Methods
 
@@ -140,7 +147,7 @@ Starts the sign process and returns the signed transaction in `Uint8Array`
 You can override the z-index using the `.pera-wallet-connect-modal` class so that the modal does not conflict with another component on your application.
 
 ```scss
-.pera-wallet-connect-modal {
+.pera-wallet-modal {
   // The default value of z-index is 10. You can lower and raise it as much as you want.
   z-index: 11;
 }
