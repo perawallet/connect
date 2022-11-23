@@ -498,8 +498,12 @@ class PeraWalletConnect {
 
           resolve(this.connector?.accounts || []);
         }
-
         // ================================================= //
+
+        // If there is no wallet details in storage, resolve the promise with empty array
+        if (!this.isConnected) {
+          resolve([]);
+        }
       } catch (error: any) {
         // If the bridge is not active, then disconnect
         await this.disconnect();
