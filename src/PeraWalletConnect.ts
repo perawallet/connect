@@ -638,7 +638,8 @@ class PeraWalletConnect {
                 },
 
                 origin: generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN),
-                targetWindow: peraWalletIframe.contentWindow
+                targetWindow: peraWalletIframe.contentWindow,
+                timeout: 3000
               });
             }
 
@@ -662,7 +663,8 @@ class PeraWalletConnect {
                 },
 
                 origin: webWalletURLs.TRANSACTION_SIGN,
-                targetWindow: newPeraWalletTab
+                targetWindow: newPeraWalletTab,
+                timeout: 3000
               });
             }
           })
