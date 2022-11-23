@@ -7,7 +7,26 @@ export interface SignerTransaction {
    * Wallet skips to sign this txn if signers is empty array.
    * If undefined, wallet tries to sign it.
    */
+  /**
+   * Optional authorized address used to sign the transaction when
+   * the account is rekeyed. Also called the signor/sgnr.
+   */
+  authAddr?: string;
+
+  /**
+   * Optional multisig metadata used to sign the transaction
+   */
+  msig?: PeraWalletMultisigMetadata;
+
+  /**
+   * Optional list of addresses that must sign the transactions
+   */
   signers?: string[];
+
+  /**
+   * Optional message explaining the reason of the transaction
+   */
+  message?: string;
 }
 
 /**

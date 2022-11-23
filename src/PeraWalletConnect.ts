@@ -772,6 +772,18 @@ class PeraWalletConnect {
           txnRequestParams.signers = signers;
         }
 
+        if (txGroupDetail.authAddr) {
+          txnRequestParams.authAddr = txGroupDetail.authAddr;
+        }
+
+        if (txGroupDetail.message) {
+          txnRequestParams.message = txGroupDetail.message;
+        }
+
+        if (txGroupDetail.msig) {
+          txnRequestParams.msig = txGroupDetail.msig;
+        }
+
         return txnRequestParams;
       })
     );
