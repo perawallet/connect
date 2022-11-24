@@ -716,7 +716,15 @@ class PeraWalletConnect {
 
             resetWalletDetailsFromStorage();
 
-            reject(event.data.message.error);
+            reject(
+              new PeraWalletConnectError(
+                {
+                  type: "SESSION_DISCONNECTED",
+                  detail: event.data.message.error
+                },
+                event.data.message.error
+              )
+            );
           }
 
           if (event.data.message.type === "SIGN_TXN_CALLBACK_ERROR") {
