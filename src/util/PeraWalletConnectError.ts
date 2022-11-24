@@ -1,7 +1,7 @@
 interface PeraWalletConnectErrorData {
   type:
     | "SIGN_TRANSACTIONS"
-    | "SESSION_DISCONNECT"
+    | "SESSION_DISCONNECTED"
     | "SESSION_UPDATE"
     | "SESSION_CONNECT"
     | "SESSION_RECONNECT"
