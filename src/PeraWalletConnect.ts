@@ -361,7 +361,7 @@ class PeraWalletConnect {
     };
   }
 
-  connect() {
+  connect({network}: {network?: PeraWalletNetwork} = {}) {
     return new Promise<string[]>(async (resolve, reject) => {
       try {
         // check if already connected and kill session first before creating a new one.
@@ -370,13 +370,18 @@ class PeraWalletConnect {
           await this.connector.killSession();
         }
 
+        if (network) {
+          // override network if provided
+          getLocalStorage()?.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK, network);
+        }
+
         const {
           isWebWalletAvailable,
           bridgeURL,
           webWalletURL,
           shouldDisplayNewBadge,
           shouldUseSound
-        } = await getPeraConnectConfig(this.network);
+        } = await getPeraConnectConfig(network || this.network);
 
         const {onWebWalletConnect} = this.connectWithWebWallet(
           resolve,
