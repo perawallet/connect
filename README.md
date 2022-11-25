@@ -120,7 +120,17 @@ It's enabled by default but in some cases, you may not need the toast message (e
 
 #### `PeraWalletConnect.connect(): Promise<string[]>`
 
+| option    | default   | value                       |          |
+| --------- | --------- | --------------------------- | -------- |
+| `network` | `mainnet` | `dev`, `testnet`, `mainnet` | optional |
+
 Starts the initial connection flow and returns the array of account addresses.
+
+`network` param of the `connect` method overrides the initial `network` on the constructor.
+
+```javascript
+PeraWalletConnect.connect({network: "testnet"}); //optional
+```
 
 #### `PeraWalletConnect.reconnectSession(): Promise<string[]>`
 
