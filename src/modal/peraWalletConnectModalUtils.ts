@@ -43,11 +43,13 @@ function createModalWrapperOnDOM(modalId: string) {
 
 function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
   return (uri: string) => {
-    const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
-    const newURI = `${uri}&algorand=true`;
-    const {isWebWalletAvailable, shouldDisplayNewBadge, shouldUseSound} = modalConfig;
+    if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
+      const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
+      const newURI = `${uri}&algorand=true`;
+      const {isWebWalletAvailable, shouldDisplayNewBadge, shouldUseSound} = modalConfig;
 
-    root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}"></pera-wallet-connect-modal>`;
+      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}"></pera-wallet-connect-modal>`;
+    }
   };
 }
 
