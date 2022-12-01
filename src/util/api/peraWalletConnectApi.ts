@@ -19,6 +19,7 @@ function fetchPeraConnectConfig(network: PeraWalletNetwork) {
     use_sound: boolean | undefined;
     display_new_badge: boolean | undefined;
     servers: string[] | undefined;
+    silent: boolean | undefined;
   }>(configURL, {cache: "no-store"});
 }
 
@@ -31,7 +32,8 @@ async function getPeraConnectConfig(network: PeraWalletNetwork) {
     webWalletURL: "",
     isWebWalletAvailable: false,
     shouldDisplayNewBadge: false,
-    shouldUseSound: true
+    shouldUseSound: true,
+    silent: false
   };
 
   try {
@@ -47,6 +49,10 @@ async function getPeraConnectConfig(network: PeraWalletNetwork) {
 
     if (typeof response.use_sound !== "undefined") {
       peraWalletConfig.shouldUseSound = response.use_sound!;
+    }
+
+    if (typeof response.silent !== "undefined") {
+      peraWalletConfig.silent = response.silent!;
     }
 
     peraWalletConfig = {

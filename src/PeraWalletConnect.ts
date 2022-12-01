@@ -547,7 +547,15 @@ class PeraWalletConnect {
 
     try {
       try {
-        const response = await this.connector!.sendCustomRequest(formattedSignTxnRequest);
+        const {silent} = await getPeraConnectConfig(this.network);
+
+        const response = await this.connector!.sendCustomRequest(
+          formattedSignTxnRequest,
+          {
+            forcePushNotification: !silent
+          }
+        );
+
         // We send the full txn group to the mobile wallet.
         // Therefore, we first filter out txns that were not signed by the wallet.
         // These are received as `null`.
