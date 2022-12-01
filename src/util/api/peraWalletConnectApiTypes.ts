@@ -4,4 +4,5 @@ export interface PeraWalletConfig {
   isWebWalletAvailable: boolean;
   shouldDisplayNewBadge: boolean;
   shouldUseSound: boolean;
+  silent: boolean;
 }
