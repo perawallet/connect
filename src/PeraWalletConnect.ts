@@ -284,21 +284,23 @@ class PeraWalletConnect {
         });
       } else {
         waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
-          if (newPeraWalletTab && newPeraWalletTab.opener) {
-            appTellerManager.sendMessage({
-              message: {
-                type: "CONNECT",
-                data: {
-                  ...getMetaInfo(),
-                  chainId
-                }
-              },
+          newPeraWalletTab?.addEventListener("visibilitychange", () => {
+            if (newPeraWalletTab && newPeraWalletTab.opener) {
+              appTellerManager.sendMessage({
+                message: {
+                  type: "CONNECT",
+                  data: {
+                    ...getMetaInfo(),
+                    chainId
+                  }
+                },
 
-              origin: webWalletURLs.CONNECT,
-              targetWindow: newPeraWalletTab,
-              timeout: 5000
-            });
-          }
+                origin: webWalletURLs.CONNECT,
+                targetWindow: newPeraWalletTab,
+                timeout: 5000
+              });
+            }
+          });
 
           const checkTabIsAliveInterval = setInterval(() => {
             if (newPeraWalletTab?.closed === true) {
@@ -672,18 +674,20 @@ class PeraWalletConnect {
           .then((newTab) => {
             newPeraWalletTab = newTab;
 
-            if (newPeraWalletTab && newPeraWalletTab.opener) {
-              appTellerManager.sendMessage({
-                message: {
-                  type: "SIGN_TXN",
-                  txn: signTxnRequestParams
-                },
+            newPeraWalletTab?.addEventListener("visibilitychange", () => {
+              if (newPeraWalletTab && newPeraWalletTab.opener) {
+                appTellerManager.sendMessage({
+                  message: {
+                    type: "SIGN_TXN",
+                    txn: signTxnRequestParams
+                  },
 
-                origin: webWalletURLs.TRANSACTION_SIGN,
-                targetWindow: newPeraWalletTab,
-                timeout: 3000
-              });
-            }
+                  origin: webWalletURLs.TRANSACTION_SIGN,
+                  targetWindow: newPeraWalletTab,
+                  timeout: 3000
+                });
+              }
+            });
           })
           .catch((error) => {
             console.log(error);
