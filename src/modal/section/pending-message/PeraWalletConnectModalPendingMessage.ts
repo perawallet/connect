@@ -1,10 +1,10 @@
+import PeraWalletLogo from "../../../asset/icon/PeraWallet.svg";
 import HelpIcon from "../../../asset/icon/Help.svg";
 import SendIcon from "../../../asset/icon/Send.svg";
 import animationData from "./lotties/PeraLoaderAnimationLottie.json";
 
 import lottie from "lottie-web";
 
-import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
 import {
   PERA_WALLET_CONNECT_MODAL_ID,
   removeModalWrapperFromDOM
@@ -16,7 +16,6 @@ import {
   CONNECT_TIMEOUT_INTERVAL
 } from "./util/peraWalletConnectModalPendingMessageConstants";
 
-const {logo} = getPeraWalletAppMeta();
 const peraWalletConnectModalPendingMessageTemplate = document.createElement("template");
 
 peraWalletConnectModalPendingMessageTemplate.innerHTML = `
@@ -42,7 +41,7 @@ peraWalletConnectModalPendingMessageTemplate.innerHTML = `
 const peraWalletConnectTryAgainView = `
   <div class="pera-wallet-connect-modal-pending-message--try-again-view">
     <div>
-      <img src="${logo}" alt="Pera Wallet Logo" />
+      <img src="${PeraWalletLogo}" alt="Pera Wallet Logo" />
 
       <h1 class="pera-wallet-connect-modal-pending-message--try-again-view__title">
         Couldn’t establish connection
