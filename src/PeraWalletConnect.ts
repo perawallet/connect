@@ -491,15 +491,15 @@ class PeraWalletConnect {
   }
 
   async disconnect() {
-    const killPromise = this.connector?.killSession();
+    if (this.connector) {
+      const killPromise = this.connector.killSession();
 
-    killPromise?.then(() => {
-      this.connector = null;
-    });
+      killPromise?.then(() => {
+        this.connector = null;
+      });
+    }
 
     await resetWalletDetailsFromStorage();
-
-    return killPromise;
   }
 
   private async signTransactionWithMobile(signTxnRequestParams: PeraWalletTransaction[]) {
