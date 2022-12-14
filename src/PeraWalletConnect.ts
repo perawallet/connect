@@ -398,6 +398,7 @@ class PeraWalletConnect {
         // Create Connector instance
         this.connector = new WalletConnect({
           bridge: this.bridge || bridgeURL || "https://bridge.walletconnect.org",
+          storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
           qrcodeModal: generatePeraWalletConnectModalActions({
             isWebWalletAvailable,
             shouldDisplayNewBadge,
@@ -498,7 +499,8 @@ class PeraWalletConnect {
 
         if (this.bridge) {
           this.connector = new WalletConnect({
-            bridge: this.bridge
+            bridge: this.bridge,
+            storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
           });
 
           resolve(this.connector?.accounts || []);
