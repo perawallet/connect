@@ -166,20 +166,24 @@ class PeraWalletConnect {
         if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
           const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
 
-          if (newPeraWalletTab && newPeraWalletTab.opener) {
-            appTellerManager.sendMessage({
-              message: {
-                type: "CONNECT",
-                data: {
-                  ...getMetaInfo(),
-                  chainId
-                }
-              },
+          const checkMessageIsReceived = setInterval(() => {
+            if (newPeraWalletTab && newPeraWalletTab.opener) {
+              appTellerManager.sendMessage({
+                message: {
+                  type: "CONNECT",
+                  data: {
+                    ...getMetaInfo(),
+                    chainId
+                  }
+                },
 
-              origin: webWalletURLs.CONNECT,
-              targetWindow: newPeraWalletTab
-            });
-          }
+                origin: webWalletURLs.CONNECT,
+                targetWindow: newPeraWalletTab
+              });
+            }
+
+            // eslint-disable-next-line no-magic-numbers
+          }, 300);
 
           const checkTabIsAliveInterval = setInterval(() => {
             if (newPeraWalletTab?.closed === true) {
@@ -201,6 +205,10 @@ class PeraWalletConnect {
 
           appTellerManager.setupListener({
             onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
+              if (newTabEvent.data.message.type === "MESSAGE_RECEIVED") {
+                clearInterval(checkMessageIsReceived);
+              }
+
               if (resolve && newTabEvent.data.message.type === "CONNECT_CALLBACK") {
                 const accounts = newTabEvent.data.message.data.addresses;
 
@@ -263,28 +271,8 @@ class PeraWalletConnect {
 
         peraWalletIframeWrapper.appendChild(peraWalletIframe);
 
-        if (peraWalletIframe.contentWindow) {
-          appTellerManager.sendMessage({
-            message: {
-              type: "CONNECT",
-              data: {
-                ...getMetaInfo(),
-                chainId
-              }
-            },
-
-            origin: webWalletURLs.CONNECT,
-            targetWindow: peraWalletIframe.contentWindow,
-            timeout: 5000
-          });
-        }
-
-        appTellerManager.setupListener({
-          onReceiveMessage
-        });
-      } else {
-        waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
-          if (newPeraWalletTab && newPeraWalletTab.opener) {
+        const checkMessageIsReceived = setInterval(() => {
+          if (peraWalletIframe.contentWindow) {
             appTellerManager.sendMessage({
               message: {
                 type: "CONNECT",
@@ -295,10 +283,44 @@ class PeraWalletConnect {
               },
 
               origin: webWalletURLs.CONNECT,
-              targetWindow: newPeraWalletTab,
-              timeout: 5000
+              targetWindow: peraWalletIframe.contentWindow
             });
           }
+
+          // eslint-disable-next-line no-magic-numbers
+        }, 300);
+
+        appTellerManager.setupListener({
+          onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
+            if (newTabEvent.data.message.type === "MESSAGE_RECEIVED") {
+              clearInterval(checkMessageIsReceived);
+            }
+          }
+        });
+
+        appTellerManager.setupListener({
+          onReceiveMessage
+        });
+      } else {
+        waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
+          const checkMessageIsReceived = setInterval(() => {
+            if (newPeraWalletTab && newPeraWalletTab.opener) {
+              appTellerManager.sendMessage({
+                message: {
+                  type: "CONNECT",
+                  data: {
+                    ...getMetaInfo(),
+                    chainId
+                  }
+                },
+
+                origin: webWalletURLs.CONNECT,
+                targetWindow: newPeraWalletTab
+              });
+            }
+
+            // eslint-disable-next-line no-magic-numbers
+          }, 300);
 
           const checkTabIsAliveInterval = setInterval(() => {
             if (newPeraWalletTab?.closed === true) {
@@ -320,6 +342,10 @@ class PeraWalletConnect {
 
           appTellerManager.setupListener({
             onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
+              if (event.data.message.type === "MESSAGE_RECEIVED") {
+                clearInterval(checkMessageIsReceived);
+              }
+
               if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
                 const accounts = event.data.message.data.addresses;
 
@@ -647,18 +673,31 @@ class PeraWalletConnect {
               });
             }
 
-            if (peraWalletIframe.contentWindow) {
-              appTellerManager.sendMessage({
-                message: {
-                  type: "SIGN_TXN",
-                  txn: signTxnRequestParams
-                },
+            const checkMessageIsReceived = setInterval(() => {
+              if (peraWalletIframe.contentWindow) {
+                appTellerManager.sendMessage({
+                  message: {
+                    type: "SIGN_TXN",
+                    txn: signTxnRequestParams
+                  },
 
-                origin: generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN),
-                targetWindow: peraWalletIframe.contentWindow,
-                timeout: 3000
-              });
-            }
+                  origin: generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN),
+                  targetWindow: peraWalletIframe.contentWindow
+                });
+              }
+
+              // eslint-disable-next-line no-magic-numbers
+            }, 300);
+
+            appTellerManager.setupListener({
+              onReceiveMessage: (
+                newTabEvent: MessageEvent<TellerMessage<PeraTeller>>
+              ) => {
+                if (newTabEvent.data.message.type === "MESSAGE_RECEIVED") {
+                  clearInterval(checkMessageIsReceived);
+                }
+              }
+            });
 
             // Returns a promise that waits for the response from the web wallet.
             // The promise is resolved when the web wallet responds with the signed txn.
@@ -672,18 +711,31 @@ class PeraWalletConnect {
           .then((newTab) => {
             newPeraWalletTab = newTab;
 
-            if (newPeraWalletTab && newPeraWalletTab.opener) {
-              appTellerManager.sendMessage({
-                message: {
-                  type: "SIGN_TXN",
-                  txn: signTxnRequestParams
-                },
+            const checkMessageIsReceived = setInterval(() => {
+              if (newPeraWalletTab && newPeraWalletTab.opener) {
+                appTellerManager.sendMessage({
+                  message: {
+                    type: "SIGN_TXN",
+                    txn: signTxnRequestParams
+                  },
 
-                origin: webWalletURLs.TRANSACTION_SIGN,
-                targetWindow: newPeraWalletTab,
-                timeout: 3000
-              });
-            }
+                  origin: webWalletURLs.TRANSACTION_SIGN,
+                  targetWindow: newPeraWalletTab
+                });
+              }
+
+              // eslint-disable-next-line no-magic-numbers
+            }, 300);
+
+            appTellerManager.setupListener({
+              onReceiveMessage: (
+                newTabEvent: MessageEvent<TellerMessage<PeraTeller>>
+              ) => {
+                if (newTabEvent.data.message.type === "MESSAGE_RECEIVED") {
+                  clearInterval(checkMessageIsReceived);
+                }
+              }
+            });
           })
           .catch((error) => {
             console.log(error);

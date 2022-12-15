@@ -56,6 +56,9 @@ export type PeraTeller =
   | {
       type: "SESSION_DISCONNECTED";
       error: string;
+    }
+  | {
+      type: "MESSAGE_RECEIVED";
     };
 
 const appTellerManager = new Teller<PeraTeller>({
