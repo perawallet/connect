@@ -178,8 +178,7 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
         renderer: "svg",
         loop: true,
         autoplay: true,
-        animationData:
-          "https://gist.githubusercontent.com/yigiterdev/ea981d663e8c68726a0cdbbdd701a154/raw/c341095c9c42b8ea4d1dfec46fd6b18cdeaa43ff/PeraLoaderAnimationLottie.json"
+        path: "https://gist.githubusercontent.com/yigiterdev/ea981d663e8c68726a0cdbbdd701a154/raw/c341095c9c42b8ea4d1dfec46fd6b18cdeaa43ff/PeraLoaderAnimationLottie.json"
       });
     }
   }

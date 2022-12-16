@@ -66,8 +66,7 @@ export class PeraWalletSignTxnToast extends HTMLElement {
         renderer: "svg",
         loop: true,
         autoplay: true,
-        animationData:
-          "https://gist.githubusercontent.com/yigiterdev/e82b7253b774dc6e6f33cb2e1d5affc1/raw/d45f1dc977e2275d7d44e726e15a7245695f6aed/signtxnAnimation.json"
+        path: "https://gist.githubusercontent.com/yigiterdev/e82b7253b774dc6e6f33cb2e1d5affc1/raw/d45f1dc977e2275d7d44e726e15a7245695f6aed/signtxnAnimation.json"
       });
     }
   }
