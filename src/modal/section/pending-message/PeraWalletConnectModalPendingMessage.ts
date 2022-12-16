@@ -1,6 +1,7 @@
 import HelpIcon from "../../../asset/icon/Help.svg";
 import SendIcon from "../../../asset/icon/Send.svg";
 
+import "@lottiefiles/lottie-player";
 import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
 import {
   PERA_WALLET_CONNECT_MODAL_ID,
@@ -100,15 +101,9 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
     if (this.shadowRoot) {
       const styleSheet = document.createElement("style");
 
-      const lottieScript = document.createElement("script");
-
-      lottieScript.src =
-        "https://unpkg.com/@lottiefiles/lottie-player@1.5.7/dist/lottie-player.js";
-
       styleSheet.textContent = styles;
 
       this.shadowRoot.append(
-        lottieScript,
         peraWalletConnectModalPendingMessageTemplate.content.cloneNode(true),
         styleSheet
       );

@@ -1,5 +1,6 @@
 import CloseIcon from "../../asset/icon/Close--small.svg";
 
+import "@lottiefiles/lottie-player";
 import styles from "./_pera-wallet-sign-txn-toast.scss";
 import {
   PERA_WALLET_SIGN_TXN_TOAST_ID,
@@ -43,13 +44,7 @@ export class PeraWalletSignTxnToast extends HTMLElement {
 
       styleSheet.textContent = styles;
 
-      const lottieScript = document.createElement("script");
-
-      lottieScript.src =
-        "https://unpkg.com/@lottiefiles/lottie-player@1.5.7/dist/lottie-player.js";
-
       this.shadowRoot.append(
-        lottieScript,
         peraWalletSignTxnToastTemplate.content.cloneNode(true),
         styleSheet
       );

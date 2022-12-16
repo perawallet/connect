@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@json-rpc-tools/utils": "^1.7.6",
+    "@lottiefiles/lottie-player": "^1.6.2",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/types": "^1.8.0",
     "bowser": "^2.11.0",
