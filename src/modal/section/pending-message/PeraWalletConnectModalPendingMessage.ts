@@ -1,8 +1,7 @@
 import HelpIcon from "../../../asset/icon/Help.svg";
 import SendIcon from "../../../asset/icon/Send.svg";
-import animationData from "./lotties/PeraLoaderAnimationLottie.json";
 
-import lottie from "lottie-web";
+import Lottie from "@evanhahn/lottie-web-light";
 
 import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
 import {
@@ -174,12 +173,13 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
     );
 
     if (lottieWrapper) {
-      lottie.loadAnimation({
+      Lottie.loadAnimation({
         container: lottieWrapper,
         renderer: "svg",
         loop: true,
         autoplay: true,
-        animationData
+        animationData:
+          "https://gist.githubusercontent.com/yigiterdev/ea981d663e8c68726a0cdbbdd701a154/raw/c341095c9c42b8ea4d1dfec46fd6b18cdeaa43ff/PeraLoaderAnimationLottie.json"
       });
     }
   }

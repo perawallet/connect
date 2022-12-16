@@ -1,7 +1,6 @@
 import CloseIcon from "../../asset/icon/Close--small.svg";
-import animationData from "./lotties/Animation.json";
 
-import lottie from "lottie-web";
+import Lottie from "@evanhahn/lottie-web-light";
 
 import styles from "./_pera-wallet-sign-txn-toast.scss";
 import {
@@ -62,12 +61,13 @@ export class PeraWalletSignTxnToast extends HTMLElement {
     );
 
     if (lottieWrapper) {
-      lottie.loadAnimation({
+      Lottie.loadAnimation({
         container: lottieWrapper,
         renderer: "svg",
         loop: true,
         autoplay: true,
-        animationData
+        animationData:
+          "https://gist.githubusercontent.com/yigiterdev/e82b7253b774dc6e6f33cb2e1d5affc1/raw/d45f1dc977e2275d7d44e726e15a7245695f6aed/signtxnAnimation.json"
       });
     }
   }
