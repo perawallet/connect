@@ -1,8 +1,5 @@
 import HelpIcon from "../../../asset/icon/Help.svg";
 import SendIcon from "../../../asset/icon/Send.svg";
-import animationData from "./lotties/PeraLoaderAnimationLottie.json";
-
-import lottie from "lottie-web";
 
 import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
 import {
@@ -22,8 +19,13 @@ const peraWalletConnectModalPendingMessageTemplate = document.createElement("tem
 peraWalletConnectModalPendingMessageTemplate.innerHTML = `
   <div class="pera-wallet-connect-modal-pending-message-section">
     <div class="pera-wallet-connect-modal-pending-message">
-      <div id="pera-wallet-connect-modal-pending-message-animation-wrapper" class="pera-wallet-connect-modal-pending-message__animation-wrapper"></div>
-
+      <lottie-player
+          src="https://gist.githubusercontent.com/yigiterdev/ea981d663e8c68726a0cdbbdd701a154/raw/c341095c9c42b8ea4d1dfec46fd6b18cdeaa43ff/PeraLoaderAnimationLottie.json"
+          class="pera-wallet-connect-modal-pending-message__animation-wrapper"
+          autoplay
+          loop
+      ></lottie-player>
+     
       <div class="pera-wallet-connect-modal-pending-message__text">
         Please wait while we connect you to Pera Wallet
       </div>
@@ -98,9 +100,15 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
     if (this.shadowRoot) {
       const styleSheet = document.createElement("style");
 
+      const lottieScript = document.createElement("script");
+
+      lottieScript.src =
+        "https://unpkg.com/@lottiefiles/lottie-player@1.5.7/dist/lottie-player.js";
+
       styleSheet.textContent = styles;
 
       this.shadowRoot.append(
+        lottieScript,
         peraWalletConnectModalPendingMessageTemplate.content.cloneNode(true),
         styleSheet
       );
@@ -117,7 +125,6 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
     });
 
     this.addAudioForConnection();
-    this.renderLottieAnimation();
 
     setTimeout(() => {
       peraWalletConnectModalPendingMessageTemplate.innerHTML =
@@ -165,22 +172,6 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
       audio.loop = true;
 
       connectAudioWrapper?.appendChild(audio);
-    }
-  }
-
-  renderLottieAnimation() {
-    const lottieWrapper = this.shadowRoot?.getElementById(
-      "pera-wallet-connect-modal-pending-message-animation-wrapper"
-    );
-
-    if (lottieWrapper) {
-      lottie.loadAnimation({
-        container: lottieWrapper,
-        renderer: "svg",
-        loop: true,
-        autoplay: true,
-        animationData
-      });
     }
   }
 }

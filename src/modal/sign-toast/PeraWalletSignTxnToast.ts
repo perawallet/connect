@@ -1,7 +1,4 @@
 import CloseIcon from "../../asset/icon/Close--small.svg";
-import animationData from "./lotties/Animation.json";
-
-import lottie from "lottie-web";
 
 import styles from "./_pera-wallet-sign-txn-toast.scss";
 import {
@@ -21,7 +18,14 @@ peraWalletSignTxnToastTemplate.innerHTML = `
       </button>
     </div>
     <div class="pera-wallet-sign-txn-toast__content">
-      <div id="pera-wallet-sign-txn-toast-lottie-animation" style="width:368;height:368" class="pera-wallet-sign-txn-toast__content__lottie-animation"></div>
+      <lottie-player
+          src="https://gist.githubusercontent.com/yigiterdev/e82b7253b774dc6e6f33cb2e1d5affc1/raw/d45f1dc977e2275d7d44e726e15a7245695f6aed/signtxnAnimation.json"
+          style="width:368;height:368" 
+          class="pera-wallet-sign-txn-toast__content__lottie-animation"
+          autoplay
+          loop
+      ></lottie-player>
+
       <p class="pera-wallet-sign-txn-toast__content__description">
         Please launch <b>Pera Wallet</b> on your iOS or Android device to sign this transaction.
       </p>
@@ -39,7 +43,13 @@ export class PeraWalletSignTxnToast extends HTMLElement {
 
       styleSheet.textContent = styles;
 
+      const lottieScript = document.createElement("script");
+
+      lottieScript.src =
+        "https://unpkg.com/@lottiefiles/lottie-player@1.5.7/dist/lottie-player.js";
+
       this.shadowRoot.append(
+        lottieScript,
         peraWalletSignTxnToastTemplate.content.cloneNode(true),
         styleSheet
       );
@@ -50,24 +60,6 @@ export class PeraWalletSignTxnToast extends HTMLElement {
 
       closeButton?.addEventListener("click", () => {
         removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
-      });
-
-      this.renderLottieAnimation();
-    }
-  }
-
-  renderLottieAnimation() {
-    const lottieWrapper = this.shadowRoot?.getElementById(
-      "pera-wallet-sign-txn-toast-lottie-animation"
-    );
-
-    if (lottieWrapper) {
-      lottie.loadAnimation({
-        container: lottieWrapper,
-        renderer: "svg",
-        loop: true,
-        autoplay: true,
-        animationData
       });
     }
   }
