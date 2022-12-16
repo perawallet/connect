@@ -92,10 +92,8 @@ export class PeraWalletRedirectModal extends HTMLElement {
   connectedCallback() {
     const peraWalletDeepLink = window.open(generatePeraWalletAppDeepLink(), "_blank");
 
-    if (peraWalletDeepLink) {
-      peraWalletDeepLink.addEventListener("load", () => {
-        this.onClose();
-      });
+    if (peraWalletDeepLink && !peraWalletDeepLink.closed) {
+      this.onClose();
     }
 
     setTimeout(() => {
