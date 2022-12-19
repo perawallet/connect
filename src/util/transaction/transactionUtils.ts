@@ -1,3 +1,4 @@
+import {Buffer} from "buffer";
 import algosdk, {Transaction} from "algosdk";
 
 import {PeraWalletTransaction, SignerTransaction} from "../model/peraWalletModels";

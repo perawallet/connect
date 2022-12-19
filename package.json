@@ -13,8 +13,10 @@
   "devDependencies": {
     "@hipo/eslint-config-base": "^4.1.1",
     "@hipo/eslint-config-typescript": "^1.1.0",
+    "@rollup/plugin-commonjs": "^23.0.3",
     "@rollup/plugin-image": "^2.1.1",
     "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^15.0.1",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "eslint": "^8.12.0",
