@@ -1,12 +1,8 @@
 import {detectBrowser, isAndroid, isIOS} from "./device/deviceUtils";
 import {PERA_WALLET_APP_DEEP_LINK} from "./peraWalletConstants";
-import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storage/storageConstants";
-import {getLocalStorage} from "./storage/storageUtils";
 
 function generatePeraWalletAppDeepLink(shouldAddBrowserName = true): string {
-  let appDeepLink =
-    getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK) ||
-    PERA_WALLET_APP_DEEP_LINK;
+  let appDeepLink = PERA_WALLET_APP_DEEP_LINK;
   const browserName = detectBrowser();
 
   if (shouldAddBrowserName && browserName) {

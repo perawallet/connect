@@ -21,14 +21,12 @@ import {
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
-  getLocalStorage,
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage,
   getWalletConnectObjectFromStorage,
   getWalletPlatformFromStorage
 } from "./util/storage/storageUtils";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
-import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
   base64ToUint8Array,
@@ -43,7 +41,6 @@ import {getMetaInfo, waitForTabOpening} from "./util/dom/domUtils";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
-  deep_link?: string;
   shouldShowSignTxnToast?: boolean;
   chainId?: AlgorandChainIDs;
 }
@@ -71,13 +68,6 @@ class PeraWalletConnect {
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
-
-    if (options?.deep_link) {
-      getLocalStorage()?.setItem(
-        PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK,
-        options.deep_link
-      );
-    }
 
     this.connector = null;
     this.shouldShowSignTxnToast =
