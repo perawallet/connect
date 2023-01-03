@@ -12,7 +12,8 @@ import styles from "./_pera-wallet-connect-modal-pending-message.scss";
 import {isIOS} from "../../../util/device/deviceUtils";
 import {
   CONNECT_AUDIO_URL,
-  CONNECT_TIMEOUT_INTERVAL
+  CONNECT_TIMEOUT_INTERVAL,
+  PERA_LOADER_ANIMATION_URL
 } from "./util/peraWalletConnectModalPendingMessageConstants";
 
 const {logo} = getPeraWalletAppMeta();
@@ -178,7 +179,7 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
         renderer: "svg",
         loop: true,
         autoplay: true,
-        path: "https://gist.githubusercontent.com/yigiterdev/ea981d663e8c68726a0cdbbdd701a154/raw/c341095c9c42b8ea4d1dfec46fd6b18cdeaa43ff/PeraLoaderAnimationLottie.json"
+        path: PERA_LOADER_ANIMATION_URL
       });
     }
   }

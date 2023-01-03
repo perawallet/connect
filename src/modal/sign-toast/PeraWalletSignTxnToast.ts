@@ -7,6 +7,7 @@ import {
   PERA_WALLET_SIGN_TXN_TOAST_ID,
   removeModalWrapperFromDOM
 } from "../peraWalletConnectModalUtils";
+import {SIGN_TXN_ANIMATION_URL} from "./util/peraWalletSignTxnToastContants";
 
 const peraWalletSignTxnToastTemplate = document.createElement("template");
 
@@ -66,7 +67,7 @@ export class PeraWalletSignTxnToast extends HTMLElement {
         renderer: "svg",
         loop: true,
         autoplay: true,
-        path: "https://gist.githubusercontent.com/yigiterdev/e82b7253b774dc6e6f33cb2e1d5affc1/raw/d45f1dc977e2275d7d44e726e15a7245695f6aed/signtxnAnimation.json"
+        path: SIGN_TXN_ANIMATION_URL
       });
     }
   }
