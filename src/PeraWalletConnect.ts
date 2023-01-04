@@ -529,10 +529,9 @@ class PeraWalletConnect {
   }
 
   async disconnect() {
-    const walletDetails = getWalletDetailsFromStorage();
     let killPromise: Promise<void> | undefined;
 
-    if (walletDetails?.type === "pera-wallet") {
+    if (this.isConnected && this.platform === "mobile") {
       killPromise = this.connector?.killSession();
 
       killPromise?.then(() => {
