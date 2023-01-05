@@ -1,9 +1,8 @@
 import PeraWalletLogo from "../../../asset/icon/PeraWallet.svg";
 import HelpIcon from "../../../asset/icon/Help.svg";
 import SendIcon from "../../../asset/icon/Send.svg";
-import animationData from "./lotties/PeraLoaderAnimationLottie.json";
 
-import lottie from "lottie-web";
+import Lottie from "@evanhahn/lottie-web-light";
 
 import {
   PERA_WALLET_CONNECT_MODAL_ID,
@@ -13,7 +12,8 @@ import styles from "./_pera-wallet-connect-modal-pending-message.scss";
 import {isIOS} from "../../../util/device/deviceUtils";
 import {
   CONNECT_AUDIO_URL,
-  CONNECT_TIMEOUT_INTERVAL
+  CONNECT_TIMEOUT_INTERVAL,
+  PERA_LOADER_ANIMATION_URL
 } from "./util/peraWalletConnectModalPendingMessageConstants";
 
 const peraWalletConnectModalPendingMessageTemplate = document.createElement("template");
@@ -173,12 +173,12 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
     );
 
     if (lottieWrapper) {
-      lottie.loadAnimation({
+      Lottie.loadAnimation({
         container: lottieWrapper,
         renderer: "svg",
         loop: true,
         autoplay: true,
-        animationData
+        path: PERA_LOADER_ANIMATION_URL
       });
     }
   }
