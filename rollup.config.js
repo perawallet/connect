@@ -17,7 +17,6 @@ export default [
         "@walletconnect/client": "WalletConnect",
         algosdk: "algosdk",
         bowser: "bowser",
-        "@json-rpc-tools/utils/dist/cjs/format": "format",
         "qr-code-styling": "QRCodeStyling",
         "lottie-web": "lottie"
       }
@@ -25,7 +24,6 @@ export default [
     external: [
       "@walletconnect/client",
       "@walletconnect/types",
-      "@json-rpc-tools/utils/dist/cjs/format",
       "algosdk",
       "lottie-web",
       "bowser",

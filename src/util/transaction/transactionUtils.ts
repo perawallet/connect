@@ -1,6 +1,7 @@
 import algosdk, {Transaction} from "algosdk";
 
 import {PeraWalletTransaction, SignerTransaction} from "../model/peraWalletModels";
+import {generateSimpleId} from "../number/numberUtils";
 
 function encodeUnsignedTransactionInBase64(txn: Transaction): string {
   return Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64");
@@ -40,4 +41,18 @@ function composeTransaction(transaction: SignerTransaction, signerAddress?: stri
   return txnRequestParams;
 }
 
-export {encodeUnsignedTransactionInBase64, base64ToUint8Array, composeTransaction};
+function formatJsonRpcRequest<T>(method: string, params: T) {
+  return {
+    id: generateSimpleId(),
+    jsonrpc: "2.0",
+    method,
+    params
+  };
+}
+
+export {
+  encodeUnsignedTransactionInBase64,
+  base64ToUint8Array,
+  composeTransaction,
+  formatJsonRpcRequest
+};

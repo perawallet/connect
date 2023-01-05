@@ -1,6 +1,5 @@
 /* eslint-disable max-lines */
 import WalletConnect from "@walletconnect/client";
-import {formatJsonRpcRequest} from "@json-rpc-tools/utils/dist/cjs/format";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
@@ -30,7 +29,8 @@ import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
   base64ToUint8Array,
-  composeTransaction
+  composeTransaction,
+  formatJsonRpcRequest
 } from "./util/transaction/transactionUtils";
 import {detectBrowser, isMobile} from "./util/device/deviceUtils";
 import {AlgorandChainIDs} from "./util/peraWalletTypes";
