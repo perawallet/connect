@@ -529,11 +529,15 @@ class PeraWalletConnect {
   }
 
   async disconnect() {
-    const killPromise = this.connector?.killSession();
+    let killPromise: Promise<void> | undefined;
 
-    killPromise?.then(() => {
-      this.connector = null;
-    });
+    if (this.isConnected && this.platform === "mobile") {
+      killPromise = this.connector?.killSession();
+
+      killPromise?.then(() => {
+        this.connector = null;
+      });
+    }
 
     await resetWalletDetailsFromStorage();
 
