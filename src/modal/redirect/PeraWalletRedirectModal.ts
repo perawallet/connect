@@ -7,8 +7,6 @@ import {
 } from "../peraWalletConnectModalUtils";
 import styles from "./_pera-wallet-redirect-modal.scss";
 
-const REDIRECT_MODAL_TIMEOUT = 15000;
-
 const peraWalletRedirectModalTemplate = document.createElement("template");
 
 peraWalletRedirectModalTemplate.innerHTML = `
@@ -95,10 +93,6 @@ export class PeraWalletRedirectModal extends HTMLElement {
     if (peraWalletDeepLink && !peraWalletDeepLink.closed) {
       this.onClose();
     }
-
-    setTimeout(() => {
-      removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
-    }, REDIRECT_MODAL_TIMEOUT);
   }
 
   onClose() {
