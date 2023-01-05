@@ -1,15 +1,8 @@
-import PeraWalletLogo from "../asset/icon/PeraWallet.svg";
-
 import {detectBrowser, isAndroid, isIOS} from "./device/deviceUtils";
 import {PERA_WALLET_APP_DEEP_LINK} from "./peraWalletConstants";
-import {AppMeta} from "./peraWalletTypes";
-import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storage/storageConstants";
-import {getLocalStorage} from "./storage/storageUtils";
 
 function generatePeraWalletAppDeepLink(shouldAddBrowserName = true): string {
-  let appDeepLink =
-    getLocalStorage()?.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK) ||
-    PERA_WALLET_APP_DEEP_LINK;
+  let appDeepLink = PERA_WALLET_APP_DEEP_LINK;
   const browserName = detectBrowser();
 
   if (shouldAddBrowserName && browserName) {
@@ -17,22 +10,6 @@ function generatePeraWalletAppDeepLink(shouldAddBrowserName = true): string {
   }
 
   return appDeepLink;
-}
-
-function getPeraWalletAppMeta(): AppMeta {
-  const storedAppMeta = getLocalStorage()?.getItem(
-    PERA_WALLET_LOCAL_STORAGE_KEYS.APP_META
-  );
-
-  if (storedAppMeta) {
-    return JSON.parse(storedAppMeta) as AppMeta;
-  }
-
-  return {
-    logo: PeraWalletLogo,
-    name: "Pera Wallet",
-    main_color: "#ffee55"
-  };
 }
 
 function generateEmbeddedWalletURL(url: string) {
@@ -71,7 +48,6 @@ function generatePeraWalletConnectDeepLink(uri: string): string {
 
 export {
   generatePeraWalletAppDeepLink,
-  getPeraWalletAppMeta,
   generatePeraWalletConnectDeepLink,
   generateEmbeddedWalletURL
 };

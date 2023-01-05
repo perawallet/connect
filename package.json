@@ -30,7 +30,6 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "@json-rpc-tools/utils": "^1.7.6",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/types": "^1.8.0",
     "bowser": "^2.11.0",

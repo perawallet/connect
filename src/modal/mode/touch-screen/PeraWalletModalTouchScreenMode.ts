@@ -1,11 +1,7 @@
-import {
-  generatePeraWalletConnectDeepLink,
-  getPeraWalletAppMeta
-} from "../../../util/peraWalletUtils";
+import {generatePeraWalletConnectDeepLink} from "../../../util/peraWalletUtils";
 import styles from "./_pera-wallet-modal-touch-screen-mode.scss";
 
 const peraWalletModalTouchScreenMode = document.createElement("template");
-const {name} = getPeraWalletAppMeta();
 
 const touchScreenDefaultMode = `
   <div class="pera-wallet-connect-modal-touch-screen-mode">
@@ -17,7 +13,7 @@ const touchScreenDefaultMode = `
         class="pera-wallet-connect-modal-touch-screen-mode__launch-pera-wallet-button"
         rel="noopener noreferrer"
         target="_blank">
-        Launch ${name}
+        Launch Pera Wallet
       </a>
 
       <div
@@ -34,7 +30,7 @@ const touchScreenDefaultMode = `
         class="pera-wallet-connect-modal-touch-screen-mode__install-pera-wallet-button"
         rel="noopener noreferrer"
         target="_blank">
-        Install ${name}
+        Install Pera Wallet
       </a>
     </div>
   </div>

@@ -1,11 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 import {IWalletConnectSession} from "@walletconnect/types";
 
-import {
-  PeraWalletDetails,
-  PeraWalletNetwork,
-  PeraWalletPlatformType
-} from "../peraWalletTypes";
+import {PeraWalletDetails, PeraWalletPlatformType} from "../peraWalletTypes";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storageConstants";
 
 function getLocalStorage() {
@@ -38,14 +34,6 @@ function getWalletDetailsFromStorage(): PeraWalletDetails | null {
   return null;
 }
 
-function getNetworkFromStorage(): PeraWalletNetwork {
-  const storedNetwork = getLocalStorage()?.getItem(
-    PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK
-  ) as PeraWalletNetwork;
-
-  return storedNetwork || "mainnet";
-}
-
 function getWalletConnectObjectFromStorage(): IWalletConnectSession | null {
   const storedWalletConnectObject = getLocalStorage()?.getItem(
     PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
@@ -63,7 +51,6 @@ function resetWalletDetailsFromStorage() {
     try {
       getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT);
       getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET);
-      getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK);
       resolve(undefined);
     } catch (error) {
       reject(error);
@@ -89,7 +76,6 @@ export {
   saveWalletDetailsToStorage,
   resetWalletDetailsFromStorage,
   getWalletDetailsFromStorage,
-  getNetworkFromStorage,
   getWalletConnectObjectFromStorage,
   getWalletPlatformFromStorage
 };
