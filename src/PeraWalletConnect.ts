@@ -252,71 +252,76 @@ class PeraWalletConnect {
           onReceiveMessage
         });
       } else {
-        waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
-          if (newPeraWalletTab && newPeraWalletTab.opener) {
-            appTellerManager.sendMessage({
-              message: {
-                type: "CONNECT",
-                data: {
-                  ...getMetaInfo(),
-                  chainId
-                }
-              },
+        waitForTabOpening(webWalletURLs.CONNECT)
+          .then((newPeraWalletTab) => {
+            if (newPeraWalletTab && newPeraWalletTab.opener) {
+              appTellerManager.sendMessage({
+                message: {
+                  type: "CONNECT",
+                  data: {
+                    ...getMetaInfo(),
+                    chainId
+                  }
+                },
 
-              origin: webWalletURLs.CONNECT,
-              targetWindow: newPeraWalletTab
-            });
-          }
-
-          const checkTabIsAliveInterval = setInterval(() => {
-            if (newPeraWalletTab?.closed === true) {
-              reject(
-                new PeraWalletConnectError(
-                  {
-                    type: "CONNECT_CANCELLED"
-                  },
-                  "Connect is cancelled by user"
-                )
-              );
-
-              clearInterval(checkTabIsAliveInterval);
-              onClose();
+                origin: webWalletURLs.CONNECT,
+                targetWindow: newPeraWalletTab
+              });
             }
 
-            // eslint-disable-next-line no-magic-numbers
-          }, 2000);
-
-          appTellerManager.setupListener({
-            onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
-              if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
-                const accounts = event.data.message.data.addresses;
-
-                saveWalletDetailsToStorage(accounts, "pera-wallet-web");
-
-                resolve(accounts);
-
-                onClose();
-
-                newPeraWalletTab?.close();
-              } else if (event.data.message.type === "CONNECT_NETWORK_MISMATCH") {
+            const checkTabIsAliveInterval = setInterval(() => {
+              if (newPeraWalletTab?.closed === true) {
                 reject(
                   new PeraWalletConnectError(
                     {
-                      type: "CONNECT_NETWORK_MISMATCH",
-                      detail: event.data.message.error
+                      type: "CONNECT_CANCELLED"
                     },
-                    event.data.message.error ||
-                      `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
+                    "Connect is cancelled by user"
                   )
                 );
 
+                clearInterval(checkTabIsAliveInterval);
                 onClose();
-
-                newPeraWalletTab?.close();
               }
-            }
+
+              // eslint-disable-next-line no-magic-numbers
+            }, 2000);
+
+            appTellerManager.setupListener({
+              onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
+                if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
+                  const accounts = event.data.message.data.addresses;
+
+                  saveWalletDetailsToStorage(accounts, "pera-wallet-web");
+
+                  resolve(accounts);
+
+                  onClose();
+
+                  newPeraWalletTab?.close();
+                } else if (event.data.message.type === "CONNECT_NETWORK_MISMATCH") {
+                  reject(
+                    new PeraWalletConnectError(
+                      {
+                        type: "CONNECT_NETWORK_MISMATCH",
+                        detail: event.data.message.error
+                      },
+                      event.data.message.error ||
+                        `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
+                    )
+                  );
+
+                  onClose();
+
+                  newPeraWalletTab?.close();
+                }
+              }
+            });
+          })
+          .catch((error) => {
+            onClose();
+            reject(error);
           });
-        });
       }
     }
 
@@ -745,7 +750,7 @@ class PeraWalletConnect {
             });
           })
           .catch((error) => {
-            console.log(error);
+            reject(error);
           });
       }
     });

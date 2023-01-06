@@ -1,4 +1,5 @@
 import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
+import PeraWalletConnectError from "../PeraWalletConnectError";
 
 function getMetaInfo() {
   const metaTitle: HTMLElement | null = document.querySelector('meta[name="name"]');
@@ -101,8 +102,39 @@ function waitForTabOpening(url: string): Promise<Window | null> {
     try {
       const newWindow = window.open(url, "_blank");
 
+      let count = 0;
+
       const checkTabIsOpened = setInterval(() => {
+        count += 1;
+        // eslint-disable-next-line no-magic-numbers
+        if (count === 50) {
+          clearInterval(checkTabIsOpened);
+          reject(
+            new PeraWalletConnectError(
+              {
+                type: "MESSAGE_NOT_RECEIVED"
+              },
+
+              `Message not received by ${url}`
+            )
+          );
+          return;
+        }
+
         if (newWindow) {
+          if (newWindow.closed === true) {
+            clearInterval(checkTabIsOpened);
+            reject(
+              new PeraWalletConnectError(
+                {
+                  type: "OPERATION_CANCELLED"
+                },
+
+                "Operation cancelled by user"
+              )
+            );
+          }
+
           appTellerManager.sendMessage({
             message: {
               type: "TAB_OPEN"
