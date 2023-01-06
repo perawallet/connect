@@ -39,6 +39,11 @@
         .pera-wallet-connect-modal-desktop-mode__download-pera-description {
           margin-top: 50px;
         }
+
+        .pera-wallet-connect-qr-code-wrapper {
+          width: 250px;
+          height: 255px;
+        }
       }
     }
 
@@ -190,7 +195,12 @@
 }
 
 .pera-wallet-connect-qr-code-wrapper {
-  width: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 205px;
+  height: 205px;
 
   margin: 24px auto 0;
   padding: 10px;

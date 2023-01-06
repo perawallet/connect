@@ -14,7 +14,7 @@ export default [
       format: "cjs",
       name: "PeraConnect",
       globals: {
-        "@walletconnect/client": "WalletConnect",
+        "@walletconnect/sign-client": "WalletConnect",
         algosdk: "algosdk",
         bowser: "bowser",
         "@json-rpc-tools/utils/dist/cjs/format": "format",
@@ -23,7 +23,8 @@ export default [
       }
     },
     external: [
-      "@walletconnect/client",
+      "@walletconnect/sign-client",
+      "@walletconnect/utils",
       "@walletconnect/types",
       "@json-rpc-tools/utils/dist/cjs/format",
       "algosdk",

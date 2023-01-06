@@ -4,11 +4,8 @@ import ArrowLeft from "../../../asset/icon/Left.svg";
 import AppStoreIcon from "../../../asset/icon/AppStoreIcon.svg";
 import PlayStoreIcon from "../../../asset/icon/PlayStoreIcon.svg";
 import DownloadIcon from "../../../asset/icon/Download.svg";
-import PeraWalletLogoWithBlackBackground from "../../../asset/icon/PeraWalletWithBlackBackground.svg";
 import PeraWebIcon from "../../../asset/icon/PeraWeb.svg";
 import ChevronRightIcon from "../../../asset/icon/ChevronRight.svg";
-
-import QRCodeStyling from "qr-code-styling";
 
 import styles from "./_pera-wallet-connect-modal-desktop-mode.scss";
 import accordionStyles from "./accordion/_pera-wallet-accordion.scss";
@@ -231,7 +228,6 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
       });
     }
 
-    this.renderQRCode();
     this.checkWebWalletAvaliability();
   }
 
@@ -265,44 +261,6 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
         }
 
         accordionItem.classList.toggle("pera-wallet-accordion-item--active");
-      }
-    }
-  }
-
-  renderQRCode() {
-    const URI = this.getAttribute("uri");
-    const isWebWalletAvailable = this.getAttribute("is-web-wallet-avaliable");
-
-    // eslint-disable-next-line no-magic-numbers
-    const size = isWebWalletAvailable === "false" ? 250 : 205;
-
-    if (URI) {
-      const qrCode = new QRCodeStyling({
-        width: size,
-        height: size,
-        type: "svg",
-        data: URI,
-        image: PeraWalletLogoWithBlackBackground,
-        dotsOptions: {
-          color: "#000",
-          type: "extra-rounded"
-        },
-        imageOptions: {
-          crossOrigin: "anonymous",
-          margin: 10
-        },
-        cornersSquareOptions: {type: "extra-rounded"},
-        cornersDotOptions: {
-          type: "dot"
-        }
-      });
-
-      const qrWrapper = this.shadowRoot?.getElementById(
-        "pera-wallet-connect-modal-connect-qr-code"
-      );
-
-      if (qrWrapper) {
-        qrCode.append(qrWrapper);
       }
     }
   }

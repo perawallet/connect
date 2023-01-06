@@ -1,5 +1,4 @@
 // eslint-disable-next-line import/no-unresolved
-import {IWalletConnectSession} from "@walletconnect/types";
 
 import {
   PeraWalletDetails,
@@ -46,22 +45,9 @@ function getNetworkFromStorage(): PeraWalletNetwork {
   return storedNetwork || "mainnet";
 }
 
-function getWalletConnectObjectFromStorage(): IWalletConnectSession | null {
-  const storedWalletConnectObject = getLocalStorage()?.getItem(
-    PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
-  );
-
-  if (storedWalletConnectObject) {
-    return JSON.parse(storedWalletConnectObject) as IWalletConnectSession;
-  }
-
-  return null;
-}
-
 function resetWalletDetailsFromStorage() {
   return new Promise<undefined>((resolve, reject) => {
     try {
-      getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT);
       getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET);
       getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK);
       resolve(undefined);
@@ -90,6 +76,5 @@ export {
   resetWalletDetailsFromStorage,
   getWalletDetailsFromStorage,
   getNetworkFromStorage,
-  getWalletConnectObjectFromStorage,
   getWalletPlatformFromStorage
 };
