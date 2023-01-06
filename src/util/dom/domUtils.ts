@@ -1,3 +1,5 @@
+import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
+
 function getMetaInfo() {
   const metaTitle: HTMLElement | null = document.querySelector('meta[name="name"]');
   const metaDescription: HTMLElement | null = document.querySelector(
@@ -99,7 +101,29 @@ function waitForTabOpening(url: string): Promise<Window | null> {
     try {
       const newWindow = window.open(url, "_blank");
 
-      resolve(newWindow);
+      const checkTabIsOpened = setInterval(() => {
+        if (newWindow) {
+          appTellerManager.sendMessage({
+            message: {
+              type: "TAB_OPEN"
+            },
+
+            origin: url,
+            targetWindow: newWindow
+          });
+        }
+
+        // eslint-disable-next-line no-magic-numbers
+      }, 300);
+
+      appTellerManager.setupListener({
+        onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
+          if (newTabEvent.data.message.type === "TAB_OPEN_RECEIVED") {
+            clearInterval(checkTabIsOpened);
+            resolve(newWindow);
+          }
+        }
+      });
     } catch (error) {
       reject(error);
     }

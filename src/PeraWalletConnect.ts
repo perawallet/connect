@@ -100,7 +100,6 @@ class PeraWalletConnect {
   ) {
     const browser = detectBrowser();
     const webWalletURLs = getPeraWebWalletURL(webWalletURL);
-
     const peraWalletIframe = document.createElement("iframe");
 
     function onReceiveMessage(event: MessageEvent<TellerMessage<PeraTeller>>) {
@@ -137,24 +136,20 @@ class PeraWalletConnect {
         if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
           const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
 
-          const checkMessageIsReceived = setInterval(() => {
-            if (newPeraWalletTab && newPeraWalletTab.opener) {
-              appTellerManager.sendMessage({
-                message: {
-                  type: "CONNECT",
-                  data: {
-                    ...getMetaInfo(),
-                    chainId
-                  }
-                },
+          if (newPeraWalletTab && newPeraWalletTab.opener) {
+            appTellerManager.sendMessage({
+              message: {
+                type: "CONNECT",
+                data: {
+                  ...getMetaInfo(),
+                  chainId
+                }
+              },
 
-                origin: webWalletURLs.CONNECT,
-                targetWindow: newPeraWalletTab
-              });
-            }
-
-            // eslint-disable-next-line no-magic-numbers
-          }, 300);
+              origin: webWalletURLs.CONNECT,
+              targetWindow: newPeraWalletTab
+            });
+          }
 
           const checkTabIsAliveInterval = setInterval(() => {
             if (newPeraWalletTab?.closed === true) {
@@ -176,10 +171,6 @@ class PeraWalletConnect {
 
           appTellerManager.setupListener({
             onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
-              if (newTabEvent.data.message.type === "MESSAGE_RECEIVED") {
-                clearInterval(checkMessageIsReceived);
-              }
-
               if (resolve && newTabEvent.data.message.type === "CONNECT_CALLBACK") {
                 const accounts = newTabEvent.data.message.data.addresses;
 
@@ -242,8 +233,27 @@ class PeraWalletConnect {
 
         peraWalletIframeWrapper.appendChild(peraWalletIframe);
 
-        const checkMessageIsReceived = setInterval(() => {
-          if (peraWalletIframe.contentWindow) {
+        if (peraWalletIframe.contentWindow) {
+          appTellerManager.sendMessage({
+            message: {
+              type: "CONNECT",
+              data: {
+                ...getMetaInfo(),
+                chainId
+              }
+            },
+
+            origin: webWalletURLs.CONNECT,
+            targetWindow: peraWalletIframe.contentWindow
+          });
+        }
+
+        appTellerManager.setupListener({
+          onReceiveMessage
+        });
+      } else {
+        waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
+          if (newPeraWalletTab && newPeraWalletTab.opener) {
             appTellerManager.sendMessage({
               message: {
                 type: "CONNECT",
@@ -254,44 +264,9 @@ class PeraWalletConnect {
               },
 
               origin: webWalletURLs.CONNECT,
-              targetWindow: peraWalletIframe.contentWindow
+              targetWindow: newPeraWalletTab
             });
           }
-
-          // eslint-disable-next-line no-magic-numbers
-        }, 300);
-
-        appTellerManager.setupListener({
-          onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
-            if (newTabEvent.data.message.type === "MESSAGE_RECEIVED") {
-              clearInterval(checkMessageIsReceived);
-            }
-          }
-        });
-
-        appTellerManager.setupListener({
-          onReceiveMessage
-        });
-      } else {
-        waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
-          const checkMessageIsReceived = setInterval(() => {
-            if (newPeraWalletTab && newPeraWalletTab.opener) {
-              appTellerManager.sendMessage({
-                message: {
-                  type: "CONNECT",
-                  data: {
-                    ...getMetaInfo(),
-                    chainId
-                  }
-                },
-
-                origin: webWalletURLs.CONNECT,
-                targetWindow: newPeraWalletTab
-              });
-            }
-
-            // eslint-disable-next-line no-magic-numbers
-          }, 300);
 
           const checkTabIsAliveInterval = setInterval(() => {
             if (newPeraWalletTab?.closed === true) {
@@ -313,10 +288,6 @@ class PeraWalletConnect {
 
           appTellerManager.setupListener({
             onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
-              if (event.data.message.type === "MESSAGE_RECEIVED") {
-                clearInterval(checkMessageIsReceived);
-              }
-
               if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
                 const accounts = event.data.message.data.addresses;
 
@@ -568,24 +539,6 @@ class PeraWalletConnect {
     return new Promise<Uint8Array[]>((resolve, reject) => {
       const webWalletURLs = getPeraWebWalletURL(webWalletURL);
       const browser = detectBrowser();
-      let newPeraWalletTab: Window | null;
-
-      const checkTabIsAliveInterval = setInterval(() => {
-        if (newPeraWalletTab?.closed === true) {
-          reject(
-            new PeraWalletConnectError(
-              {
-                type: "SIGN_TXN_CANCELLED"
-              },
-              "Transaction signing is cancelled by user."
-            )
-          );
-
-          clearInterval(checkTabIsAliveInterval);
-        }
-
-        // eslint-disable-next-line no-magic-numbers
-      }, 2000);
 
       if (browser === "Chrome") {
         openPeraWalletSignTxnModal()
@@ -627,28 +580,72 @@ class PeraWalletConnect {
               });
             }
 
-            const checkMessageIsReceived = setInterval(() => {
-              if (peraWalletIframe.contentWindow) {
-                appTellerManager.sendMessage({
-                  message: {
-                    type: "SIGN_TXN",
-                    txn: signTxnRequestParams
-                  },
+            if (peraWalletIframe.contentWindow) {
+              appTellerManager.sendMessage({
+                message: {
+                  type: "SIGN_TXN",
+                  txn: signTxnRequestParams
+                },
 
-                  origin: generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN),
-                  targetWindow: peraWalletIframe.contentWindow
-                });
-              }
-
-              // eslint-disable-next-line no-magic-numbers
-            }, 300);
+                origin: generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN),
+                targetWindow: peraWalletIframe.contentWindow
+              });
+            }
 
             appTellerManager.setupListener({
-              onReceiveMessage: (
-                newTabEvent: MessageEvent<TellerMessage<PeraTeller>>
-              ) => {
-                if (newTabEvent.data.message.type === "MESSAGE_RECEIVED") {
-                  clearInterval(checkMessageIsReceived);
+              onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
+                if (event.data.message.type === "SIGN_TXN_CALLBACK") {
+                  document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
+                  closePeraWalletSignTxnModal();
+
+                  resolve(
+                    event.data.message.signedTxns.map((txn) =>
+                      base64ToUint8Array(txn.signedTxn)
+                    )
+                  );
+                }
+
+                if (event.data.message.type === "SIGN_TXN_NETWORK_MISMATCH") {
+                  reject(
+                    new PeraWalletConnectError(
+                      {
+                        type: "SIGN_TXN_NETWORK_MISMATCH",
+                        detail: event.data.message.error
+                      },
+                      event.data.message.error || "Network mismatch"
+                    )
+                  );
+                }
+
+                if (event.data.message.type === "SESSION_DISCONNECTED") {
+                  document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
+                  closePeraWalletSignTxnModal();
+
+                  resetWalletDetailsFromStorage();
+
+                  reject(
+                    new PeraWalletConnectError(
+                      {
+                        type: "SESSION_DISCONNECTED",
+                        detail: event.data.message.error
+                      },
+                      event.data.message.error
+                    )
+                  );
+                }
+
+                if (event.data.message.type === "SIGN_TXN_CALLBACK_ERROR") {
+                  document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
+                  closePeraWalletSignTxnModal();
+
+                  reject(
+                    new PeraWalletConnectError(
+                      {
+                        type: "SIGN_TXN_CANCELLED"
+                      },
+                      event.data.message.error
+                    )
+                  );
                 }
               }
             });
@@ -662,31 +659,87 @@ class PeraWalletConnect {
           });
       } else {
         waitForTabOpening(webWalletURLs.TRANSACTION_SIGN)
-          .then((newTab) => {
-            newPeraWalletTab = newTab;
+          .then((newPeraWalletTab) => {
+            if (newPeraWalletTab && newPeraWalletTab.opener) {
+              appTellerManager.sendMessage({
+                message: {
+                  type: "SIGN_TXN",
+                  txn: signTxnRequestParams
+                },
 
-            const checkMessageIsReceived = setInterval(() => {
-              if (newPeraWalletTab && newPeraWalletTab.opener) {
-                appTellerManager.sendMessage({
-                  message: {
-                    type: "SIGN_TXN",
-                    txn: signTxnRequestParams
-                  },
+                origin: webWalletURLs.TRANSACTION_SIGN,
+                targetWindow: newPeraWalletTab
+              });
+            }
 
-                  origin: webWalletURLs.TRANSACTION_SIGN,
-                  targetWindow: newPeraWalletTab
-                });
+            const checkTabIsAliveInterval = setInterval(() => {
+              if (newPeraWalletTab?.closed === true) {
+                reject(
+                  new PeraWalletConnectError(
+                    {
+                      type: "SIGN_TXN_CANCELLED"
+                    },
+                    "Transaction signing is cancelled by user."
+                  )
+                );
+
+                clearInterval(checkTabIsAliveInterval);
               }
 
               // eslint-disable-next-line no-magic-numbers
-            }, 300);
+            }, 2000);
 
             appTellerManager.setupListener({
-              onReceiveMessage: (
-                newTabEvent: MessageEvent<TellerMessage<PeraTeller>>
-              ) => {
-                if (newTabEvent.data.message.type === "MESSAGE_RECEIVED") {
-                  clearInterval(checkMessageIsReceived);
+              onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
+                if (event.data.message.type === "SIGN_TXN_CALLBACK") {
+                  newPeraWalletTab?.close();
+
+                  resolve(
+                    event.data.message.signedTxns.map((txn) =>
+                      base64ToUint8Array(txn.signedTxn)
+                    )
+                  );
+                }
+
+                if (event.data.message.type === "SIGN_TXN_NETWORK_MISMATCH") {
+                  reject(
+                    new PeraWalletConnectError(
+                      {
+                        type: "SIGN_TXN_NETWORK_MISMATCH",
+                        detail: event.data.message.error
+                      },
+                      event.data.message.error || "Network mismatch"
+                    )
+                  );
+                }
+
+                if (event.data.message.type === "SESSION_DISCONNECTED") {
+                  newPeraWalletTab?.close();
+
+                  resetWalletDetailsFromStorage();
+
+                  reject(
+                    new PeraWalletConnectError(
+                      {
+                        type: "SESSION_DISCONNECTED",
+                        detail: event.data.message.error
+                      },
+                      event.data.message.error
+                    )
+                  );
+                }
+
+                if (event.data.message.type === "SIGN_TXN_CALLBACK_ERROR") {
+                  newPeraWalletTab?.close();
+
+                  reject(
+                    new PeraWalletConnectError(
+                      {
+                        type: "SIGN_TXN_CANCELLED"
+                      },
+                      event.data.message.error
+                    )
+                  );
                 }
               }
             });
@@ -695,76 +748,6 @@ class PeraWalletConnect {
             console.log(error);
           });
       }
-
-      appTellerManager.setupListener({
-        onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
-          if (event.data.message.type === "SIGN_TXN_CALLBACK") {
-            if (browser === "Chrome") {
-              document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
-              closePeraWalletSignTxnModal();
-            }
-
-            newPeraWalletTab?.close();
-
-            resolve(
-              event.data.message.signedTxns.map((txn) =>
-                base64ToUint8Array(txn.signedTxn)
-              )
-            );
-          }
-
-          if (event.data.message.type === "SIGN_TXN_NETWORK_MISMATCH") {
-            reject(
-              new PeraWalletConnectError(
-                {
-                  type: "SIGN_TXN_NETWORK_MISMATCH",
-                  detail: event.data.message.error
-                },
-                event.data.message.error || "Network mismatch"
-              )
-            );
-          }
-
-          if (event.data.message.type === "SESSION_DISCONNECTED") {
-            if (browser === "Chrome") {
-              document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
-              closePeraWalletSignTxnModal();
-            }
-
-            newPeraWalletTab?.close();
-
-            resetWalletDetailsFromStorage();
-
-            reject(
-              new PeraWalletConnectError(
-                {
-                  type: "SESSION_DISCONNECTED",
-                  detail: event.data.message.error
-                },
-                event.data.message.error
-              )
-            );
-          }
-
-          if (event.data.message.type === "SIGN_TXN_CALLBACK_ERROR") {
-            if (browser === "Chrome") {
-              document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
-              closePeraWalletSignTxnModal();
-            }
-
-            newPeraWalletTab?.close();
-
-            reject(
-              new PeraWalletConnectError(
-                {
-                  type: "SIGN_TXN_CANCELLED"
-                },
-                event.data.message.error
-              )
-            );
-          }
-        }
-      });
     });
   }
 

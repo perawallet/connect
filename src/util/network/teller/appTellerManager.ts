@@ -58,7 +58,10 @@ export type PeraTeller =
       error: string;
     }
   | {
-      type: "MESSAGE_RECEIVED";
+      type: "TAB_OPEN";
+    }
+  | {
+      type: "TAB_OPEN_RECEIVED";
     };
 
 const appTellerManager = new Teller<PeraTeller>({
