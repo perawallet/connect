@@ -1,6 +1,5 @@
 /* eslint-disable max-lines */
 import WalletConnect from "@walletconnect/client";
-import {formatJsonRpcRequest} from "@json-rpc-tools/utils/dist/cjs/format";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
@@ -16,37 +15,33 @@ import {
   PERA_WALLET_IFRAME_ID,
   PERA_WALLET_MODAL_CLASSNAME,
   PeraWalletModalConfig,
-  PERA_WALLET_SIGN_TXN_MODAL_ID
+  PERA_WALLET_SIGN_TXN_MODAL_ID,
+  setupPeraWalletConnectModalCloseListener
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
-  getLocalStorage,
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage,
-  getNetworkFromStorage,
   getWalletConnectObjectFromStorage,
   getWalletPlatformFromStorage
 } from "./util/storage/storageUtils";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
-import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
   base64ToUint8Array,
-  encodeUnsignedTransactionInBase64
+  composeTransaction,
+  formatJsonRpcRequest
 } from "./util/transaction/transactionUtils";
 import {detectBrowser, isMobile} from "./util/device/deviceUtils";
-import {AlgorandChainIDs, AppMeta, PeraWalletNetwork} from "./util/peraWalletTypes";
-import {generateEmbeddedWalletURL, getPeraWalletAppMeta} from "./util/peraWalletUtils";
+import {AlgorandChainIDs} from "./util/peraWalletTypes";
+import {generateEmbeddedWalletURL} from "./util/peraWalletUtils";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "./util/peraWalletConstants";
 import {getMetaInfo, waitForTabOpening} from "./util/dom/domUtils";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
-  deep_link?: string;
-  app_meta?: AppMeta;
   shouldShowSignTxnToast?: boolean;
-  network?: PeraWalletNetwork;
   chainId?: AlgorandChainIDs;
 }
 
@@ -69,34 +64,10 @@ class PeraWalletConnect {
   bridge: string;
   connector: WalletConnect | null;
   shouldShowSignTxnToast: boolean;
-  network = getNetworkFromStorage();
   chainId?: number;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
-
-    if (options?.deep_link) {
-      getLocalStorage()?.setItem(
-        PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK,
-        options.deep_link
-      );
-    }
-
-    if (options?.app_meta) {
-      getLocalStorage()?.setItem(
-        PERA_WALLET_LOCAL_STORAGE_KEYS.APP_META,
-        JSON.stringify(options.app_meta)
-      );
-    }
-
-    if (options?.network) {
-      this.network = options.network;
-    }
-
-    getLocalStorage()?.setItem(
-      PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK,
-      options?.network || "mainnet"
-    );
 
     this.connector = null;
     this.shouldShowSignTxnToast =
@@ -128,7 +99,7 @@ class PeraWalletConnect {
     chainId: number | undefined
   ) {
     const browser = detectBrowser();
-    const webWalletURLs = getPeraWebWalletURL(webWalletURL, this.network);
+    const webWalletURLs = getPeraWebWalletURL(webWalletURL);
 
     const peraWalletIframe = document.createElement("iframe");
 
@@ -387,18 +358,17 @@ class PeraWalletConnect {
     };
   }
 
-  connect({network}: {network?: PeraWalletNetwork} = {}) {
+  connect() {
     return new Promise<string[]>(async (resolve, reject) => {
       try {
         // check if already connected and kill session first before creating a new one.
         // This is to kill the last session and make sure user start from scratch whenever `.connect()` method is called.
         if (this.connector?.connected) {
-          await this.connector.killSession();
-        }
-
-        if (network) {
-          // override network if provided
-          getLocalStorage()?.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK, network);
+          try {
+            await this.connector.killSession();
+          } catch (_error) {
+            // No need to handle
+          }
         }
 
         const {
@@ -407,7 +377,7 @@ class PeraWalletConnect {
           webWalletURL,
           shouldDisplayNewBadge,
           shouldUseSound
-        } = await getPeraConnectConfig(network || this.network);
+        } = await getPeraConnectConfig();
 
         const {onWebWalletConnect} = this.connectWithWebWallet(
           resolve,
@@ -436,19 +406,7 @@ class PeraWalletConnect {
           chainId: this.chainId || 4160
         });
 
-        const peraWalletConnectModalWrapper = document.getElementById(
-          PERA_WALLET_CONNECT_MODAL_ID
-        );
-
-        const peraWalletConnectModal = peraWalletConnectModalWrapper
-          ?.querySelector("pera-wallet-connect-modal")
-          ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
-
-        const closeButton = peraWalletConnectModal
-          ?.querySelector("pera-wallet-modal-header")
-          ?.shadowRoot?.getElementById("pera-wallet-modal-header-close-button");
-
-        closeButton?.addEventListener("click", () => {
+        setupPeraWalletConnectModalCloseListener(() =>
           reject(
             new PeraWalletConnectError(
               {
@@ -456,10 +414,8 @@ class PeraWalletConnect {
               },
               "Connect modal is closed by user"
             )
-          );
-
-          removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
-        });
+          )
+        );
 
         this.connector.on("connect", (error, _payload) => {
           if (error) {
@@ -473,15 +429,13 @@ class PeraWalletConnect {
       } catch (error: any) {
         console.log(error);
 
-        const {name} = getPeraWalletAppMeta();
-
         reject(
           new PeraWalletConnectError(
             {
               type: "SESSION_CONNECT",
               detail: error
             },
-            error.message || `There was an error while connecting to ${name}`
+            error.message || `There was an error while connecting to Pera Wallet`
           )
         );
       }
@@ -496,7 +450,7 @@ class PeraWalletConnect {
         // ================================================= //
         // Pera Wallet Web flow
         if (walletDetails?.type === "pera-wallet-web") {
-          const {isWebWalletAvailable} = await getPeraConnectConfig(this.network);
+          const {isWebWalletAvailable} = await getPeraConnectConfig();
 
           if (isWebWalletAvailable) {
             resolve(walletDetails.accounts || []);
@@ -539,15 +493,13 @@ class PeraWalletConnect {
         // If the bridge is not active, then disconnect
         await this.disconnect();
 
-        const {name} = getPeraWalletAppMeta();
-
         reject(
           new PeraWalletConnectError(
             {
               type: "SESSION_RECONNECT",
               detail: error
             },
-            error.message || `There was an error while reconnecting to ${name}`
+            error.message || `There was an error while reconnecting to Pera Wallet`
           )
         );
       }
@@ -555,15 +507,17 @@ class PeraWalletConnect {
   }
 
   async disconnect() {
-    const killPromise = this.connector?.killSession();
+    let killPromise: Promise<void> | undefined;
 
-    killPromise?.then(() => {
-      this.connector = null;
-    });
+    if (this.isConnected && this.platform === "mobile") {
+      killPromise = this.connector?.killSession();
+
+      killPromise?.then(() => {
+        this.connector = null;
+      });
+    }
 
     await resetWalletDetailsFromStorage();
-
-    return killPromise;
   }
 
   private async signTransactionWithMobile(signTxnRequestParams: PeraWalletTransaction[]) {
@@ -573,7 +527,7 @@ class PeraWalletConnect {
 
     try {
       try {
-        const {silent} = await getPeraConnectConfig(this.network);
+        const {silent} = await getPeraConnectConfig();
 
         const response = await this.connector!.sendCustomRequest(
           formattedSignTxnRequest,
@@ -612,7 +566,7 @@ class PeraWalletConnect {
     webWalletURL: string
   ) {
     return new Promise<Uint8Array[]>((resolve, reject) => {
-      const webWalletURLs = getPeraWebWalletURL(webWalletURL, this.network);
+      const webWalletURLs = getPeraWebWalletURL(webWalletURL);
       const browser = detectBrowser();
       let newPeraWalletTab: Window | null;
 
@@ -818,9 +772,7 @@ class PeraWalletConnect {
     txGroups: SignerTransaction[][],
     signerAddress?: string
   ): Promise<Uint8Array[]> {
-    const walletDetails = getWalletDetailsFromStorage();
-
-    if (walletDetails?.type === "pera-wallet") {
+    if (this.platform === "mobile") {
       if (isMobile()) {
         // This is to automatically open the wallet app when trying to sign with it.
         openPeraWalletRedirectModal();
@@ -836,41 +788,15 @@ class PeraWalletConnect {
 
     // Prepare transactions to be sent to wallet
     const signTxnRequestParams = txGroups.flatMap((txGroup) =>
-      txGroup.map<PeraWalletTransaction>((txGroupDetail) => {
-        let signers: PeraWalletTransaction["signers"];
-
-        if (signerAddress && !(txGroupDetail.signers || []).includes(signerAddress)) {
-          signers = [];
-        }
-
-        const txnRequestParams: PeraWalletTransaction = {
-          txn: encodeUnsignedTransactionInBase64(txGroupDetail.txn)
-        };
-
-        if (Array.isArray(signers)) {
-          txnRequestParams.signers = signers;
-        }
-
-        if (txGroupDetail.authAddr) {
-          txnRequestParams.authAddr = txGroupDetail.authAddr;
-        }
-
-        if (txGroupDetail.message) {
-          txnRequestParams.message = txGroupDetail.message;
-        }
-
-        if (txGroupDetail.msig) {
-          txnRequestParams.msig = txGroupDetail.msig;
-        }
-
-        return txnRequestParams;
-      })
+      txGroup.map<PeraWalletTransaction>((txGroupDetail) =>
+        composeTransaction(txGroupDetail, signerAddress)
+      )
     );
 
     // ================================================= //
     // Pera Wallet Web flow
-    if (walletDetails?.type === "pera-wallet-web") {
-      const {webWalletURL} = await getPeraConnectConfig(this.network);
+    if (this.platform === "web") {
+      const {webWalletURL} = await getPeraConnectConfig();
 
       return this.signTransactionWithWeb(signTxnRequestParams, webWalletURL);
     }

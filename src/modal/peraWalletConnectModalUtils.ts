@@ -53,6 +53,26 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
   };
 }
 
+function setupPeraWalletConnectModalCloseListener(onClose: VoidFunction) {
+  const peraWalletConnectModalWrapper = document.getElementById(
+    PERA_WALLET_CONNECT_MODAL_ID
+  );
+
+  const peraWalletConnectModal = peraWalletConnectModalWrapper
+    ?.querySelector("pera-wallet-connect-modal")
+    ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
+
+  const closeButton = peraWalletConnectModal
+    ?.querySelector("pera-wallet-modal-header")
+    ?.shadowRoot?.getElementById("pera-wallet-modal-header-close-button");
+
+  closeButton?.addEventListener("click", () => {
+    onClose();
+
+    removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+  });
+}
+
 /**
  * Creates a PeraWalletRedirectModal instance and renders it on the DOM.
  *
@@ -126,6 +146,7 @@ export {
   PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME,
   PERA_WALLET_IFRAME_ID,
   openPeraWalletConnectModal,
+  setupPeraWalletConnectModalCloseListener,
   openPeraWalletRedirectModal,
   openPeraWalletSignTxnToast,
   closePeraWalletSignTxnToast,

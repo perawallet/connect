@@ -17,17 +17,15 @@ export default [
         "@walletconnect/client": "WalletConnect",
         algosdk: "algosdk",
         bowser: "bowser",
-        "@json-rpc-tools/utils/dist/cjs/format": "format",
         "qr-code-styling": "QRCodeStyling",
-        "lottie-web": "lottie"
+        "@evanhahn/lottie-web-light": "lottie"
       }
     },
     external: [
       "@walletconnect/client",
       "@walletconnect/types",
-      "@json-rpc-tools/utils/dist/cjs/format",
       "algosdk",
-      "lottie-web",
+      "@evanhahn/lottie-web-light",
       "bowser",
       "qr-code-styling",
       "bufferutil",

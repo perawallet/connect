@@ -88,15 +88,10 @@ try {
 
 ## Options
 
-| option                   | default   | value                                 |          |
-| ------------------------ | --------- | ------------------------------------- | -------- |
-| `network`                | `mainnet` | `dev`, `testnet`, `mainnet`           | optional |
-| `chainId`                | `4160`    | `416001`, `416002`, `416003` , `4160` | optional |
-| `shouldShowSignTxnToast` | `true`    | `boolean`                             | optional |
-
-#### **`network`**
-
-Determines which Web Wallet URL is to be used. Most of the time, you don't need to provide it. If you specifically want to use the Testnet version of Web Wallet for development purposes, simply provide `network: testnet` to the `PeraWalletConnect` constructor.
+| option                   | default | value                                 |          |
+| ------------------------ | ------- | ------------------------------------- | -------- |
+| `chainId`                | `4160`  | `416001`, `416002`, `416003` , `4160` | optional |
+| `shouldShowSignTxnToast` | `true`  | `boolean`                             | optional |
 
 #### **`chainId`**
 
@@ -120,17 +115,7 @@ It's enabled by default but in some cases, you may not need the toast message (e
 
 #### `PeraWalletConnect.connect(): Promise<string[]>`
 
-| option    | default   | value                       |          |
-| --------- | --------- | --------------------------- | -------- |
-| `network` | `mainnet` | `dev`, `testnet`, `mainnet` | optional |
-
 Starts the initial connection flow and returns the array of account addresses.
-
-`network` param of the `connect` method overrides the initial `network` on the constructor.
-
-```javascript
-PeraWalletConnect.connect({network: "testnet"}); //optional
-```
 
 #### `PeraWalletConnect.reconnectSession(): Promise<string[]>`
 
