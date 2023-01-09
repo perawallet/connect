@@ -1,6 +1,9 @@
 import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
 import PeraWalletConnectError from "../PeraWalletConnectError";
 
+const WAIT_FOR_TAB_TRY_INTERVAL = 300;
+const WAIT_FOR_TAB_MAX_TRY_COUNT = 50;
+
 function getMetaInfo() {
   const metaTitle: HTMLElement | null = document.querySelector('meta[name="name"]');
   const metaDescription: HTMLElement | null = document.querySelector(
@@ -106,8 +109,8 @@ function waitForTabOpening(url: string): Promise<Window | null> {
 
       const checkTabIsOpened = setInterval(() => {
         count += 1;
-        // eslint-disable-next-line no-magic-numbers
-        if (count === 50) {
+
+        if (count === WAIT_FOR_TAB_MAX_TRY_COUNT) {
           clearInterval(checkTabIsOpened);
           reject(
             new PeraWalletConnectError(
@@ -115,7 +118,7 @@ function waitForTabOpening(url: string): Promise<Window | null> {
                 type: "MESSAGE_NOT_RECEIVED"
               },
 
-              `Message not received by ${url}`
+              "Couldn't open Pera Wallet, please try again."
             )
           );
           return;
@@ -144,9 +147,7 @@ function waitForTabOpening(url: string): Promise<Window | null> {
             targetWindow: newWindow
           });
         }
-
-        // eslint-disable-next-line no-magic-numbers
-      }, 300);
+      }, WAIT_FOR_TAB_TRY_INTERVAL);
 
       appTellerManager.setupListener({
         onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {

@@ -134,55 +134,57 @@ class PeraWalletConnect {
         )
       ) {
         if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
-          const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
+          waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
+            if (newPeraWalletTab) {
+              appTellerManager.sendMessage({
+                message: {
+                  type: "CONNECT",
+                  data: {
+                    ...getMetaInfo(),
+                    chainId
+                  }
+                },
 
-          if (newPeraWalletTab && newPeraWalletTab.opener) {
-            appTellerManager.sendMessage({
-              message: {
-                type: "CONNECT",
-                data: {
-                  ...getMetaInfo(),
-                  chainId
-                }
-              },
-
-              origin: webWalletURLs.CONNECT,
-              targetWindow: newPeraWalletTab
-            });
-          }
-
-          const checkTabIsAliveInterval = setInterval(() => {
-            if (newPeraWalletTab?.closed === true) {
-              reject(
-                new PeraWalletConnectError(
-                  {
-                    type: "CONNECT_CANCELLED"
-                  },
-                  "Connect is cancelled by user"
-                )
-              );
-
-              onClose();
-              clearInterval(checkTabIsAliveInterval);
+                origin: webWalletURLs.CONNECT,
+                targetWindow: newPeraWalletTab
+              });
             }
 
-            // eslint-disable-next-line no-magic-numbers
-          }, 2000);
-
-          appTellerManager.setupListener({
-            onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
-              if (resolve && newTabEvent.data.message.type === "CONNECT_CALLBACK") {
-                const accounts = newTabEvent.data.message.data.addresses;
-
-                saveWalletDetailsToStorage(accounts, "pera-wallet-web");
-
-                resolve(accounts);
+            const checkTabIsAliveInterval = setInterval(() => {
+              if (newPeraWalletTab?.closed === true) {
+                reject(
+                  new PeraWalletConnectError(
+                    {
+                      type: "CONNECT_CANCELLED"
+                    },
+                    "Connect is cancelled by user"
+                  )
+                );
 
                 onClose();
-
-                newPeraWalletTab?.close();
+                clearInterval(checkTabIsAliveInterval);
               }
-            }
+
+              // eslint-disable-next-line no-magic-numbers
+            }, 2000);
+
+            appTellerManager.setupListener({
+              onReceiveMessage: (
+                newTabEvent: MessageEvent<TellerMessage<PeraTeller>>
+              ) => {
+                if (resolve && newTabEvent.data.message.type === "CONNECT_CALLBACK") {
+                  const accounts = newTabEvent.data.message.data.addresses;
+
+                  saveWalletDetailsToStorage(accounts, "pera-wallet-web");
+
+                  resolve(accounts);
+
+                  onClose();
+
+                  newPeraWalletTab?.close();
+                }
+              }
+            });
           });
         } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
           const peraWalletConnectModalWrapper = document.getElementById(
@@ -254,7 +256,7 @@ class PeraWalletConnect {
       } else {
         waitForTabOpening(webWalletURLs.CONNECT)
           .then((newPeraWalletTab) => {
-            if (newPeraWalletTab && newPeraWalletTab.opener) {
+            if (newPeraWalletTab) {
               appTellerManager.sendMessage({
                 message: {
                   type: "CONNECT",
@@ -665,7 +667,7 @@ class PeraWalletConnect {
       } else {
         waitForTabOpening(webWalletURLs.TRANSACTION_SIGN)
           .then((newPeraWalletTab) => {
-            if (newPeraWalletTab && newPeraWalletTab.opener) {
+            if (newPeraWalletTab) {
               appTellerManager.sendMessage({
                 message: {
                   type: "SIGN_TXN",
