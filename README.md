@@ -139,7 +139,7 @@ Starts the sign process and returns the signed transaction in `Uint8Array`
 
 ## Customizing Style
 
-You can override the z-index using the `.pera-wallet-connect-modal` class so that the modal does not conflict with another component on your application.
+You can override the z-index using the `.pera-wallet-modal` class so that the modal does not conflict with another component on your application.
 
 ```scss
 .pera-wallet-modal {
