@@ -56,6 +56,12 @@ export type PeraTeller =
   | {
       type: "SESSION_DISCONNECTED";
       error: string;
+    }
+  | {
+      type: "TAB_OPEN";
+    }
+  | {
+      type: "TAB_OPEN_RECEIVED";
     };
 
 const appTellerManager = new Teller<PeraTeller>({
