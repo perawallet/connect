@@ -619,6 +619,7 @@ class PeraWalletConnect {
               "src",
               generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN)
             );
+            peraWalletIframe.setAttribute("allow", "hid *; bluetooth *");
 
             peraWalletSignTxnModalIFrameWrapper?.appendChild(peraWalletIframe);
 
