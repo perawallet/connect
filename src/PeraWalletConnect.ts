@@ -613,13 +613,14 @@ class PeraWalletConnect {
             const peraWalletSignTxnModalIFrameWrapper = modal;
 
             const peraWalletIframe = document.createElement("iframe");
+            const peraWalletIframeSrc = generateEmbeddedWalletURL(
+              webWalletURLs.TRANSACTION_SIGN
+            );
+            const peraWalletIframeAllow = `hid ${peraWalletIframeSrc}; bluetooth ${peraWalletIframeSrc}`;
 
             peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
-            peraWalletIframe.setAttribute(
-              "src",
-              generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN)
-            );
-            peraWalletIframe.setAttribute("allow", "hid *; bluetooth *");
+            peraWalletIframe.setAttribute("src", peraWalletIframeSrc);
+            peraWalletIframe.setAttribute("allow", peraWalletIframeAllow);
 
             peraWalletSignTxnModalIFrameWrapper?.appendChild(peraWalletIframe);
 
