@@ -601,7 +601,7 @@ class PeraWalletConnect {
             method: "algo_signTxn",
             params: signTxnRequestParams
           },
-          chainId: "eip155:1"
+          chainId: "algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"
         });
 
         // We send the full txn group to the mobile wallet.
