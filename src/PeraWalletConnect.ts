@@ -397,10 +397,10 @@ class PeraWalletConnect {
         const {uri, approval} = await this.client.connect({
           requiredNamespaces: {
             // TODO: We should update this after align with mobile team
-            eip155: {
-              methods: ["eth_sign"],
-              chains: ["eip155:1"],
-              events: ["accountsChanged"]
+            algorand: {
+              methods: ["algo_signTxn"],
+              chains: ["algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"],
+              events: []
             }
           }
         });
