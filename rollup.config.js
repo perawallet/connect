@@ -58,7 +58,7 @@ export default [
         algosdk: "algosdk",
         bowser: "bowser",
         "qr-code-styling": "QRCodeStyling",
-        "lottie-web": "lottie"
+        "@evanhahn/lottie-web-light": "lottie"
       },
       inlineDynamicImports: true
     },
@@ -66,7 +66,7 @@ export default [
       "@walletconnect/client",
       "@walletconnect/types",
       "algosdk",
-      "lottie-web",
+      "@evanhahn/lottie-web-light",
       "bowser",
       "qr-code-styling"
     ],
