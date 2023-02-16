@@ -577,8 +577,6 @@ class PeraWalletConnect {
         "pera-wallet",
         `${namespace}:${reference}}`
       );
-
-      saveWalletDetailsToStorage(accountsArray || []);
     }
   }
 
