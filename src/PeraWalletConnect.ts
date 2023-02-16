@@ -445,13 +445,19 @@ class PeraWalletConnect {
           .map((namespace) => namespace.accounts)
           .flat();
 
+        const [namespace, reference, _address] = accounts[0].split(":");
+
         const accountsArray: string[] = accounts.map((account) => {
           const [_namespace, _reference, address] = account.split(":");
 
           return address;
         });
 
-        saveWalletDetailsToStorage(accountsArray || []);
+        saveWalletDetailsToStorage(
+          accountsArray || [],
+          "pera-wallet",
+          `${namespace}:${reference}}`
+        );
 
         resolve(accountsArray);
       } catch (error: any) {
@@ -564,6 +570,14 @@ class PeraWalletConnect {
         return address;
       });
 
+      const [namespace, reference, _address] = accounts[0].split(":");
+
+      saveWalletDetailsToStorage(
+        accountsArray || [],
+        "pera-wallet",
+        `${namespace}:${reference}}`
+      );
+
       saveWalletDetailsToStorage(accountsArray || []);
     }
   }
@@ -604,31 +618,41 @@ class PeraWalletConnect {
     const formattedSignTxnRequest = formatJsonRpcRequest("algo_signTxn", [
       signTxnRequestParams
     ]);
+    const walletDetails = getWalletDetailsFromStorage();
 
     try {
       try {
         // const {silent} = await getPeraConnectConfig(this.network);
 
-        const [namespace, reference, _address] =
-          this.session?.namespaces.accounts[0].split(":");
+        if (walletDetails?.chainId) {
+          const response = await this.client!.request<any>({
+            topic: this.session!.topic,
+            // TODO: We should update this after align with mobile team
+            request: formattedSignTxnRequest,
+            chainId: walletDetails.chainId
+          });
 
-        const response = await this.client!.request<any>({
-          topic: this.session!.topic,
-          // TODO: We should update this after align with mobile team
-          request: formattedSignTxnRequest,
-          chainId: `${namespace}:${reference}`
-        });
+          console.log(response);
 
-        console.log(response);
+          // We send the full txn group to the mobile wallet.
+          // Therefore, we first filter out txns that were not signed by the wallet.
+          // These are received as `null`.
+          const nonNullResponse = response.filter(Boolean) as (string | number[])[];
 
-        // We send the full txn group to the mobile wallet.
-        // Therefore, we first filter out txns that were not signed by the wallet.
-        // These are received as `null`.
-        const nonNullResponse = response.filter(Boolean) as (string | number[])[];
+          return typeof nonNullResponse[0] === "string"
+            ? (nonNullResponse as string[]).map(base64ToUint8Array)
+            : (nonNullResponse as number[][]).map((item) => Uint8Array.from(item));
+        }
 
-        return typeof nonNullResponse[0] === "string"
-          ? (nonNullResponse as string[]).map(base64ToUint8Array)
-          : (nonNullResponse as number[][]).map((item) => Uint8Array.from(item));
+        return await Promise.reject(
+          new PeraWalletConnectError(
+            {
+              type: "SIGN_TRANSACTIONS",
+              detail: "Failed to sign transaction"
+            },
+            "Failed to sign transaction"
+          )
+        );
       } catch (error) {
         return await Promise.reject(
           new PeraWalletConnectError(

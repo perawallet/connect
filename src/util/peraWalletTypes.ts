@@ -15,6 +15,7 @@ interface PeraWalletDetails {
   type: PeraWalletType;
   accounts: string[];
   selectedAccount: string;
+  chainId?: string;
 }
 
 export type {
