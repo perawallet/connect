@@ -2,7 +2,7 @@
 import Client from "@walletconnect/sign-client";
 import {getSdkError, getAppMetadata} from "@walletconnect/utils";
 import {SessionTypes} from "@walletconnect/types";
-// import {formatJsonRpcRequest} from "@json-rpc-tools/utils/dist/cjs/format";
+import {formatJsonRpcRequest} from "@json-rpc-tools/utils";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
@@ -397,14 +397,12 @@ class PeraWalletConnect {
         const {uri, approval} = await this.client.connect({
           requiredNamespaces: {
             // TODO: We should update this after align with mobile team
-            "algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73k": {
+            algorand: {
+              chains: [
+                "algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73k",
+                "algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"
+              ],
               methods: ["algo_signTxn"],
-              chains: ["algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"],
-              events: []
-            },
-            "algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe": {
-              methods: ["algo_signTxn"],
-              chains: ["algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"],
               events: []
             }
           }
@@ -591,28 +589,32 @@ class PeraWalletConnect {
   }
 
   private async signTransactionWithMobile(signTxnRequestParams: PeraWalletTransaction[]) {
-    // const formattedSignTxnRequest = formatJsonRpcRequest("algo_signTxn", [
-    //   signTxnRequestParams
-    // ]);
+    const formattedSignTxnRequest = formatJsonRpcRequest("algo_signTxn", [
+      signTxnRequestParams
+    ]);
 
     try {
       try {
         // const {silent} = await getPeraConnectConfig(this.network);
 
-        const response = await this.client!.request({
+        const [namespace, reference, _address] =
+          this.session?.namespaces.accounts[0].split(":");
+
+        const response = await this.client!.request<any>({
           topic: this.session!.topic,
           // TODO: We should update this after align with mobile team
           request: {
             method: "algo_signTxn",
-            params: signTxnRequestParams
+            params: formattedSignTxnRequest
           },
-          chainId: "algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"
+          chainId: `${namespace}:${reference}`
         });
+
+        console.log(response);
 
         // We send the full txn group to the mobile wallet.
         // Therefore, we first filter out txns that were not signed by the wallet.
         // These are received as `null`.
-        // @ts-ignore
         const nonNullResponse = response.filter(Boolean) as (string | number[])[];
 
         return typeof nonNullResponse[0] === "string"
