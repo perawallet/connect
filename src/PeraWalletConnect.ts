@@ -456,7 +456,7 @@ class PeraWalletConnect {
         saveWalletDetailsToStorage(
           accountsArray || [],
           "pera-wallet",
-          `${namespace}:${reference}}`
+          `${namespace}:${reference}`
         );
 
         resolve(accountsArray);
@@ -575,7 +575,7 @@ class PeraWalletConnect {
       saveWalletDetailsToStorage(
         accountsArray || [],
         "pera-wallet",
-        `${namespace}:${reference}}`
+        `${namespace}:${reference}`
       );
     }
   }
