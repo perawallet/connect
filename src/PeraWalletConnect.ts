@@ -603,10 +603,7 @@ class PeraWalletConnect {
         const response = await this.client!.request<any>({
           topic: this.session!.topic,
           // TODO: We should update this after align with mobile team
-          request: {
-            method: "algo_signTxn",
-            params: formattedSignTxnRequest
-          },
+          request: formattedSignTxnRequest,
           chainId: `${namespace}:${reference}`
         });
 
