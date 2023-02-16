@@ -397,7 +397,12 @@ class PeraWalletConnect {
         const {uri, approval} = await this.client.connect({
           requiredNamespaces: {
             // TODO: We should update this after align with mobile team
-            algorand: {
+            "algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73k": {
+              methods: ["algo_signTxn"],
+              chains: ["algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"],
+              events: []
+            },
+            "algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe": {
               methods: ["algo_signTxn"],
               chains: ["algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"],
               events: []
