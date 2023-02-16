@@ -445,9 +445,15 @@ class PeraWalletConnect {
           .map((namespace) => namespace.accounts)
           .flat();
 
-        saveWalletDetailsToStorage(accounts || []);
+        const accountsArray: string[] = accounts.map((account) => {
+          const [_namespace, _reference, address] = account.split(":");
 
-        resolve(accounts);
+          return address;
+        });
+
+        saveWalletDetailsToStorage(accountsArray || []);
+
+        resolve(accountsArray);
       } catch (error: any) {
         console.log(error);
 
@@ -552,7 +558,13 @@ class PeraWalletConnect {
         .map((namespace) => namespace.accounts)
         .flat();
 
-      saveWalletDetailsToStorage(accounts || []);
+      const accountsArray: string[] = accounts.map((account) => {
+        const [_namespace, _reference, address] = account.split(":");
+
+        return address;
+      });
+
+      saveWalletDetailsToStorage(accountsArray || []);
     }
   }
 
