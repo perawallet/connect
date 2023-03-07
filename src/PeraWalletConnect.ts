@@ -48,13 +48,15 @@ interface PeraWalletConnectOptions {
 function generatePeraWalletConnectModalActions({
   isWebWalletAvailable,
   shouldDisplayNewBadge,
-  shouldUseSound
+  shouldUseSound,
+  allowToSelectMultipleAccounts
 }: PeraWalletModalConfig) {
   return {
     open: openPeraWalletConnectModal({
       isWebWalletAvailable,
       shouldDisplayNewBadge,
-      shouldUseSound
+      shouldUseSound,
+      allowToSelectMultipleAccounts
     }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
@@ -336,7 +338,7 @@ class PeraWalletConnect {
     };
   }
 
-  connect() {
+  connect(allowToSelectMultipleAccounts?: boolean) {
     return new Promise<string[]>(async (resolve, reject) => {
       try {
         // check if already connected and kill session first before creating a new one.
@@ -375,7 +377,8 @@ class PeraWalletConnect {
           qrcodeModal: generatePeraWalletConnectModalActions({
             isWebWalletAvailable,
             shouldDisplayNewBadge,
-            shouldUseSound
+            shouldUseSound,
+            allowToSelectMultipleAccounts: allowToSelectMultipleAccounts || true
           })
         });
 
