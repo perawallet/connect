@@ -384,12 +384,6 @@ class PeraWalletConnect {
           window.onWebWalletConnect = onWebWalletConnect;
         }
 
-        openPeraWalletConnectModal({
-          isWebWalletAvailable,
-          shouldDisplayNewBadge,
-          shouldUseSound
-        });
-
         if (!this.client) {
           this.client = await this.createClient();
         }
@@ -409,6 +403,15 @@ class PeraWalletConnect {
         });
 
         if (uri) {
+          console.log(uri);
+
+          openPeraWalletConnectModal({
+            uri,
+            isWebWalletAvailable,
+            shouldDisplayNewBadge,
+            shouldUseSound
+          });
+
           renderQRCode(uri, isWebWalletAvailable);
 
           const peraWalletConnectModalWrapper = document.getElementById(

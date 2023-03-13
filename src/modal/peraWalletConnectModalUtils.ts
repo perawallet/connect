@@ -8,6 +8,7 @@ import {waitForElementCreatedAtShadowDOM} from "../util/dom/domUtils";
 export type PERA_CONNECT_MODAL_VIEWS = "default" | "download-pera";
 
 export interface PeraWalletModalConfig {
+  uri: string;
   isWebWalletAvailable: boolean;
   shouldDisplayNewBadge: boolean;
   shouldUseSound: boolean;
@@ -48,9 +49,10 @@ function createModalWrapperOnDOM(modalId: string) {
 function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
   if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
     const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
-    const {isWebWalletAvailable, shouldDisplayNewBadge, shouldUseSound} = modalConfig;
+    const {uri, isWebWalletAvailable, shouldDisplayNewBadge, shouldUseSound} =
+      modalConfig;
 
-    root.innerHTML = `<pera-wallet-connect-modal is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}"></pera-wallet-connect-modal>`;
+    root.innerHTML = `<pera-wallet-connect-modal uri="${uri}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}"></pera-wallet-connect-modal>`;
   }
 }
 
