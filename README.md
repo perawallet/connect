@@ -113,9 +113,9 @@ It's enabled by default but in some cases, you may not need the toast message (e
 
 ## Methods
 
-#### `PeraWalletConnect.connect({shouldSelectSingleAccount = false}: PeraWalletConnectMethodOptions = {}): Promise<string[]>`
+#### `PeraWalletConnect.connect(): Promise<string[]>`
 
-Starts the initial connection flow and returns the array of account addresses. It can take `shouldSelectSingleAccount` as a parameter. This is optional and false by default. When this parameter is sent as true, only one account is allowed to be selected on the wallet side.
+Starts the initial connection flow and returns the array of account addresses.
 
 #### `PeraWalletConnect.reconnectSession(): Promise<string[]>`
 

@@ -5,7 +5,6 @@ export type PeraTeller =
   | {
       type: "CONNECT";
       data: {
-        shouldSelectSingleAccount: boolean;
         title: string;
         url: string;
         favicon?: string;
