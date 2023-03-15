@@ -7,7 +7,6 @@ export interface PeraWalletModalConfig {
   isWebWalletAvailable: boolean;
   shouldDisplayNewBadge: boolean;
   shouldUseSound: boolean;
-  shouldSelectSingleAccount: boolean;
 }
 
 // The ID of the wrapper element for PeraWalletConnectModal
@@ -42,28 +41,11 @@ function createModalWrapperOnDOM(modalId: string) {
   return wrapper;
 }
 
-function generatePeraWalletConnectModalActions({
-  isWebWalletAvailable,
-  shouldDisplayNewBadge,
-  shouldUseSound,
-  shouldSelectSingleAccount
-}: PeraWalletModalConfig) {
-  return {
-    open: openPeraWalletConnectModal({
-      isWebWalletAvailable,
-      shouldDisplayNewBadge,
-      shouldUseSound,
-      shouldSelectSingleAccount
-    }),
-    close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
-  };
-}
-
 function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
   return (uri: string) => {
     if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
       const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
-      const newURI = `${uri}&algorand=true&shouldSelectSingleAccount=${modalConfig.shouldSelectSingleAccount}`;
+      const newURI = `${uri}&algorand=true`;
       const {isWebWalletAvailable, shouldDisplayNewBadge, shouldUseSound} = modalConfig;
 
       root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}"></pera-wallet-connect-modal>`;
@@ -170,6 +152,5 @@ export {
   closePeraWalletSignTxnToast,
   removeModalWrapperFromDOM,
   openPeraWalletSignTxnModal,
-  closePeraWalletSignTxnModal,
-  generatePeraWalletConnectModalActions
+  closePeraWalletSignTxnModal
 };

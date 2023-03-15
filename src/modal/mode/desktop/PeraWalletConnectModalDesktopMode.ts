@@ -274,7 +274,7 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
     const isWebWalletAvailable = this.getAttribute("is-web-wallet-avaliable");
 
     // eslint-disable-next-line no-magic-numbers
-    const size = isWebWalletAvailable === "false" ? 250 : 235;
+    const size = isWebWalletAvailable === "false" ? 250 : 205;
 
     if (URI) {
       const qrCode = new QRCodeStyling({
