@@ -10,4 +10,21 @@ interface PeraWalletDetails {
   selectedAccount: string;
 }
 
-export type {PeraWalletType, PeraWalletPlatformType, PeraWalletDetails, AlgorandChainIDs};
+interface PeraWalletConnectMethodOptions {
+  shouldSelectSingleAccount?: boolean;
+}
+
+interface PeraWalletConnectOptions {
+  bridge?: string;
+  shouldShowSignTxnToast?: boolean;
+  chainId?: AlgorandChainIDs;
+}
+
+export type {
+  PeraWalletType,
+  PeraWalletPlatformType,
+  PeraWalletDetails,
+  AlgorandChainIDs,
+  PeraWalletConnectMethodOptions,
+  PeraWalletConnectOptions
+};
