@@ -63,6 +63,12 @@ export type PeraTeller =
     }
   | {
       type: "TAB_OPEN_RECEIVED";
+    }
+  | {
+      type: "IFRAME_INITIALIZED";
+    }
+  | {
+      type: "IFRAME_INITIALIZED_RECEIVED";
     };
 
 const appTellerManager = new Teller<PeraTeller>({

@@ -1,8 +1,8 @@
 import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
 import PeraWalletConnectError from "../PeraWalletConnectError";
 
-const WAIT_FOR_TAB_TRY_INTERVAL = 300;
-const WAIT_FOR_TAB_MAX_TRY_COUNT = 50;
+export const WAIT_FOR_TAB_TRY_INTERVAL = 300;
+export const WAIT_FOR_TAB_MAX_TRY_COUNT = 20;
 
 function getMetaInfo() {
   const metaTitle: HTMLElement | null = document.querySelector('meta[name="name"]');
