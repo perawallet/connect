@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1",
+  "version": "1.2.0",
   "name": "@perawallet/connect",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
   "main": "dist/index.js",
@@ -38,7 +38,7 @@
     "qr-code-styling": "1.6.0-rc.1"
   },
   "peerDependencies": {
-    "algosdk": "^1.23.2"
+    "algosdk": "^2.1.0"
   },
   "types": "./dist/index.d.ts",
   "repository": {
