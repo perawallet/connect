@@ -16,8 +16,6 @@ function composeTransaction(transaction: SignerTransaction, signerAddress?: stri
 
   if (signerAddress && !(transaction.signers || []).includes(signerAddress)) {
     signers = [];
-  } else {
-    signers = transaction.signers;
   }
 
   const txnRequestParams: PeraWalletTransaction = {
