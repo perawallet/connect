@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "./node_modules/.bin/rollup -c -w",
     "build": "npm run eslint && ./node_modules/.bin/rollup -c",
+    "build:release": "./node_modules/.bin/rollup -c",
     "eslint": "./node_modules/.bin/eslint --ext .jsx,.js,.tsx,.ts src/"
   },
   "author": "Pera Wallet",
