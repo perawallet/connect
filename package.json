@@ -1,5 +1,5 @@
 {
-  "version": "1.2.1",
+  "version": "1.2.2",
   "name": "@perawallet/connect",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
   "main": "dist/index.js",
@@ -20,7 +20,7 @@
     "@typescript-eslint/parser": "^5.17.0",
     "eslint": "^8.12.0",
     "eslint-config-prettier": "^8.5.0",
-    "node-sass": "^7.0.1",
+    "node-sass": "^8.0.0",
     "prettier": "^2.6.1",
     "rollup": "^2.70.1",
     "rollup-plugin-eslint": "^7.0.0",
