@@ -31,6 +31,12 @@ const PERA_WALLET_MODAL_CLASSNAME = "pera-wallet-modal";
 const PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME =
   "pera-wallet-connect-modal-desktop-mode__web-wallet-iframe";
 
+/**
+ * Creates a Div element with the given ID and appends it to the DOM.
+ * @param modalId string
+ *
+ * @returns HTMLDivElement
+ */
 function createModalWrapperOnDOM(modalId: string) {
   const wrapper = document.createElement("div");
 
@@ -41,6 +47,12 @@ function createModalWrapperOnDOM(modalId: string) {
   return wrapper;
 }
 
+/**
+ * Creates a modal wrapper on the DOM and renders a PeraWalletConnectModal instance on it.
+ * @param modalConfig PeraWalletModalConfig
+ *
+ * @returns VoidFunction
+ */
 function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
   return (uri: string) => {
     if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
@@ -53,6 +65,12 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
   };
 }
 
+/**
+ * Adds a listener to the close button of the PeraWalletConnectModal instance.
+ * @param onClose
+ *
+ * @returns {void}
+ */
 function setupPeraWalletConnectModalCloseListener(onClose: VoidFunction) {
   const peraWalletConnectModalWrapper = document.getElementById(
     PERA_WALLET_CONNECT_MODAL_ID
@@ -84,6 +102,10 @@ function openPeraWalletRedirectModal() {
   root.innerHTML = "<pera-wallet-redirect-modal></pera-wallet-redirect-modal>";
 }
 
+/**
+ * Creates a PeraWalletSignTxnModal instance and renders it on the DOM.
+ * @returns {void}
+ */
 function openPeraWalletSignTxnModal() {
   const root = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
 
@@ -99,6 +121,12 @@ function openPeraWalletSignTxnModal() {
     : Promise.reject();
 }
 
+/**
+ * Close the PeraWalletSignTxnModal instance and remove it from the DOM.
+ * @param rejectPromise
+ *
+ * @returns {void}
+ */
 function closePeraWalletSignTxnModal(rejectPromise?: (error: any) => void) {
   removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
 
@@ -125,10 +153,21 @@ function openPeraWalletSignTxnToast() {
   root.innerHTML = "<pera-wallet-sign-txn-toast></pera-wallet-sign-txn-toast>";
 }
 
+/**
+ * Close the PeraWalletSignTxnToast instance and remove it from the DOM.
+ *
+ * @returns {void}
+ */
 function closePeraWalletSignTxnToast() {
   removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
 }
 
+/**
+ * Removes the modal wrapper with given ID from the DOM.
+ * @param modalId string
+ *
+ * @returns {void}
+ */
 function removeModalWrapperFromDOM(modalId: string) {
   const wrapper = document.getElementById(modalId);
 
