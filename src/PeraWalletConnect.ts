@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import WalletConnect from "@walletconnect/client";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
@@ -20,7 +21,11 @@ import {
   getWalletPlatformFromStorage
 } from "./util/storage/storageUtils";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
-import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
+import {
+  PeraWalletArbitraryData,
+  PeraWalletTransaction,
+  SignerTransaction
+} from "./util/model/peraWalletModels";
 import {
   base64ToUint8Array,
   composeTransaction,
@@ -192,9 +197,7 @@ class PeraWalletConnect {
             );
           }
         }
-        // ================================================= //
 
-        // ================================================= //
         // Pera Mobile Wallet flow
         if (this.connector) {
           resolve(this.connector.accounts || []);
@@ -209,7 +212,6 @@ class PeraWalletConnect {
 
           resolve(this.connector?.accounts || []);
         }
-        // ================================================= //
 
         // If there is no wallet details in storage, resolve the promise with empty array
         if (!this.isConnected) {
@@ -302,6 +304,60 @@ class PeraWalletConnect {
     );
   }
 
+  private async signDataWithMobile(data: PeraWalletArbitraryData[]) {
+    const formattedSignTxnRequest = formatJsonRpcRequest("algo_signData", [data]);
+
+    try {
+      try {
+        const {silent} = await getPeraConnectConfig();
+
+        const response = await this.connector!.sendCustomRequest(
+          formattedSignTxnRequest,
+          {
+            forcePushNotification: !silent
+          }
+        );
+
+        // We send the full txn group to the mobile wallet.
+        // Therefore, we first filter out txns that were not signed by the wallet.
+        // These are received as `null`.
+        const nonNullResponse = response.filter(Boolean) as (string | number[])[];
+
+        return typeof nonNullResponse[0] === "string"
+          ? (nonNullResponse as string[]).map(base64ToUint8Array)
+          : (nonNullResponse as number[][]).map((item) => Uint8Array.from(item));
+      } catch (error) {
+        return await Promise.reject(
+          new PeraWalletConnectError(
+            {
+              type: "SIGN_TRANSACTIONS",
+              detail: error
+            },
+            error.message || "Failed to sign transaction"
+          )
+        );
+      }
+    } finally {
+      removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
+      removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
+    }
+  }
+
+  private signDataWithWeb(
+    data: PeraWalletArbitraryData[],
+    webWalletURL: string
+  ): Promise<Uint8Array[]> {
+    return new Promise<Uint8Array[]>((resolve, reject) =>
+      runWebSignTransactionFlow({
+        signTxnRequestParams: data,
+        webWalletURL,
+        method: "SIGN_DATA",
+        resolve,
+        reject
+      })
+    );
+  }
+
   async signTransaction(
     txGroups: SignerTransaction[][],
     signerAddress?: string
@@ -327,20 +383,44 @@ class PeraWalletConnect {
       )
     );
 
-    // ================================================= //
     // Pera Wallet Web flow
     if (this.platform === "web") {
       const {webWalletURL} = await getPeraConnectConfig();
 
       return this.signTransactionWithWeb(signTxnRequestParams, webWalletURL);
     }
-    // ================================================= //
 
-    // ================================================= //
     // Pera Mobile Wallet flow
     return this.signTransactionWithMobile(signTxnRequestParams);
     // ================================================= //
   }
+
+  async signData(data: PeraWalletArbitraryData[]): Promise<Uint8Array[]> {
+    if (this.platform === "mobile") {
+      if (isMobile()) {
+        // This is to automatically open the wallet app when trying to sign with it.
+        openPeraWalletRedirectModal();
+      } else if (!isMobile() && this.shouldShowSignTxnToast) {
+        // This is to inform user go the wallet app when trying to sign with it.
+        openPeraWalletSignTxnToast();
+      }
+
+      if (!this.connector) {
+        throw new Error("PeraWalletConnect was not initialized correctly.");
+      }
+    }
+
+    // Pera Wallet Web flow
+    if (this.platform === "web") {
+      const {webWalletURL} = await getPeraConnectConfig();
+
+      return this.signDataWithWeb(data, webWalletURL);
+    }
+
+    // Pera Mobile Wallet flow
+    return this.signDataWithMobile(data);
+  }
 }
 
 export default PeraWalletConnect;
+/* eslint-enable max-lines */
