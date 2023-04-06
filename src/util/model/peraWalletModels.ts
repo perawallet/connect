@@ -77,5 +77,13 @@ export interface PeraWalletTransaction {
    */
   message?: string;
 }
-
 // Reference: https://github.com/jasonpaulos/algorand-walletconnect-example-dapp/blob/algorand/src/helpers/types.ts
+
+export interface PeraWalletArbitraryData {
+  data: Uint8Array;
+
+  /**
+   * Required message explaining the reason for the action
+   */
+  message: string;
+}

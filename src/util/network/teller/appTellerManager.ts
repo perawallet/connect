@@ -1,4 +1,7 @@
-import {PeraWalletTransaction} from "../../model/peraWalletModels";
+import {
+  PeraWalletArbitraryData,
+  PeraWalletTransaction
+} from "../../model/peraWalletModels";
 import Teller from "./Teller";
 
 export type PeraTeller =
@@ -51,6 +54,25 @@ export type PeraTeller =
     }
   | {
       type: "SIGN_TXN_CALLBACK_ERROR";
+      error: string;
+    }
+  | {
+      type: "SIGN_DATA";
+      data: PeraWalletArbitraryData[];
+    }
+  | {
+      type: "SIGN_DATA_CALLBACK";
+      signedData: {
+        txnId: string;
+        signedData: string;
+      }[];
+    }
+  | {
+      type: "SIGN_DATA_NETWORK_MISMATCH";
+      error: string;
+    }
+  | {
+      type: "SIGN_DATA_CALLBACK_ERROR";
       error: string;
     }
   | {

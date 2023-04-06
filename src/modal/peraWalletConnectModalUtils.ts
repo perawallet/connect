@@ -66,18 +66,21 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
 }
 
 /**
- * Adds a listener to the close button of the PeraWalletConnectModal instance.
- * @param onClose
+ * Adds a listener to the close button of the given modal.
+ *
+ * @param modalId string
+ * @param onClose VoidFunction
  *
  * @returns {void}
  */
-function setupPeraWalletConnectModalCloseListener(onClose: VoidFunction) {
-  const peraWalletConnectModalWrapper = document.getElementById(
-    PERA_WALLET_CONNECT_MODAL_ID
-  );
+function setupPeraWalletConnectModalCloseListener(
+  modalId: string,
+  onClose: VoidFunction
+) {
+  const peraWalletConnectModalWrapper = document.getElementById(modalId);
 
   const peraWalletConnectModal = peraWalletConnectModalWrapper
-    ?.querySelector("pera-wallet-connect-modal")
+    ?.querySelector(modalId.replace("-wrapper", ""))
     ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
 
   const closeButton = peraWalletConnectModal
@@ -87,7 +90,7 @@ function setupPeraWalletConnectModalCloseListener(onClose: VoidFunction) {
   closeButton?.addEventListener("click", () => {
     onClose();
 
-    removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+    removeModalWrapperFromDOM(modalId);
   });
 }
 
@@ -104,7 +107,8 @@ function openPeraWalletRedirectModal() {
 
 /**
  * Creates a PeraWalletSignTxnModal instance and renders it on the DOM.
- * @returns {void}
+ *
+ * @returns {Promise<Element>}
  */
 function openPeraWalletSignTxnModal() {
   const root = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
