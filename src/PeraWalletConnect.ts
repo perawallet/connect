@@ -455,6 +455,12 @@ class PeraWalletConnect {
       try {
         const walletDetails = getWalletDetailsFromStorage();
 
+        if (!walletDetails) {
+          resolve([]);
+
+          return;
+        }
+
         // ================================================= //
         // Pera Wallet Web flow
         if (walletDetails?.type === "pera-wallet-web") {
