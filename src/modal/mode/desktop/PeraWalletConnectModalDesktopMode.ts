@@ -26,88 +26,87 @@ const peraWalletConnectModalDesktopModeDefaultView = `
       <pera-wallet-connect-modal-information-section></pera-wallet-connect-modal-information-section>
 
       <div class="pera-wallet-connect-modal-desktop-mode__default-view">
-        <div class="pera-wallet-accordion-item pera-wallet-accordion-item--active pera-wallet-accordion-item--web-wallet">
-          <a class="pera-wallet-accordion-toggle">
+        <div class="pera-wallet-accordion-item pera-wallet-accordion-item--active">
+            <a class="pera-wallet-accordion-toggle">
             <button class="pera-wallet-accordion-toggle__button"></button>
 
-            <img src="${ArrowRight}" class="pera-wallet-accordion-icon" />
+              <img src="${ArrowRight}" class="pera-wallet-accordion-icon" />
 
-            <div class="pera-wallet-accordion-toggle__content-with-label">
-              <div class="pera-wallet-accordion-toggle__content-with-label__text">
-                Connect With
+              <div class="pera-wallet-accordion-toggle__text">
+                Connect with
 
                 <span class="pera-wallet-accordion-toggle__bold-color">
-                  Pera Web
+                  Pera Mobile
                 </span>
               </div>
+            </a>
 
-              <span id="pera-web-new-label" class="pera-wallet-accordion-toggle__label">NEW</span>
+            <div class="pera-wallet-accordion-item__content">
+              <div id="pera-wallet-connect-modal-connect-qr-code" class="pera-wallet-connect-qr-code-wrapper"></div>
+
+              <div>
+                <p
+                  class="pera-wallet-connect-modal-desktop-mode__download-pera-description">
+                    Don’t have Pera Wallet app?
+                </p>
+
+                <button
+                  id="pera-wallet-connect-modal-desktop-mode-download-pera-button"
+                  class="pera-wallet-connect-modal-desktop-mode__download-pera-button">
+                  <img src="${QrIcon}" alt="QR Icon" />
+
+                  Download Pera Wallet
+                </button>
+              </div>
             </div>
-          </a>
-
-          <div class="pera-wallet-accordion-item__content">
-          ${
-            detectBrowser() === "Chrome"
-              ? `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"></div>`
-              : `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet">
-          <div>
-            <div
-              class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
-              <img src="${PeraWebIcon}" />
-            </div>
-
-            <p
-              class="pera-wallet-connect-modal-desktop-mode__web-wallet__description">
-              Connect with Pera Web to continue
-            </p>
           </div>
+          <div class="pera-wallet-accordion-item pera-wallet-accordion-item--web-wallet">
+            <a class="pera-wallet-accordion-toggle">
+              <button class="pera-wallet-accordion-toggle__button"></button>
 
-          <button
-            id="pera-wallet-connect-web-wallet-launch-button"
-            class="pera-wallet-connect-modal-desktop-mode__web-wallet__launch-button">
-            Launch Pera Web
+              <img src="${ArrowRight}" class="pera-wallet-accordion-icon" />
 
-            <img src="${ChevronRightIcon}" />
-          </button>
-        </div>`
-          }
-          </div>
-        </div>
+              <div class="pera-wallet-accordion-toggle__content-with-label">
+                <div class="pera-wallet-accordion-toggle__content-with-label__text">
+                  Connect With
 
-        <div class="pera-wallet-accordion-item">
-          <a class="pera-wallet-accordion-toggle">
-          <button class="pera-wallet-accordion-toggle__button"></button>
+                  <span class="pera-wallet-accordion-toggle__bold-color">
+                    Pera Web
+                  </span>
+                </div>
 
-            <img src="${ArrowRight}" class="pera-wallet-accordion-icon" />
+                <span id="pera-web-new-label" class="pera-wallet-accordion-toggle__label">NEW</span>
+              </div>
+            </a>
 
-            <div class="pera-wallet-accordion-toggle__text">
-              Connect with
-
-              <span class="pera-wallet-accordion-toggle__bold-color">
-                Pera Mobile
-              </span>
-            </div>
-          </a>
-
-          <div class="pera-wallet-accordion-item__content">
-            <div id="pera-wallet-connect-modal-connect-qr-code" class="pera-wallet-connect-qr-code-wrapper"></div>
-
+            <div class="pera-wallet-accordion-item__content">
+            ${
+              detectBrowser() === "Chrome"
+                ? `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"></div>`
+                : `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet">
             <div>
+              <div
+                class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
+                <img src="${PeraWebIcon}" />
+              </div>
+
               <p
-                class="pera-wallet-connect-modal-desktop-mode__download-pera-description">
-                  Don’t have Pera Wallet app?
+                class="pera-wallet-connect-modal-desktop-mode__web-wallet__description">
+                Connect with Pera Web to continue
               </p>
+            </div>
 
-              <button
-                id="pera-wallet-connect-modal-desktop-mode-download-pera-button"
-                class="pera-wallet-connect-modal-desktop-mode__download-pera-button">
-                <img src="${QrIcon}" alt="QR Icon" />
+            <button
+              id="pera-wallet-connect-web-wallet-launch-button"
+              class="pera-wallet-connect-modal-desktop-mode__web-wallet__launch-button">
+              Launch Pera Web
 
-                Download Pera Wallet
-              </button>
+              <img src="${ChevronRightIcon}" />
+            </button>
+          </div>`
+            }
             </div>
           </div>
-        </div>
       </div>
 
       <div class="pera-wallet-connect-modal-desktop-mode__download-view">
