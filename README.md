@@ -113,7 +113,7 @@ It's enabled by default but in some cases, you may not need the toast message (e
 
 ## Methods
 
-#### `PeraWalletConnect.connect(): Promise<string[]>`
+#### `PeraWalletConnect.connect({shouldSelectSingleAccount = false}: PeraWalletConnectMethodOptions = {}): Promise<string[]>`
 
 Starts the initial connection flow and returns the array of account addresses.
 

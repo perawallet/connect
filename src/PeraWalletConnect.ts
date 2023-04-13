@@ -33,7 +33,7 @@ import {
   formatJsonRpcRequest
 } from "./util/transaction/transactionUtils";
 import {detectBrowser, isMobile} from "./util/device/deviceUtils";
-import {AlgorandChainIDs} from "./util/peraWalletTypes";
+import {AlgorandChainIDs, PeraWalletConnectMethodOptions} from "./util/peraWalletTypes";
 import {generateEmbeddedWalletURL} from "./util/peraWalletUtils";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "./util/peraWalletConstants";
@@ -53,13 +53,15 @@ interface PeraWalletConnectOptions {
 function generatePeraWalletConnectModalActions({
   isWebWalletAvailable,
   shouldDisplayNewBadge,
-  shouldUseSound
+  shouldUseSound,
+  shouldSelectSingleAccount
 }: PeraWalletModalConfig) {
   return {
     open: openPeraWalletConnectModal({
       isWebWalletAvailable,
       shouldDisplayNewBadge,
-      shouldUseSound
+      shouldUseSound,
+      shouldSelectSingleAccount
     }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
@@ -101,7 +103,8 @@ class PeraWalletConnect {
     resolve: (accounts: string[]) => void,
     reject: (reason?: any) => void,
     webWalletURL: string,
-    chainId: number | undefined
+    chainId: number | undefined,
+    shouldSelectSingleAccount: boolean
   ) {
     const browser = detectBrowser();
     const webWalletURLs = getPeraWebWalletURL(webWalletURL);
@@ -147,6 +150,7 @@ class PeraWalletConnect {
                   message: {
                     type: "CONNECT",
                     data: {
+                      shouldSelectSingleAccount,
                       ...getMetaInfo(),
                       chainId
                     }
@@ -192,6 +196,7 @@ class PeraWalletConnect {
                         message: {
                           type: "CONNECT",
                           data: {
+                            shouldSelectSingleAccount,
                             ...getMetaInfo(),
                             chainId
                           }
@@ -291,6 +296,7 @@ class PeraWalletConnect {
                 message: {
                   type: "CONNECT",
                   data: {
+                    shouldSelectSingleAccount,
                     ...getMetaInfo(),
                     chainId
                   }
@@ -366,7 +372,7 @@ class PeraWalletConnect {
     };
   }
 
-  connect() {
+  connect({shouldSelectSingleAccount = false}: PeraWalletConnectMethodOptions = {}) {
     return new Promise<string[]>(async (resolve, reject) => {
       try {
         // check if already connected and kill session first before creating a new one.
@@ -391,7 +397,8 @@ class PeraWalletConnect {
           resolve,
           reject,
           webWalletURL,
-          this.chainId
+          this.chainId,
+          shouldSelectSingleAccount
         );
 
         if (isWebWalletAvailable) {
@@ -405,7 +412,8 @@ class PeraWalletConnect {
           qrcodeModal: generatePeraWalletConnectModalActions({
             isWebWalletAvailable,
             shouldDisplayNewBadge,
-            shouldUseSound
+            shouldUseSound,
+            shouldSelectSingleAccount
           })
         });
 
