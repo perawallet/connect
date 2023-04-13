@@ -1,8 +1,10 @@
+import packageJson from "../../package.json";
+
 import {isAndroid} from "./device/deviceUtils";
 
 const PERA_WALLET_APP_DEEP_LINK = isAndroid() ? "algorand://" : "algorand-wc://";
 const PERA_DOWNLOAD_URL = "https://perawallet.app/download/";
-const PERA_CONNECT_VERSION_NUMBER = "v1.2.3";
+const PERA_CONNECT_VERSION_NUMBER = `v${packageJson.version}`;
 
 function getPeraWebWalletURL(webWalletURL: string) {
   return {
