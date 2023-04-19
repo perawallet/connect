@@ -22,9 +22,11 @@ import {
 } from "./signTransactionFlowReducers";
 
 function runWebSignTransactionFlow({
-  signTxnRequestParams,
-  webWalletURL,
   method,
+  signTxnRequestParams,
+  signer,
+  chainId,
+  webWalletURL,
   resolve,
   reject
 }: RunSignTransactionFlowParams) {
@@ -101,6 +103,8 @@ function runWebSignTransactionFlow({
             isIframeInitializedChecker,
             webWalletURLs,
             method,
+            signer,
+            chainId,
             resolve,
             reject
           })
@@ -121,10 +125,13 @@ function runWebSignTransactionFlow({
             type: "SIGN_TXN",
             txn: signTxnRequestParams as PeraWalletTransaction[]
           } as const;
-        } else if (method === "SIGN_DATA") {
+        } else if (method === "SIGN_DATA" && signer && chainId) {
           message = {
             type: "SIGN_DATA",
-            data: signTxnRequestParams as PeraWalletArbitraryData[]
+            data: signTxnRequestParams as PeraWalletArbitraryData[],
+
+            signer,
+            chainId
           } as const;
         }
 

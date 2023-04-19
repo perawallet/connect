@@ -304,8 +304,24 @@ class PeraWalletConnect {
     );
   }
 
-  private async signDataWithMobile(data: PeraWalletArbitraryData[]) {
-    const formattedSignTxnRequest = formatJsonRpcRequest("algo_signData", [data]);
+  private async signDataWithMobile({
+    data,
+    signer,
+    chainId
+  }: {
+    data: PeraWalletArbitraryData[];
+    signer: string;
+    chainId: AlgorandChainIDs;
+  }) {
+    const formattedSignTxnRequest = formatJsonRpcRequest(
+      "algo_signData",
+      data.map((item) => ({
+        ...item,
+
+        signer,
+        chainId
+      }))
+    );
 
     try {
       try {
@@ -343,15 +359,24 @@ class PeraWalletConnect {
     }
   }
 
-  private signDataWithWeb(
-    data: PeraWalletArbitraryData[],
-    webWalletURL: string
-  ): Promise<Uint8Array[]> {
+  private signDataWithWeb({
+    data,
+    signer,
+    chainId,
+    webWalletURL
+  }: {
+    data: PeraWalletArbitraryData[];
+    signer: string;
+    chainId: AlgorandChainIDs;
+    webWalletURL: string;
+  }): Promise<Uint8Array[]> {
     return new Promise<Uint8Array[]>((resolve, reject) =>
       runWebSignTransactionFlow({
-        signTxnRequestParams: data,
-        webWalletURL,
         method: "SIGN_DATA",
+        signTxnRequestParams: data,
+        signer,
+        chainId,
+        webWalletURL,
         resolve,
         reject
       })
@@ -395,7 +420,10 @@ class PeraWalletConnect {
     // ================================================= //
   }
 
-  async signData(data: PeraWalletArbitraryData[]): Promise<Uint8Array[]> {
+  async signData(data: PeraWalletArbitraryData[], signer: string): Promise<Uint8Array[]> {
+    // eslint-disable-next-line no-magic-numbers
+    const chainId = this.chainId || 4160;
+
     if (this.platform === "mobile") {
       if (isMobile()) {
         // This is to automatically open the wallet app when trying to sign with it.
@@ -414,11 +442,16 @@ class PeraWalletConnect {
     if (this.platform === "web") {
       const {webWalletURL} = await getPeraConnectConfig();
 
-      return this.signDataWithWeb(data, webWalletURL);
+      return this.signDataWithWeb({
+        data,
+        signer,
+        chainId,
+        webWalletURL
+      });
     }
 
     // Pera Mobile Wallet flow
-    return this.signDataWithMobile(data);
+    return this.signDataWithMobile({data, signer, chainId});
   }
 }
 

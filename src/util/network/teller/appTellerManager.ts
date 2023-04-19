@@ -2,6 +2,7 @@ import {
   PeraWalletArbitraryData,
   PeraWalletTransaction
 } from "../../model/peraWalletModels";
+import {AlgorandChainIDs} from "../../peraWalletTypes";
 import Teller from "./Teller";
 
 export type PeraTeller =
@@ -58,6 +59,8 @@ export type PeraTeller =
     }
   | {
       type: "SIGN_DATA";
+      signer: string;
+      chainId: AlgorandChainIDs;
       data: PeraWalletArbitraryData[];
     }
   | {
