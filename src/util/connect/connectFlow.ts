@@ -1,7 +1,8 @@
 import {
   PERA_WALLET_IFRAME_ID,
   PERA_WALLET_CONNECT_MODAL_ID,
-  removeModalWrapperFromDOM
+  removeModalWrapperFromDOM,
+  getHeaderCloseButton
 } from "../../modal/peraWalletConnectModalUtils";
 import PeraWalletConnectError from "../PeraWalletConnectError";
 import {peraWalletFlowType} from "../device/deviceUtils";
@@ -65,6 +66,10 @@ function runWebConnectFlow({
 
           origin: webWalletURLs.CONNECT,
           targetWindow: peraWalletIframe.contentWindow!
+        });
+
+        getHeaderCloseButton("connect")?.addEventListener("click", () => {
+          clearInterval(isIframeInitializedChecker);
         });
       }, WAIT_FOR_TAB_TRY_INTERVAL);
 
