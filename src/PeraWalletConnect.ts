@@ -44,10 +44,11 @@ import {
   WAIT_FOR_TAB_TRY_INTERVAL
 } from "./util/dom/domUtils";
 
-interface PeraWalletConnectOptions {
+export interface PeraWalletConnectOptions {
   bridge?: string;
   shouldShowSignTxnToast?: boolean;
   chainId?: AlgorandChainIDs;
+  sessionStorageId?: string;
 }
 
 function generatePeraWalletConnectModalActions({
@@ -70,6 +71,7 @@ class PeraWalletConnect {
   connector: WalletConnect | null;
   shouldShowSignTxnToast: boolean;
   chainId?: number;
+  sessionStorageId: string;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
@@ -81,6 +83,7 @@ class PeraWalletConnect {
         : options.shouldShowSignTxnToast;
 
     this.chainId = options?.chainId;
+    this.sessionStorageId = options?.sessionStorageId || 'pera-wallet-connect';
   }
 
   get platform() {
@@ -402,6 +405,7 @@ class PeraWalletConnect {
         // Create Connector instance
         this.connector = new WalletConnect({
           bridge: this.bridge || bridgeURL || "https://bridge.walletconnect.org",
+          storageId: this.sessionStorageId,
           qrcodeModal: generatePeraWalletConnectModalActions({
             isWebWalletAvailable,
             shouldDisplayNewBadge,
@@ -492,7 +496,8 @@ class PeraWalletConnect {
 
         if (this.bridge) {
           this.connector = new WalletConnect({
-            bridge: this.bridge
+            bridge: this.bridge,
+            storageId: this.sessionStorageId,
           });
 
           resolve(this.connector?.accounts || []);
