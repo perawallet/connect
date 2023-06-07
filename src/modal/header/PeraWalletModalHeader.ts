@@ -9,7 +9,6 @@ import {
   PERA_WALLET_REDIRECT_MODAL_ID,
   removeModalWrapperFromDOM
 } from "../peraWalletConnectModalUtils";
-import {PERA_CONNECT_VERSION_NUMBER} from "../../util/peraWalletConstants";
 
 const peraWalletModalHeader = document.createElement("template");
 
@@ -28,7 +27,7 @@ peraWalletModalHeader.innerHTML = `
               <div class="pera-wallet-modal-header__brand-text">
                 <span>Pera Connect</span>
 
-                <span class="pera-wallet-modal-header__version-number">${PERA_CONNECT_VERSION_NUMBER}</span>
+                <span class="pera-wallet-modal-header__version-number">PERA_CONNECT_VERSION</span>
               </div>
             </div>
             `
