@@ -19,8 +19,7 @@ interface PeraWalletConnectErrorData {
     | "SIGN_TXN_CANCELLED"
     | "SIGN_TXN_NETWORK_MISMATCH"
     | "SIGN_DATA_CANCELLED"
-    | "SIGN_DATA_NETWORK_MISMATCH"
-    | "SIGN_DATA_CANCELLED";
+    | "SIGN_DATA_NETWORK_MISMATCH";
   detail?: any;
 }
 

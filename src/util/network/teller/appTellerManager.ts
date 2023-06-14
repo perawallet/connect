@@ -66,7 +66,6 @@ export type PeraTeller =
   | {
       type: "SIGN_DATA_CALLBACK";
       signedData: {
-        txnId: string;
         signedData: string;
       }[];
     }
