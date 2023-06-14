@@ -2,7 +2,8 @@ import {
   openPeraWalletSignTxnModal,
   PERA_WALLET_IFRAME_ID,
   setupPeraWalletConnectModalCloseListener,
-  PERA_WALLET_SIGN_TXN_MODAL_ID
+  PERA_WALLET_SIGN_TXN_MODAL_ID,
+  getHeaderCloseButton
 } from "../../modal/peraWalletConnectModalUtils";
 import PeraWalletConnectError from "../PeraWalletConnectError";
 import {peraWalletFlowType} from "../device/deviceUtils";
@@ -89,8 +90,12 @@ function runWebSignTransactionFlow({
             type: "IFRAME_INITIALIZED"
           },
 
-          origin: webWalletURLs.CONNECT,
+          origin: webWalletURLs.TRANSACTION_SIGN,
           targetWindow: peraWalletIframe.contentWindow!
+        });
+
+        getHeaderCloseButton("sign-txn")?.addEventListener("click", () => {
+          clearInterval(isIframeInitializedChecker);
         });
       }, WAIT_FOR_TAB_TRY_INTERVAL);
 

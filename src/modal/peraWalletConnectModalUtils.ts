@@ -180,6 +180,26 @@ function removeModalWrapperFromDOM(modalId: string) {
   }
 }
 
+/**
+ * Return the close button element in the header as a result
+ * @param type "connect" | "sign-txn"
+ *
+ * @returns HTMLElement | null | undefined
+ */
+function getHeaderCloseButton(type: "connect" | "sign-txn") {
+  const modalId =
+    type === "connect" ? PERA_WALLET_CONNECT_MODAL_ID : PERA_WALLET_SIGN_TXN_MODAL_ID;
+  const peraWalletConnectModal = document
+    .getElementById(modalId)
+    ?.querySelector(modalId.replace("-wrapper", ""))
+    ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
+  const closeButton = peraWalletConnectModal
+    ?.querySelector("pera-wallet-modal-header")
+    ?.shadowRoot?.getElementById("pera-wallet-modal-header-close-button");
+
+  return closeButton;
+}
+
 export {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_REDIRECT_MODAL_ID,
@@ -195,5 +215,6 @@ export {
   closePeraWalletSignTxnToast,
   removeModalWrapperFromDOM,
   openPeraWalletSignTxnModal,
-  closePeraWalletSignTxnModal
+  closePeraWalletSignTxnModal,
+  getHeaderCloseButton
 };
