@@ -137,6 +137,27 @@ Checks if there's any active session regardless of platform. Possible responses:
 
 Starts the sign process and returns the signed transaction in `Uint8Array`
 
+#### `PeraWalletConnect.signData(data: PeraWalletArbitraryData[], signer: string): Promise<Uint8Array[]>`
+
+Starts the signing process for arbitrary data signing and returns the signed data in `Uint8Array`. Uses `signBytes` method of `algosdk` behind the scenes. `signer` should be a valid Algorand address that exists in the user's wallet.
+
+<details>
+  <summary>See example</summary>
+  
+```typescript
+const signedData: Uint8Array[] = await peraWallet.signData([
+  {
+    data: new Uint8Array(Buffer.from(`timestamp//${Date.now()}`)),
+    message: "Timestamp confirmation"
+  },
+  {
+    data: new Uint8Array(Buffer.from(`agent//${navigator.userAgent}`)),
+    message: "User agent confirmation"
+  }
+], "SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4");
+```
+</details>
+
 ## Customizing Style
 
 You can override the z-index using the `.pera-wallet-modal` class so that the modal does not conflict with another component on your application.

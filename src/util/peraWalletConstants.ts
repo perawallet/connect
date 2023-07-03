@@ -3,7 +3,13 @@ import {isAndroid} from "./device/deviceUtils";
 const PERA_WALLET_APP_DEEP_LINK = isAndroid() ? "algorand://" : "perawallet-wc://";
 const PERA_DOWNLOAD_URL = "https://perawallet.app/download/";
 
-function getPeraWebWalletURL(webWalletURL: string) {
+export interface PeraWebWalletURLs {
+  ROOT: string;
+  CONNECT: string;
+  TRANSACTION_SIGN: string;
+}
+
+function getPeraWebWalletURL(webWalletURL: string): PeraWebWalletURLs {
   return {
     ROOT: `https://${webWalletURL}`,
     CONNECT: `https://${webWalletURL}/connect`,
