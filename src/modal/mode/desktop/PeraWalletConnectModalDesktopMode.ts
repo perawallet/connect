@@ -12,7 +12,7 @@ import QRCodeStyling from "qr-code-styling";
 
 import styles from "./_pera-wallet-connect-modal-desktop-mode.scss";
 import accordionStyles from "./accordion/_pera-wallet-accordion.scss";
-import {detectBrowser} from "../../../util/device/deviceUtils";
+import {peraWalletFlowType} from "../../../util/device/deviceUtils";
 
 const peraWalletConnectModalDesktopMode = document.createElement("template");
 const styleSheet = document.createElement("style");
@@ -47,7 +47,7 @@ const peraWalletConnectModalDesktopModeDefaultView = `
 
           <div class="pera-wallet-accordion-item__content">
           ${
-            detectBrowser() === "Chrome"
+            peraWalletFlowType() === "EMBEDDED"
               ? `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"></div>`
               : `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet">
           <div>
@@ -190,7 +190,7 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
 
     this.handleChangeView();
 
-    if (detectBrowser() === "Chrome" && this.shadowRoot) {
+    if (peraWalletFlowType() === "EMBEDDED" && this.shadowRoot) {
       const iframeWrapper = this.shadowRoot.querySelector(
         ".pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
       );

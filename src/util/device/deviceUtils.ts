@@ -1,5 +1,7 @@
 import Bowser from "bowser";
 
+import {PeraWalletFlowType} from "../peraWalletTypes";
+
 function isNavigatorAvailable() {
   return typeof navigator !== "undefined";
 }
@@ -43,4 +45,13 @@ function detectBrowser() {
   return browserName;
 }
 
-export {isAndroid, isIOS, isMobile, detectBrowser};
+/**
+ * Returns the flow type based on the browser
+ *
+ * @returns {PeraWalletFlowType} EMBEDDED | NEW_TAB
+ */
+function peraWalletFlowType(): PeraWalletFlowType {
+  return detectBrowser() === "Chrome" ? "EMBEDDED" : "NEW_TAB";
+}
+
+export {isAndroid, isIOS, isMobile, detectBrowser, peraWalletFlowType};
