@@ -24,7 +24,11 @@ peraWalletModalHeader.innerHTML = `
           : `<div class="pera-wallet-modal-header__brand">
               <img src="${PeraConnectIcon}" />
 
-              Pera Connect
+              <div class="pera-wallet-modal-header__brand-text">
+                <span>Pera Connect</span>
+
+                <span class="pera-wallet-modal-header__version-number">PERA_CONNECT_VERSION</span>
+              </div>
             </div>
             `
       } 
