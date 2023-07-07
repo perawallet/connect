@@ -28,6 +28,7 @@ function runWebSignTransactionFlow({
   signer,
   chainId,
   webWalletURL,
+  isCompactMode,
   resolve,
   reject
 }: RunSignTransactionFlowParams) {
@@ -48,12 +49,15 @@ function runWebSignTransactionFlow({
 
   // =========== Embedded Sign Flow ===========
   async function runEmbeddedSignTransactionFlow() {
-    const modal = await openPeraWalletSignTxnModal();
-
-    const peraWalletSignTxnModalIFrameWrapper = modal;
+    const peraWalletSignTxnModalIFrameWrapper = await openPeraWalletSignTxnModal({
+      isCompactMode
+    });
 
     const peraWalletIframe = document.createElement("iframe");
-    const peraWalletIframeSrc = generateEmbeddedWalletURL(webWalletURLs.TRANSACTION_SIGN);
+    const peraWalletIframeSrc = generateEmbeddedWalletURL(
+      webWalletURLs.TRANSACTION_SIGN,
+      isCompactMode
+    );
     const peraWalletIframeAllow = `hid ${peraWalletIframeSrc}; bluetooth ${peraWalletIframeSrc}`;
 
     peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);

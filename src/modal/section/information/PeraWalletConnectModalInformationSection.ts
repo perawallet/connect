@@ -79,7 +79,12 @@ export class PeraWalletConnectModalInformationSection extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
 
-    if (this.shadowRoot) {
+    const isCompactMode =
+      document
+        .querySelector("pera-wallet-connect-modal")
+        ?.getAttribute("compact-mode") === "true";
+
+    if (this.shadowRoot && ((!isCompactMode && !isMobile()) || isMobile())) {
       const styleSheet = document.createElement("style");
 
       styleSheet.textContent = styles;

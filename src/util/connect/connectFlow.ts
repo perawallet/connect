@@ -24,6 +24,7 @@ import {
 function runWebConnectFlow({
   webWalletURL,
   chainId,
+  isCompactMode,
   resolve,
   reject
 }: RunWebConnectFlowTypes) {
@@ -42,7 +43,7 @@ function runWebConnectFlow({
     peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
     peraWalletIframe.setAttribute(
       "src",
-      generateEmbeddedWalletURL(webWalletURLs.CONNECT)
+      generateEmbeddedWalletURL(webWalletURLs.CONNECT, isCompactMode)
     );
 
     peraWalletIframeWrapper.appendChild(peraWalletIframe);

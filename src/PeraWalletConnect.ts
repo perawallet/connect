@@ -40,18 +40,21 @@ interface PeraWalletConnectOptions {
   bridge?: string;
   shouldShowSignTxnToast?: boolean;
   chainId?: AlgorandChainIDs;
+  compactMode?: boolean;
 }
 
 function generatePeraWalletConnectModalActions({
   isWebWalletAvailable,
   shouldDisplayNewBadge,
-  shouldUseSound
+  shouldUseSound,
+  compactMode
 }: PeraWalletModalConfig) {
   return {
     open: openPeraWalletConnectModal({
       isWebWalletAvailable,
       shouldDisplayNewBadge,
-      shouldUseSound
+      shouldUseSound,
+      compactMode
     }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
@@ -62,6 +65,7 @@ class PeraWalletConnect {
   connector: WalletConnect | null;
   shouldShowSignTxnToast: boolean;
   chainId?: AlgorandChainIDs;
+  compactMode?: boolean;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
@@ -73,6 +77,7 @@ class PeraWalletConnect {
         : options.shouldShowSignTxnToast;
 
     this.chainId = options?.chainId;
+    this.compactMode = options?.compactMode || false;
   }
 
   get platform() {
@@ -114,7 +119,8 @@ class PeraWalletConnect {
           resolve,
           reject,
           webWalletURL,
-          chainId: this.chainId
+          chainId: this.chainId,
+          isCompactMode: this.compactMode
         });
 
         if (isWebWalletAvailable) {
@@ -128,7 +134,8 @@ class PeraWalletConnect {
           qrcodeModal: generatePeraWalletConnectModalActions({
             isWebWalletAvailable,
             shouldDisplayNewBadge,
-            shouldUseSound
+            shouldUseSound,
+            compactMode: this.compactMode
           })
         });
 
@@ -304,6 +311,7 @@ class PeraWalletConnect {
         signTxnRequestParams,
         webWalletURL,
         method: "SIGN_TXN",
+        isCompactMode: this.compactMode,
         resolve,
         reject
       })
@@ -383,6 +391,7 @@ class PeraWalletConnect {
         signer,
         chainId,
         webWalletURL,
+        isCompactMode: this.compactMode,
         resolve,
         reject
       })

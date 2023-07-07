@@ -42,8 +42,6 @@
     }
 
     .pera-wallet-accordion-item__content {
-      height: 364px;
-
       border-radius: 0 0 24px 24px;
 
       transition: height ease-in 0.2s;
@@ -83,7 +81,7 @@
 
   &__text,
   &__content-with-label__text {
-    color: #6a6a81;
+    color: #626268;
   }
 }
 
@@ -92,7 +90,7 @@
 }
 
 .pera-wallet-accordion-toggle__bold-color {
-  color: #3c3c49;
+  color: #1A1A1A;
 
   font-weight: 600;
 }
@@ -106,8 +104,8 @@
 .pera-wallet-accordion-toggle__label {
   padding: 4px 9px;
 
-  color: #00b19e;
-  background: rgba(0, 177, 158, 0.08);
+  color: #1C786C;
+  background: #E0FAEE;
 
   border-radius: 12px;
 
