@@ -92,6 +92,7 @@ try {
 | ------------------------ | ------- | ------------------------------------- | -------- |
 | `chainId`                | `4160`  | `416001`, `416002`, `416003` , `4160` | optional |
 | `shouldShowSignTxnToast` | `true`  | `boolean`                             | optional |
+| `compactMode`            | `false` | `boolean`                             | optional |
 
 #### **`chainId`**
 
@@ -109,7 +110,11 @@ Determines which Algorand network your dApp uses.
 
 <img width="422" alt="Group 48096937" src="https://user-images.githubusercontent.com/54077855/202682828-9ac57b62-58c1-4a83-af3b-e1b7ffad2d89.png">
 
-It's enabled by default but in some cases, you may not need the toast message (e.g. you already have signing guidance for users). To disable it, use the shouldShowSignTxnToast option:
+It's enabled by default but in some cases, you may not need the toast message (e.g. you already have signing guidance for users). To disable it, use the `shouldShowSignTxnToast` option.
+
+#### **`compactMode`**
+
+It offers a compact UI optimized for smaller screens, with a minimum resolution of 400x400 pixels.
 
 ## Methods
 

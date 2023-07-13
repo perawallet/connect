@@ -18,6 +18,7 @@ interface RunSignTransactionFlowParams extends SignTransactionFlowPromise {
   method: SignTransactionFlowMethod;
   signTxnRequestParams: PeraWalletTransaction[] | PeraWalletArbitraryData[];
   webWalletURL: string;
+  isCompactMode?: boolean;
 }
 
 interface EmbeddedSignTransactionFlowTellerReducerParams

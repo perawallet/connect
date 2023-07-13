@@ -10,6 +10,7 @@ interface ConnectFlowPromise {
 interface RunWebConnectFlowTypes extends ConnectFlowPromise {
   webWalletURL: string;
   chainId: AlgorandChainIDs | undefined;
+  isCompactMode?: boolean;
 }
 
 interface EmbeddedConnectFlowTellerReducerParams extends ConnectFlowPromise {

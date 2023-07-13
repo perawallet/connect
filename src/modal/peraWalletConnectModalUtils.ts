@@ -7,6 +7,7 @@ export interface PeraWalletModalConfig {
   isWebWalletAvailable: boolean;
   shouldDisplayNewBadge: boolean;
   shouldUseSound: boolean;
+  compactMode?: boolean;
 }
 
 // The ID of the wrapper element for PeraWalletConnectModal
@@ -58,9 +59,10 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
     if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
       const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
       const newURI = `${uri}&algorand=true`;
-      const {isWebWalletAvailable, shouldDisplayNewBadge, shouldUseSound} = modalConfig;
+      const {isWebWalletAvailable, shouldDisplayNewBadge, shouldUseSound, compactMode} =
+        modalConfig;
 
-      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}"></pera-wallet-connect-modal>`;
+      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}"></pera-wallet-connect-modal>`;
     }
   };
 }
@@ -110,10 +112,10 @@ function openPeraWalletRedirectModal() {
  *
  * @returns {Promise<Element>}
  */
-function openPeraWalletSignTxnModal() {
+function openPeraWalletSignTxnModal({isCompactMode}: {isCompactMode?: boolean}) {
   const root = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
 
-  root.innerHTML = "<pera-wallet-sign-txn-modal></pera-wallet-sign-txn-modal>";
+  root.innerHTML = `<pera-wallet-sign-txn-modal compact-mode=${isCompactMode}></pera-wallet-sign-txn-modal>`;
 
   const signTxnModal = root.querySelector("pera-wallet-sign-txn-modal");
 
