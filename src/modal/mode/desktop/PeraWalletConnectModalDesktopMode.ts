@@ -92,7 +92,7 @@ const peraWalletConnectModalDesktopModeDefaultView = `
           <div class="pera-wallet-accordion-item__content">
             <div id="pera-wallet-connect-modal-connect-qr-code" class="pera-wallet-connect-qr-code-wrapper"></div>
 
-            <div>
+            <div class="pera-wallet-connect-modal-desktop-mode__download-pera-container">
               <p
                 class="pera-wallet-connect-modal-desktop-mode__download-pera-description">
                   Don’t have Pera Wallet app?
@@ -177,6 +177,18 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
       this.shadowRoot.addEventListener("click", (event) => {
         this.handleAccordion(event as MouseEvent);
       });
+
+      const isCompactMode = this.getAttribute("compact-mode") === "true";
+
+      if (isCompactMode) {
+        const modalDesktopMode = this.shadowRoot.getElementById(
+          "pera-wallet-connect-modal-desktop-mode"
+        );
+
+        modalDesktopMode?.classList.add(
+          "pera-wallet-connect-modal-desktop-mode--compact"
+        );
+      }
     }
   }
 
@@ -272,9 +284,15 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
   renderQRCode() {
     const URI = this.getAttribute("uri");
     const isWebWalletAvailable = this.getAttribute("is-web-wallet-avaliable");
+    const isCompactMode = this.getAttribute("compact-mode") === "true";
 
-    // eslint-disable-next-line no-magic-numbers
-    const size = isWebWalletAvailable === "false" ? 250 : 205;
+    /* eslint-disable no-magic-numbers */
+    let size = isWebWalletAvailable === "false" ? 250 : 205;
+
+    if (isCompactMode) {
+      size = 190;
+    }
+    /* eslint-enable no-magic-numbers */
 
     if (URI) {
       const qrCode = new QRCodeStyling({
@@ -289,7 +307,7 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
         },
         imageOptions: {
           crossOrigin: "anonymous",
-          margin: 10
+          margin: 8
         },
         cornersSquareOptions: {type: "extra-rounded"},
         cornersDotOptions: {

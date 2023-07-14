@@ -12,10 +12,12 @@ function generatePeraWalletAppDeepLink(shouldAddBrowserName = true): string {
   return appDeepLink;
 }
 
-function generateEmbeddedWalletURL(url: string) {
+function generateEmbeddedWalletURL(url: string, isCompactMode?: boolean) {
   const newURL = new URL(url);
 
   newURL.searchParams.append("embedded", "true");
+
+  if (isCompactMode) newURL.searchParams.append("compactMode", "true");
 
   return newURL.toString();
 }

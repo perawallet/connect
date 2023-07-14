@@ -3,6 +3,11 @@
 
 .pera-wallet-modal {
   --pera-wallet-modal-font-family: "Inter", sans-serif;
+  --pera-wallet-modal-compact-width: 380px;
+  --pera-wallet-modal-compact-height: 396px;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
   position: fixed;
   top: 0;
@@ -52,6 +57,15 @@
       &::before {
         background-image: unset;
       }
+    }
+  }
+
+  &--compact:not(.pera-wallet-modal--mobile) {
+    .pera-wallet-modal__body {
+      width: var(--pera-wallet-modal-compact-width);
+      height: var(--pera-wallet-modal-compact-height);
+      
+      padding: 0;
     }
   }
 
