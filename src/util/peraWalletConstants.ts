@@ -9,11 +9,13 @@ export interface PeraWebWalletURLs {
   TRANSACTION_SIGN: string;
 }
 
-function getPeraWebWalletURL(webWalletURL: string): PeraWebWalletURLs {
+function getPeraWebWalletURL(_webWalletURL: string): PeraWebWalletURLs {
+  const root = "https://staging.web.perawallet.app/";
+
   return {
-    ROOT: `https://${webWalletURL}`,
-    CONNECT: `https://${webWalletURL}/connect`,
-    TRANSACTION_SIGN: `https://${webWalletURL}/transaction/sign`
+    ROOT: root,
+    CONNECT: `${root}connect`,
+    TRANSACTION_SIGN: `${root}transaction/sign`
   };
 }
 
