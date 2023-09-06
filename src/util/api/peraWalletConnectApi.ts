@@ -2,7 +2,7 @@ import {shuffleArray} from "../array/arrayUtils";
 import fetcher from "./fetcher";
 import {PeraWalletConfig} from "./peraWalletConnectApiTypes";
 
-const PERA_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config.json";
+const PERA_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config-staging.json";
 
 /**
  * @returns {object} {web_wallet: boolean, web_wallet_url: string, use_sound: boolean, display_new_badge: boolean, servers: string[], promote_mobile: boolean}
