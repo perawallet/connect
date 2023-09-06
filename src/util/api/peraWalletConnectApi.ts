@@ -5,7 +5,7 @@ import {PeraWalletConfig} from "./peraWalletConnectApiTypes";
 const PERA_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config.json";
 
 /**
- * @returns {object} {web_wallet: boolean, web_wallet_url: string, use_sound: boolean, display_new_badge: boolean, servers: string[]}
+ * @returns {object} {web_wallet: boolean, web_wallet_url: string, use_sound: boolean, display_new_badge: boolean, servers: string[], promote_mobile: boolean}
  */
 function fetchPeraConnectConfig() {
   const configURL = PERA_CONNECT_CONFIG_URL;
@@ -17,6 +17,7 @@ function fetchPeraConnectConfig() {
     display_new_badge: boolean | undefined;
     servers: string[] | undefined;
     silent: boolean | undefined;
+    promote_mobile: boolean | undefined;
   }>(configURL, {cache: "no-store"});
 }
 
@@ -30,7 +31,8 @@ async function getPeraConnectConfig() {
     isWebWalletAvailable: false,
     shouldDisplayNewBadge: false,
     shouldUseSound: true,
-    silent: false
+    silent: false,
+    promoteMobile: false
   };
 
   try {
@@ -50,6 +52,10 @@ async function getPeraConnectConfig() {
 
     if (typeof response.silent !== "undefined") {
       peraWalletConfig.silent = response.silent!;
+    }
+
+    if (typeof response.promote_mobile !== "undefined") {
+      peraWalletConfig.promoteMobile = response.promote_mobile;
     }
 
     peraWalletConfig = {
