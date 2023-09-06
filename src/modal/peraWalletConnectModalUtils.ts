@@ -7,6 +7,7 @@ export interface PeraWalletModalConfig {
   isWebWalletAvailable: boolean;
   shouldDisplayNewBadge: boolean;
   shouldUseSound: boolean;
+  promoteMobile?: boolean;
   compactMode?: boolean;
 }
 
@@ -59,10 +60,15 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
     if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
       const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
       const newURI = `${uri}&algorand=true`;
-      const {isWebWalletAvailable, shouldDisplayNewBadge, shouldUseSound, compactMode} =
-        modalConfig;
+      const {
+        isWebWalletAvailable,
+        shouldDisplayNewBadge,
+        shouldUseSound,
+        compactMode,
+        promoteMobile
+      } = modalConfig;
 
-      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}"></pera-wallet-connect-modal>`;
+      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}"></pera-wallet-connect-modal>`;
     }
   };
 }

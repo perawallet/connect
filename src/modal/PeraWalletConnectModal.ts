@@ -60,6 +60,8 @@ export class PeraWalletConnectModal extends HTMLElement {
           "should-display-new-badge"
         )}" compact-mode="${this.getAttribute(
           "compact-mode"
+        )}" promote-mobile="${this.getAttribute(
+          "promote-mobile"
         )}"></pera-wallet-modal-desktop-mode>
             </div>
           </div>
