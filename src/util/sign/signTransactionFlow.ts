@@ -1,24 +1,24 @@
-import {
-  openPeraWalletSignTxnModal,
-  PERA_WALLET_IFRAME_ID,
-  setupPeraWalletConnectModalCloseListener,
-  PERA_WALLET_SIGN_TXN_MODAL_ID,
-  getHeaderCloseButton
-} from "../../modal/peraWalletConnectModalUtils";
+// import {
+//   openPeraWalletSignTxnModal,
+//   PERA_WALLET_IFRAME_ID,
+//   setupPeraWalletConnectModalCloseListener,
+//   PERA_WALLET_SIGN_TXN_MODAL_ID,
+//   getHeaderCloseButton
+// } from "../../modal/peraWalletConnectModalUtils";
 import PeraWalletConnectError from "../PeraWalletConnectError";
-import {peraWalletFlowType} from "../device/deviceUtils";
+// import {peraWalletFlowType} from "../device/deviceUtils";
 import {
-  WAIT_FOR_TAB_MAX_TRY_COUNT,
-  WAIT_FOR_TAB_TRY_INTERVAL,
+  // WAIT_FOR_TAB_MAX_TRY_COUNT,
+  // WAIT_FOR_TAB_TRY_INTERVAL,
   waitForTabOpening
 } from "../dom/domUtils";
 import {PeraWalletArbitraryData, PeraWalletTransaction} from "../model/peraWalletModels";
 import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "../peraWalletConstants";
-import {generateEmbeddedWalletURL} from "../peraWalletUtils";
+// import {generateEmbeddedWalletURL} from "../peraWalletUtils";
 import {RunSignTransactionFlowParams} from "./signTransactionFlowModels";
 import {
-  embeddedSignTransactionFlowTellerReducer,
+  // embeddedSignTransactionFlowTellerReducer,
   newTabSignTransactionFlowTellerReducer
 } from "./signTransactionFlowReducers";
 
@@ -28,98 +28,98 @@ function runWebSignTransactionFlow({
   signer,
   chainId,
   webWalletURL,
-  isCompactMode,
+  // isCompactMode,
   resolve,
   reject
 }: RunSignTransactionFlowParams) {
   const webWalletURLs = getPeraWebWalletURL(webWalletURL);
 
-  switch (peraWalletFlowType()) {
-    case "EMBEDDED":
-      runEmbeddedSignTransactionFlow();
-      break;
+  runNewTabSignFlow();
+  // switch (peraWalletFlowType()) {
+  //   case "EMBEDDED":
+  //     runEmbeddedSignTransactionFlow();
+  //     break;
 
-    case "NEW_TAB":
-      runNewTabSignFlow();
-      break;
+  //   case "NEW_TAB":
+  //     break;
 
-    default:
-      break;
-  }
+  //   default:
+  //     break;
+  // }
 
   // =========== Embedded Sign Flow ===========
-  async function runEmbeddedSignTransactionFlow() {
-    const peraWalletSignTxnModalIFrameWrapper = await openPeraWalletSignTxnModal({
-      isCompactMode
-    });
+  // async function runEmbeddedSignTransactionFlow() {
+  //   const peraWalletSignTxnModalIFrameWrapper = await openPeraWalletSignTxnModal({
+  //     isCompactMode
+  //   });
 
-    const peraWalletIframe = document.createElement("iframe");
-    const peraWalletIframeSrc = generateEmbeddedWalletURL(
-      webWalletURLs.TRANSACTION_SIGN,
-      isCompactMode
-    );
-    const peraWalletIframeAllow = `hid ${peraWalletIframeSrc}; bluetooth ${peraWalletIframeSrc}`;
+  //   const peraWalletIframe = document.createElement("iframe");
+  //   const peraWalletIframeSrc = generateEmbeddedWalletURL(
+  //     webWalletURLs.TRANSACTION_SIGN,
+  //     isCompactMode
+  //   );
+  //   const peraWalletIframeAllow = `hid ${peraWalletIframeSrc}; bluetooth ${peraWalletIframeSrc}`;
 
-    peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
-    peraWalletIframe.setAttribute("src", peraWalletIframeSrc);
-    peraWalletIframe.setAttribute("allow", peraWalletIframeAllow);
+  //   peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
+  //   peraWalletIframe.setAttribute("src", peraWalletIframeSrc);
+  //   peraWalletIframe.setAttribute("allow", peraWalletIframeAllow);
 
-    peraWalletSignTxnModalIFrameWrapper?.appendChild(peraWalletIframe);
+  //   peraWalletSignTxnModalIFrameWrapper?.appendChild(peraWalletIframe);
 
-    setupPeraWalletConnectModalCloseListener(PERA_WALLET_SIGN_TXN_MODAL_ID, () =>
-      reject(
-        new PeraWalletConnectError(
-          {
-            type: `${method}_CANCELLED`
-          },
-          "Transaction signing is cancelled by user."
-        )
-      )
-    );
+  //   setupPeraWalletConnectModalCloseListener(PERA_WALLET_SIGN_TXN_MODAL_ID, () =>
+  //     reject(
+  //       new PeraWalletConnectError(
+  //         {
+  //           type: `${method}_CANCELLED`
+  //         },
+  //         "Transaction signing is cancelled by user."
+  //       )
+  //     )
+  //   );
 
-    if (peraWalletIframe.contentWindow) {
-      let count = 0;
+  //   if (peraWalletIframe.contentWindow) {
+  //     let count = 0;
 
-      const isIframeInitializedChecker = setInterval(() => {
-        count += 1;
+  //     const isIframeInitializedChecker = setInterval(() => {
+  //       count += 1;
 
-        if (count === WAIT_FOR_TAB_MAX_TRY_COUNT) {
-          clearInterval(isIframeInitializedChecker);
+  //       if (count === WAIT_FOR_TAB_MAX_TRY_COUNT) {
+  //         clearInterval(isIframeInitializedChecker);
 
-          return;
-        }
+  //         return;
+  //       }
 
-        appTellerManager.sendMessage({
-          message: {
-            type: "IFRAME_INITIALIZED"
-          },
+  //       appTellerManager.sendMessage({
+  //         message: {
+  //           type: "IFRAME_INITIALIZED"
+  //         },
 
-          origin: webWalletURLs.TRANSACTION_SIGN,
-          targetWindow: peraWalletIframe.contentWindow!
-        });
+  //         origin: webWalletURLs.TRANSACTION_SIGN,
+  //         targetWindow: peraWalletIframe.contentWindow!
+  //       });
 
-        getHeaderCloseButton("sign-txn")?.addEventListener("click", () => {
-          clearInterval(isIframeInitializedChecker);
-        });
-      }, WAIT_FOR_TAB_TRY_INTERVAL);
+  //       getHeaderCloseButton("sign-txn")?.addEventListener("click", () => {
+  //         clearInterval(isIframeInitializedChecker);
+  //       });
+  //     }, WAIT_FOR_TAB_TRY_INTERVAL);
 
-      appTellerManager.setupListener({
-        onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) =>
-          embeddedSignTransactionFlowTellerReducer({
-            event,
-            signTxnRequestParams,
-            peraWalletIframe,
-            isIframeInitializedChecker,
-            webWalletURLs,
-            method,
-            signer,
-            chainId,
-            resolve,
-            reject
-          })
-      });
-    }
-  }
+  //     appTellerManager.setupListener({
+  //       onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) =>
+  //         embeddedSignTransactionFlowTellerReducer({
+  //           event,
+  //           signTxnRequestParams,
+  //           peraWalletIframe,
+  //           isIframeInitializedChecker,
+  //           webWalletURLs,
+  //           method,
+  //           signer,
+  //           chainId,
+  //           resolve,
+  //           reject
+  //         })
+  //     });
+  //   }
+  // }
 
   // =========== New Tab Sign Flow ===========
   async function runNewTabSignFlow() {

@@ -315,7 +315,7 @@ class PeraWalletConnect {
         signTxnRequestParams,
         webWalletURL,
         method: "SIGN_TXN",
-        isCompactMode: this.compactMode,
+        // isCompactMode: this.compactMode,
         resolve,
         reject
       })
@@ -395,7 +395,7 @@ class PeraWalletConnect {
         signer,
         chainId,
         webWalletURL,
-        isCompactMode: this.compactMode,
+        // isCompactMode: this.compactMode,
         resolve,
         reject
       })

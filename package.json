@@ -1,5 +1,5 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "name": "@perawallet/connect-beta",
   "description": "Beta version of Pera Wallet Connect",
   "main": "dist/index.js",
