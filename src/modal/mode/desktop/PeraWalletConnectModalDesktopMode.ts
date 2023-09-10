@@ -46,31 +46,27 @@ const peraWalletConnectModalDesktopModeDefaultView = `
           </a>
 
           <div class="pera-wallet-accordion-item__content">
-          ${
-            peraWalletFlowType() === "EMBEDDED"
-              ? `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"></div>`
-              : `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet">
-          <div>
-            <div
-              class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
-              <img src="${PeraWebIcon}" />
+           <div class="pera-wallet-connect-modal-desktop-mode__web-wallet">
+            <div>
+              <div
+                class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
+                <img src="${PeraWebIcon}" />
+              </div>
+
+              <p
+                class="pera-wallet-connect-modal-desktop-mode__web-wallet__description">
+                Connect with Pera Web to continue
+              </p>
             </div>
 
-            <p
-              class="pera-wallet-connect-modal-desktop-mode__web-wallet__description">
-              Connect with Pera Web to continue
-            </p>
-          </div>
+            <button
+              id="pera-wallet-connect-web-wallet-launch-button"
+              class="pera-wallet-connect-modal-desktop-mode__web-wallet__launch-button">
+              Launch Pera Web
 
-          <button
-            id="pera-wallet-connect-web-wallet-launch-button"
-            class="pera-wallet-connect-modal-desktop-mode__web-wallet__launch-button">
-            Launch Pera Web
-
-            <img src="${ChevronRightIcon}" />
-          </button>
-        </div>`
-          }
+              <img src="${ChevronRightIcon}" />
+            </button>
+           </div>
           </div>
         </div>
 

@@ -1,93 +1,93 @@
 import {
-  PERA_WALLET_IFRAME_ID,
+  // PERA_WALLET_IFRAME_ID,
   PERA_WALLET_CONNECT_MODAL_ID,
   removeModalWrapperFromDOM,
-  getHeaderCloseButton
+  // getHeaderCloseButton
 } from "../../modal/peraWalletConnectModalUtils";
 import PeraWalletConnectError from "../PeraWalletConnectError";
-import {peraWalletFlowType} from "../device/deviceUtils";
+// import {peraWalletFlowType} from "../device/deviceUtils";
 import {
-  WAIT_FOR_TAB_MAX_TRY_COUNT,
-  WAIT_FOR_TAB_TRY_INTERVAL,
+  // WAIT_FOR_TAB_MAX_TRY_COUNT,
+  // WAIT_FOR_TAB_TRY_INTERVAL,
   getMetaInfo,
   waitForTabOpening
 } from "../dom/domUtils";
 import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "../peraWalletConstants";
-import {generateEmbeddedWalletURL} from "../peraWalletUtils";
+// import {generateEmbeddedWalletURL} from "../peraWalletUtils";
 import {RunWebConnectFlowTypes} from "./connectFlowModels";
 import {
-  embeddedConnectFlowTellerReducer,
+  // embeddedConnectFlowTellerReducer,
   newTabConnectFlowTellerReducer
 } from "./connectFlowReducers";
 
 function runWebConnectFlow({
   webWalletURL,
   chainId,
-  isCompactMode,
+  // isCompactMode,
   resolve,
   reject
 }: RunWebConnectFlowTypes) {
   const webWalletURLs = getPeraWebWalletURL(webWalletURL);
 
-  if (peraWalletFlowType() === "EMBEDDED") {
-    return runEmbeddedWebConnectFlow;
-  }
+  // if (peraWalletFlowType() === "EMBEDDED") {
+  //   return runEmbeddedWebConnectFlow;
+  // }
 
   return runNewTabWebConnectFlow;
 
   // =========== Embedded Connect Flow ===========
-  function runEmbeddedWebConnectFlow(peraWalletIframeWrapper: Element) {
-    const peraWalletIframe = document.createElement("iframe");
+  // function runEmbeddedWebConnectFlow(peraWalletIframeWrapper: Element) {
+  //   const peraWalletIframe = document.createElement("iframe");
 
-    peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
-    peraWalletIframe.setAttribute(
-      "src",
-      generateEmbeddedWalletURL(webWalletURLs.CONNECT, isCompactMode)
-    );
+  //   peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
+  //   peraWalletIframe.setAttribute(
+  //     "src",
+  //     generateEmbeddedWalletURL(webWalletURLs.CONNECT, isCompactMode)
+  //   );
 
-    peraWalletIframeWrapper.appendChild(peraWalletIframe);
+  //   peraWalletIframeWrapper.appendChild(peraWalletIframe);
 
-    if (peraWalletIframe.contentWindow) {
-      let count = 0;
+  //   if (peraWalletIframe.contentWindow) {
+  //     let count = 0;
 
-      const isIframeInitializedChecker = setInterval(() => {
-        count += 1;
+  //     const isIframeInitializedChecker = setInterval(() => {
+  //       count += 1;
 
-        if (count === WAIT_FOR_TAB_MAX_TRY_COUNT) {
-          clearInterval(isIframeInitializedChecker);
+  //       if (count === WAIT_FOR_TAB_MAX_TRY_COUNT) {
+  //         clearInterval(isIframeInitializedChecker);
 
-          return;
-        }
+  //         return;
+  //       }
 
-        appTellerManager.sendMessage({
-          message: {
-            type: "IFRAME_INITIALIZED"
-          },
+  //       appTellerManager.sendMessage({
+  //         message: {
+  //           type: "IFRAME_INITIALIZED"
+  //         },
 
-          origin: webWalletURLs.CONNECT,
-          targetWindow: peraWalletIframe.contentWindow!
-        });
+  //         origin: webWalletURLs.CONNECT,
+  //         targetWindow: peraWalletIframe.contentWindow!
+  //       });
 
-        getHeaderCloseButton("connect")?.addEventListener("click", () => {
-          clearInterval(isIframeInitializedChecker);
-        });
-      }, WAIT_FOR_TAB_TRY_INTERVAL);
+  //       getHeaderCloseButton("connect")?.addEventListener("click", () => {
+  //         clearInterval(isIframeInitializedChecker);
+  //       });
+  //     }, WAIT_FOR_TAB_TRY_INTERVAL);
 
-      appTellerManager.setupListener({
-        onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) =>
-          embeddedConnectFlowTellerReducer({
-            event,
-            peraWalletIframe,
-            chainId,
-            isIframeInitializedChecker,
-            webWalletURLs,
-            resolve,
-            reject
-          })
-      });
-    }
-  }
+  //     appTellerManager.setupListener({
+  //       onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) =>
+  //         embeddedConnectFlowTellerReducer({
+  //           event,
+  //           peraWalletIframe,
+  //           chainId,
+  //           isIframeInitializedChecker,
+  //           webWalletURLs,
+  //           resolve,
+  //           reject
+  //         })
+  //     });
+  //   }
+  // }
 
   // =========== New Tab Connect Flow ===========
   async function runNewTabWebConnectFlow() {
