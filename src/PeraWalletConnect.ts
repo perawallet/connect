@@ -47,14 +47,16 @@ function generatePeraWalletConnectModalActions({
   isWebWalletAvailable,
   shouldDisplayNewBadge,
   shouldUseSound,
-  compactMode
+  compactMode,
+  promoteMobile
 }: PeraWalletModalConfig) {
   return {
     open: openPeraWalletConnectModal({
       isWebWalletAvailable,
       shouldDisplayNewBadge,
       shouldUseSound,
-      compactMode
+      compactMode,
+      promoteMobile
     }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
@@ -112,7 +114,8 @@ class PeraWalletConnect {
           bridgeURL,
           webWalletURL,
           shouldDisplayNewBadge,
-          shouldUseSound
+          shouldUseSound,
+          promoteMobile
         } = await getPeraConnectConfig();
 
         const onWebWalletConnect = runWebConnectFlow({
@@ -135,7 +138,8 @@ class PeraWalletConnect {
             isWebWalletAvailable,
             shouldDisplayNewBadge,
             shouldUseSound,
-            compactMode: this.compactMode
+            compactMode: this.compactMode,
+            promoteMobile
           })
         });
 
