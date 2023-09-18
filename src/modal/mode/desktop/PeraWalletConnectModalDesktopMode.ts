@@ -13,7 +13,7 @@ import QRCodeStyling from "qr-code-styling";
 
 import styles from "./_pera-wallet-connect-modal-desktop-mode.scss";
 import accordionStyles from "./accordion/_pera-wallet-accordion.scss";
-import {peraWalletFlowType} from "../../../util/device/deviceUtils";
+// import {peraWalletFlowType} from "../../../util/device/deviceUtils";
 
 const peraWalletConnectModalDesktopMode = document.createElement("template");
 const styleSheet = document.createElement("style");
@@ -46,11 +46,8 @@ function getConnectOptions(shouldPromoteMobile: boolean) {
             </a>
   
             <div class="pera-wallet-accordion-item__content">
-            ${
-              peraWalletFlowType() === "EMBEDDED"
-                ? `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"></div>`
-                : `<div class="pera-wallet-connect-modal-desktop-mode__web-wallet">
-            <div>
+              <div class="pera-wallet-connect-modal-desktop-mode__web-wallet"><div>
+              
               <div
                 class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
                 <img src="${PeraWebIcon}" />
@@ -69,11 +66,7 @@ function getConnectOptions(shouldPromoteMobile: boolean) {
   
               <img src="${ChevronRightIcon}" />
             </button>
-          </div>`
-            }
-            </div>
-          </div>
-  `;
+          </div>`;
 
   const mobileWalletOption = `
   <div id="mobile-wallet-option" class="pera-wallet-accordion-item ${
@@ -235,16 +228,16 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
 
     this.handleChangeView();
 
-    if (peraWalletFlowType() === "EMBEDDED" && this.shadowRoot) {
-      const iframeWrapper = this.shadowRoot.querySelector(
-        ".pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
-      );
+    // if (peraWalletFlowType() === "EMBEDDED" && this.shadowRoot) {
+    //   const iframeWrapper = this.shadowRoot.querySelector(
+    //     ".pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
+    //   );
 
-      if (iframeWrapper && this.getAttribute("is-web-wallet-avaliable") === "true") {
-        // @ts-ignore ts-2339
-        window.onWebWalletConnect(iframeWrapper);
-      }
-    }
+    //   if (iframeWrapper && this.getAttribute("is-web-wallet-avaliable") === "true") {
+    //     // @ts-ignore ts-2339
+    //     window.onWebWalletConnect(iframeWrapper);
+    //   }
+    // }
   }
 
   handleChangeView() {
