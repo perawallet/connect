@@ -46,11 +46,17 @@ function getConnectOptions(shouldPromoteMobile: boolean) {
             </a>
   
             <div class="pera-wallet-accordion-item__content">
-              <div class="pera-wallet-connect-modal-desktop-mode__web-wallet"><div>
-              
-              <div
-                class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
-                <img src="${PeraWebIcon}" />
+              <div class="pera-wallet-connect-modal-desktop-mode__web-wallet">
+              <div>
+                <div
+                  class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
+                  <img src="${PeraWebIcon}" />
+                </div>
+    
+                <p
+                  class="pera-wallet-connect-modal-desktop-mode__web-wallet__description">
+                  Connect with Pera Web to continue
+                </p>
               </div>
   
               <button
@@ -61,15 +67,9 @@ function getConnectOptions(shouldPromoteMobile: boolean) {
                 <img src="${ChevronRightIcon}" />
               </button>
             </div>
-  
-            <button
-              id="pera-wallet-connect-web-wallet-launch-button"
-              class="pera-wallet-connect-modal-desktop-mode__web-wallet__launch-button">
-              Launch Pera Web
-  
-              <img src="${ChevronRightIcon}" />
-            </button>
-          </div>`;
+            </div>
+          </div>
+  `;
 
   const mobileWalletOption = `
   <div id="mobile-wallet-option" class="pera-wallet-accordion-item ${
