@@ -327,7 +327,8 @@ class PeraWalletConnect {
     signer,
     chainId
   }: {
-    data: PeraWalletArbitraryData[];
+    // Converted Uin8Array data to base64
+    data: {data: string; message: string;}[];
     signer: string;
     chainId: AlgorandChainIDs;
   }) {
@@ -469,8 +470,13 @@ class PeraWalletConnect {
       });
     }
 
+    const b64encodedData = data.map((item) => ({
+      ...item,
+      data: Buffer.from(item.data).toString('base64')
+    }));
+
     // Pera Mobile Wallet flow
-    return this.signDataWithMobile({data, signer, chainId});
+    return this.signDataWithMobile({data: b64encodedData, signer, chainId});
   }
 }
 
