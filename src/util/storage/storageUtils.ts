@@ -1,10 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 
-import {
-  PeraWalletDetails,
-  PeraWalletNetwork,
-  PeraWalletPlatformType
-} from "../peraWalletTypes";
+import {PeraWalletDetails, PeraWalletNetwork, PeraWalletPlatformType} from "../peraWalletTypes";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storageConstants";
 
 function getLocalStorage() {
@@ -51,7 +47,6 @@ function resetWalletDetailsFromStorage() {
   return new Promise<undefined>((resolve, reject) => {
     try {
       getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET);
-      getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK);
       resolve(undefined);
     } catch (error) {
       reject(error);

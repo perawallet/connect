@@ -2,13 +2,11 @@ import ShieldTickIcon from "../../../asset/icon/ShieldTick.svg";
 import LayerIcon from "../../../asset/icon/Layer.svg";
 import NoteIcon from "../../../asset/icon/Note.svg";
 import PeraWalletWithText from "../../../asset/icon/PeraWallet--with-text.svg";
+import PeraWalletLogo from "../../../asset/icon/PeraWallet.svg";
 
 import {isSmallScreen} from "../../../util/screen/screenSizeUtils";
-import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
 import styles from "./_pera-wallet-connect-modal-information-section.scss";
 import {isMobile} from "../../../util/device/deviceUtils";
-
-const {logo, name} = getPeraWalletAppMeta();
 
 const peraWalletConnectModalInformationSectionTemplate =
   document.createElement("template");
@@ -20,13 +18,13 @@ peraWalletConnectModalInformationSectionTemplate.innerHTML = `
   <section class="${informationSectionClassNames}">
     <img
       id="pera-wallet-connect-modal-information-section-pera-icon"
-      src="${logo}"
+      src="${PeraWalletLogo}"
       class="pera-wallet-connect-modal-information-section__pera-icon"
       alt="Pera Wallet Logo"
     />
 
     <h1 id="pera-wallet-connect-modal-information-section-connect-pera-mobile" class="pera-wallet-connect-modal-information-section__connect-pera-title">
-        Connect to ${name}
+        Connect to Pera Wallet
     </h1>
 
     <h1 class="pera-wallet-connect-modal-information-section__title">
@@ -81,7 +79,12 @@ export class PeraWalletConnectModalInformationSection extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
 
-    if (this.shadowRoot) {
+    const isCompactMode =
+      document
+        .querySelector("pera-wallet-connect-modal")
+        ?.getAttribute("compact-mode") === "true";
+
+    if (this.shadowRoot && ((!isCompactMode && !isMobile()) || isMobile())) {
       const styleSheet = document.createElement("style");
 
       styleSheet.textContent = styles;

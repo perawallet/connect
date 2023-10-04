@@ -1,17 +1,14 @@
 import {shuffleArray} from "../array/arrayUtils";
-import {PeraWalletNetwork} from "../peraWalletTypes";
 import fetcher from "./fetcher";
 import {PeraWalletConfig} from "./peraWalletConnectApiTypes";
 
 const PERA_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config.json";
-const PERA_CONNECT_CONFIG_STAGING_URL = "https://wc.perawallet.app/config-staging.json";
 
 /**
- * @returns {object} {web_wallet: boolean, web_wallet_url: string, use_sound: boolean, display_new_badge: boolean, servers: string[]}
+ * @returns {object} {web_wallet: boolean, web_wallet_url: string, use_sound: boolean, display_new_badge: boolean, servers: string[], promote_mobile: boolean}
  */
-function fetchPeraConnectConfig(network: PeraWalletNetwork) {
-  const configURL =
-    network === "mainnet" ? PERA_CONNECT_CONFIG_URL : PERA_CONNECT_CONFIG_STAGING_URL;
+function fetchPeraConnectConfig() {
+  const configURL = PERA_CONNECT_CONFIG_URL;
 
   return fetcher<{
     web_wallet: boolean | undefined;
@@ -20,24 +17,26 @@ function fetchPeraConnectConfig(network: PeraWalletNetwork) {
     display_new_badge: boolean | undefined;
     servers: string[] | undefined;
     silent: boolean | undefined;
+    promote_mobile: boolean | undefined;
   }>(configURL, {cache: "no-store"});
 }
 
 /**
  * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvailable: boolean, shouldDisplayNewBadge: boolean, shouldUseSound: boolean}
  */
-async function getPeraConnectConfig(network: PeraWalletNetwork) {
+async function getPeraConnectConfig() {
   let peraWalletConfig: PeraWalletConfig = {
     bridgeURL: "",
     webWalletURL: "",
     isWebWalletAvailable: false,
     shouldDisplayNewBadge: false,
     shouldUseSound: true,
-    silent: false
+    silent: false,
+    promoteMobile: false
   };
 
   try {
-    const response = await fetchPeraConnectConfig(network);
+    const response = await fetchPeraConnectConfig();
 
     if (typeof response.web_wallet !== "undefined" && response.web_wallet_url) {
       peraWalletConfig.isWebWalletAvailable = response.web_wallet!;
@@ -53,6 +52,10 @@ async function getPeraConnectConfig(network: PeraWalletNetwork) {
 
     if (typeof response.silent !== "undefined") {
       peraWalletConfig.silent = response.silent!;
+    }
+
+    if (typeof response.promote_mobile !== "undefined") {
+      peraWalletConfig.promoteMobile = response.promote_mobile;
     }
 
     peraWalletConfig = {

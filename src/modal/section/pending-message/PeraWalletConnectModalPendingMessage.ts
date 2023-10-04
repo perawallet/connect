@@ -1,10 +1,9 @@
+import PeraWalletLogo from "../../../asset/icon/PeraWallet.svg";
 import HelpIcon from "../../../asset/icon/Help.svg";
 import SendIcon from "../../../asset/icon/Send.svg";
-import animationData from "./lotties/PeraLoaderAnimationLottie.json";
 
-import lottie from "lottie-web";
+import Lottie from "@evanhahn/lottie-web-light";
 
-import {getPeraWalletAppMeta} from "../../../util/peraWalletUtils";
 import {
   PERA_WALLET_CONNECT_MODAL_ID,
   removeModalWrapperFromDOM
@@ -13,10 +12,10 @@ import styles from "./_pera-wallet-connect-modal-pending-message.scss";
 import {isIOS} from "../../../util/device/deviceUtils";
 import {
   CONNECT_AUDIO_URL,
-  CONNECT_TIMEOUT_INTERVAL
+  CONNECT_TIMEOUT_INTERVAL,
+  PERA_LOADER_ANIMATION_URL
 } from "./util/peraWalletConnectModalPendingMessageConstants";
 
-const {logo} = getPeraWalletAppMeta();
 const peraWalletConnectModalPendingMessageTemplate = document.createElement("template");
 
 peraWalletConnectModalPendingMessageTemplate.innerHTML = `
@@ -42,7 +41,7 @@ peraWalletConnectModalPendingMessageTemplate.innerHTML = `
 const peraWalletConnectTryAgainView = `
   <div class="pera-wallet-connect-modal-pending-message--try-again-view">
     <div>
-      <img src="${logo}" alt="Pera Wallet Logo" />
+      <img src="${PeraWalletLogo}" alt="Pera Wallet Logo" />
 
       <h1 class="pera-wallet-connect-modal-pending-message--try-again-view__title">
         Couldn’t establish connection
@@ -174,12 +173,12 @@ export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
     );
 
     if (lottieWrapper) {
-      lottie.loadAnimation({
+      Lottie.loadAnimation({
         container: lottieWrapper,
         renderer: "svg",
         loop: true,
         autoplay: true,
-        animationData
+        path: PERA_LOADER_ANIMATION_URL
       });
     }
   }

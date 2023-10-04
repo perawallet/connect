@@ -12,6 +12,8 @@ const peraWalletRedirectModalTemplate = document.createElement("template");
 peraWalletRedirectModalTemplate.innerHTML = `
   <div class="pera-wallet-modal pera-wallet-modal--mobile">
     <div class="pera-wallet-modal__body">
+      <pera-wallet-modal-header modal-id="${PERA_WALLET_REDIRECT_MODAL_ID}"></pera-wallet-modal-header/>
+
       <div class="pera-wallet-redirect-modal">
         <div class="pera-wallet-redirect-modal__content">
           <img src="${PeraRedirectIcon}" />
@@ -80,19 +82,16 @@ export class PeraWalletRedirectModal extends HTMLElement {
 
       launchPeraLink?.addEventListener("click", () => {
         this.onClose();
+        window.open(generatePeraWalletAppDeepLink(), "_blank");
       });
-
-      launchPeraLink?.setAttribute("href", generatePeraWalletAppDeepLink());
     }
   }
 
   connectedCallback() {
-    const peraWalletDeepLink = window.open(generatePeraWalletAppDeepLink());
+    const peraWalletDeepLink = window.open(generatePeraWalletAppDeepLink(), "_blank");
 
-    if (peraWalletDeepLink) {
-      peraWalletDeepLink.addEventListener("load", () => {
-        this.onClose();
-      });
+    if (peraWalletDeepLink && !peraWalletDeepLink.closed) {
+      this.onClose();
     }
   }
 

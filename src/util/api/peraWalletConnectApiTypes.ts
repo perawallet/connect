@@ -5,4 +5,5 @@ export interface PeraWalletConfig {
   shouldDisplayNewBadge: boolean;
   shouldUseSound: boolean;
   silent: boolean;
+  promoteMobile: boolean;
 }

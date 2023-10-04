@@ -1,12 +1,15 @@
 {
-  "version": "1.0.7",
   "name": "@perawallet/connect",
+  "version": "2.0.0",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
   "main": "dist/index.js",
   "scripts": {
     "dev": "./node_modules/.bin/rollup -c -w",
     "build": "npm run eslint && ./node_modules/.bin/rollup -c",
-    "eslint": "./node_modules/.bin/eslint --ext .jsx,.js,.tsx,.ts src/"
+    "build:release": "./node_modules/.bin/rollup -c",
+    "eslint": "./node_modules/.bin/eslint --ext .jsx,.js,.tsx,.ts src/",
+    "prettify": "prettier --config ./.prettierrc.js --write \"src/**/*.{ts,tsx}\"",
+    "type-check:watch": "tsc --watch"
   },
   "author": "Pera Wallet",
   "license": "ISC",
@@ -15,32 +18,34 @@
     "@hipo/eslint-config-typescript": "^1.1.0",
     "@rollup/plugin-image": "^2.1.1",
     "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-replace": "^5.0.2",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "eslint": "^8.12.0",
     "eslint-config-prettier": "^8.5.0",
-    "node-sass": "^7.0.1",
+    "node-sass": "^8.0.0",
     "prettier": "^2.6.1",
     "rollup": "^2.70.1",
     "rollup-plugin-eslint": "^7.0.0",
     "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-sizes": "^1.0.5",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.31.2",
     "sass": "^1.49.11",
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "@json-rpc-tools/utils": "^1.7.6",
+    "@evanhahn/lottie-web-light": "5.8.1",
+    "@json-rpc-tools/utils": "1.7.6",
     "@walletconnect/sign-client": "2.1.4",
     "@walletconnect/types": "2.1.4",
     "@walletconnect/utils": "2.1.4",
-    "bowser": "^2.11.0",
+    "bowser": "2.11.0",
     "buffer": "^6.0.3",
-    "lottie-web": "^5.9.6",
-    "qr-code-styling": "^1.6.0-rc.1"
+    "qr-code-styling": "1.6.0-rc.1"
   },
   "peerDependencies": {
-    "algosdk": "^1.23.2"
+    "algosdk": "^2.1.0"
   },
   "types": "./dist/index.d.ts",
   "repository": {

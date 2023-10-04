@@ -5,6 +5,10 @@ import CloseIconDark from "../../asset/icon/Close--dark.svg";
 import styles from "./_pera-wallet-modal-header.scss";
 import {isSmallScreen} from "../../util/screen/screenSizeUtils";
 import {isMobile} from "../../util/device/deviceUtils";
+import {
+  PERA_WALLET_REDIRECT_MODAL_ID,
+  removeModalWrapperFromDOM
+} from "../peraWalletConnectModalUtils";
 
 const peraWalletModalHeader = document.createElement("template");
 
@@ -20,7 +24,11 @@ peraWalletModalHeader.innerHTML = `
           : `<div class="pera-wallet-modal-header__brand">
               <img src="${PeraConnectIcon}" />
 
-              Pera Connect
+              <div class="pera-wallet-modal-header__brand-text">
+                <span>Pera Connect</span>
+
+                <span class="pera-wallet-modal-header__version-number">PERA_CONNECT_VERSION</span>
+              </div>
             </div>
             `
       } 
@@ -47,6 +55,21 @@ export class PeraWalletModalHeader extends HTMLElement {
       styleSheet.textContent = styles;
 
       this.shadowRoot.append(peraWalletModalHeader.content.cloneNode(true), styleSheet);
+
+      this.onClose();
+    }
+  }
+
+  onClose() {
+    const closeButton = this.shadowRoot?.getElementById(
+      "pera-wallet-modal-header-close-button"
+    );
+    const modalId = this.getAttribute("modal-id");
+
+    if (closeButton && modalId === PERA_WALLET_REDIRECT_MODAL_ID) {
+      closeButton.addEventListener("click", () => {
+        removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
+      });
     }
   }
 }

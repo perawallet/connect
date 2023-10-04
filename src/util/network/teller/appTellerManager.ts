@@ -1,4 +1,8 @@
-import {PeraWalletTransaction} from "../../model/peraWalletModels";
+import {
+  PeraWalletArbitraryData,
+  PeraWalletTransaction
+} from "../../model/peraWalletModels";
+import {AlgorandChainIDs} from "../../peraWalletTypes";
 import Teller from "./Teller";
 
 export type PeraTeller =
@@ -54,8 +58,40 @@ export type PeraTeller =
       error: string;
     }
   | {
+      type: "SIGN_DATA";
+      signer: string;
+      chainId: AlgorandChainIDs;
+      data: PeraWalletArbitraryData[];
+    }
+  | {
+      type: "SIGN_DATA_CALLBACK";
+      signedData: {
+        signedData: string;
+      }[];
+    }
+  | {
+      type: "SIGN_DATA_NETWORK_MISMATCH";
+      error: string;
+    }
+  | {
+      type: "SIGN_DATA_CALLBACK_ERROR";
+      error: string;
+    }
+  | {
       type: "SESSION_DISCONNECTED";
       error: string;
+    }
+  | {
+      type: "TAB_OPEN";
+    }
+  | {
+      type: "TAB_OPEN_RECEIVED";
+    }
+  | {
+      type: "IFRAME_INITIALIZED";
+    }
+  | {
+      type: "IFRAME_INITIALIZED_RECEIVED";
     };
 
 const appTellerManager = new Teller<PeraTeller>({

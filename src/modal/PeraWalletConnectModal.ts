@@ -7,7 +7,7 @@ import {
 import styles from "./_pera-wallet-modal.scss";
 
 const peraWalletConnectModal = document.createElement("template");
-const peraWalletConnectModalClassNames = isMobile()
+let peraWalletConnectModalClassNames = isMobile()
   ? `${PERA_WALLET_MODAL_CLASSNAME} ${PERA_WALLET_MODAL_CLASSNAME}--mobile`
   : `${PERA_WALLET_MODAL_CLASSNAME} ${PERA_WALLET_MODAL_CLASSNAME}--desktop`;
 
@@ -20,6 +20,12 @@ export class PeraWalletConnectModal extends HTMLElement {
       const styleSheet = document.createElement("style");
 
       styleSheet.textContent = styles;
+
+      const isCompactMode = this.getAttribute("compact-mode") === "true";
+
+      if (isCompactMode) {
+        peraWalletConnectModalClassNames = `${peraWalletConnectModalClassNames} ${PERA_WALLET_MODAL_CLASSNAME}--compact`;
+      }
 
       if (isSmallScreen() && isMobile()) {
         peraWalletConnectModal.innerHTML = `
@@ -52,6 +58,10 @@ export class PeraWalletConnectModal extends HTMLElement {
           "is-web-wallet-avaliable"
         )}" should-display-new-badge="${this.getAttribute(
           "should-display-new-badge"
+        )}" compact-mode="${this.getAttribute(
+          "compact-mode"
+        )}" promote-mobile="${this.getAttribute(
+          "promote-mobile"
         )}"></pera-wallet-modal-desktop-mode>
             </div>
           </div>

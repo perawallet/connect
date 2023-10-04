@@ -27,3 +27,10 @@
     }
   }
 }
+
+.pera-wallet-sign-txn-modal--compact.pera-wallet-modal {
+  .pera-wallet-modal__body {
+    width: var(--pera-wallet-modal-compact-width);
+    height: var(--pera-wallet-modal-compact-height);
+  }
+}

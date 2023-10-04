@@ -1,3 +1,9 @@
+import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
+import PeraWalletConnectError from "../PeraWalletConnectError";
+
+export const WAIT_FOR_TAB_TRY_INTERVAL = 700;
+export const WAIT_FOR_TAB_MAX_TRY_COUNT = 50;
+
 function getMetaInfo() {
   const metaTitle: HTMLElement | null = document.querySelector('meta[name="name"]');
   const metaDescription: HTMLElement | null = document.querySelector(
@@ -99,7 +105,58 @@ function waitForTabOpening(url: string): Promise<Window | null> {
     try {
       const newWindow = window.open(url, "_blank");
 
-      resolve(newWindow);
+      let count = 0;
+
+      const checkTabIsOpened = setInterval(() => {
+        count += 1;
+
+        if (count === WAIT_FOR_TAB_MAX_TRY_COUNT) {
+          clearInterval(checkTabIsOpened);
+          reject(
+            new PeraWalletConnectError(
+              {
+                type: "MESSAGE_NOT_RECEIVED"
+              },
+
+              "Couldn't open Pera Wallet, please try again."
+            )
+          );
+          return;
+        }
+
+        if (newWindow) {
+          if (newWindow.closed === true) {
+            clearInterval(checkTabIsOpened);
+            reject(
+              new PeraWalletConnectError(
+                {
+                  type: "OPERATION_CANCELLED"
+                },
+
+                "Operation cancelled by user"
+              )
+            );
+          }
+
+          appTellerManager.sendMessage({
+            message: {
+              type: "TAB_OPEN"
+            },
+
+            origin: url,
+            targetWindow: newWindow
+          });
+        }
+      }, WAIT_FOR_TAB_TRY_INTERVAL);
+
+      appTellerManager.setupListener({
+        onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
+          if (newTabEvent.data.message.type === "TAB_OPEN_RECEIVED") {
+            clearInterval(checkTabIsOpened);
+            resolve(newWindow);
+          }
+        }
+      });
     } catch (error) {
       reject(error);
     }
