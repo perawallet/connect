@@ -4,7 +4,6 @@ import NoteIcon from "../../../asset/icon/Note.svg";
 import PeraWalletWithText from "../../../asset/icon/PeraWallet--with-text.svg";
 import PeraWalletLogo from "../../../asset/icon/PeraWallet.svg";
 
-import {isSmallScreen} from "../../../util/screen/screenSizeUtils";
 import styles from "./_pera-wallet-connect-modal-information-section.scss";
 import {isMobile} from "../../../util/device/deviceUtils";
 
@@ -94,7 +93,7 @@ export class PeraWalletConnectModalInformationSection extends HTMLElement {
         styleSheet
       );
 
-      if (isSmallScreen() && isMobile()) {
+      if (isMobile()) {
         this.shadowRoot
           .getElementById("pera-wallet-connect-modal-information-section-title")
           ?.setAttribute("style", "display: none;");
