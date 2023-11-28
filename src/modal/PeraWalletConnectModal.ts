@@ -1,5 +1,4 @@
 import {isMobile} from "../util/device/deviceUtils";
-import {isSmallScreen} from "../util/screen/screenSizeUtils";
 import {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_MODAL_CLASSNAME
@@ -27,7 +26,7 @@ export class PeraWalletConnectModal extends HTMLElement {
         peraWalletConnectModalClassNames = `${peraWalletConnectModalClassNames} ${PERA_WALLET_MODAL_CLASSNAME}--compact`;
       }
 
-      if (isSmallScreen() && isMobile()) {
+      if (isMobile()) {
         peraWalletConnectModal.innerHTML = `
         <div class="${peraWalletConnectModalClassNames}">
           <div class="pera-wallet-modal__body" part="body">
