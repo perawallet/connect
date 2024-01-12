@@ -11,25 +11,27 @@ import {PeraWalletSignTxnModal} from "./modal/sign-txn/PeraWalletSignTxnModal";
 
 import "./util/screen/setDynamicVhValue";
 
-window.customElements.define("pera-wallet-connect-modal", PeraWalletConnectModal);
-window.customElements.define(
-  "pera-wallet-modal-desktop-mode",
-  PeraWalletModalDesktopMode
-);
-window.customElements.define("pera-wallet-modal-header", PeraWalletModalHeader);
-window.customElements.define(
+function defineCustomElement(name: string, element: CustomElementConstructor) {
+  if (!window.customElements.get(name)) {
+    window.customElements.define(name, element);
+  }
+}
+defineCustomElement("pera-wallet-connect-modal", PeraWalletConnectModal);
+defineCustomElement("pera-wallet-modal-desktop-mode", PeraWalletModalDesktopMode);
+defineCustomElement("pera-wallet-modal-header", PeraWalletModalHeader);
+defineCustomElement(
   "pera-wallet-modal-touch-screen-mode",
   PeraWalletModalTouchScreenMode
 );
-window.customElements.define("pera-wallet-redirect-modal", PeraWalletRedirectModal);
-window.customElements.define(
+defineCustomElement("pera-wallet-redirect-modal", PeraWalletRedirectModal);
+defineCustomElement(
   "pera-wallet-connect-modal-information-section",
   PeraWalletConnectModalInformationSection
 );
-window.customElements.define(
+defineCustomElement(
   "pera-wallet-connect-modal-pending-message-section",
   PeraWalletConnectModalPendingMessageSection
 );
-window.customElements.define("pera-wallet-sign-txn-toast", PeraWalletSignTxnToast);
-window.customElements.define("pera-wallet-sign-txn-modal", PeraWalletSignTxnModal);
-window.customElements.define("pera-wallet-download-qr-code", PeraWalletDownloadQRCode);
+defineCustomElement("pera-wallet-sign-txn-toast", PeraWalletSignTxnToast);
+defineCustomElement("pera-wallet-sign-txn-modal", PeraWalletSignTxnModal);
+defineCustomElement("pera-wallet-download-qr-code", PeraWalletDownloadQRCode);
