@@ -23,7 +23,7 @@ function isXSmallScreen() {
 function setVhVariable() {
   // a vh unit is equal to 1% of the screen height
   // eslint-disable-next-line no-magic-numbers
-  document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
+  document.documentElement.style.setProperty("--pera-wallet-vh", `${window.innerHeight * 0.01}px`);
 }
 
 export {isLargeScreen, isMediumScreen, isSmallScreen, isXSmallScreen, setVhVariable};
