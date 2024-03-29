@@ -22,7 +22,6 @@ import {
 } from "./util/storage/storageUtils";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
 import {
-  PeraWalletArbitraryData,
   PeraWalletTransaction,
   SignerTransaction
 } from "./util/model/peraWalletModels";
@@ -324,22 +323,19 @@ class PeraWalletConnect {
 
   private async signDataWithMobile({
     data,
+    message,
     signer,
     chainId
   }: {
     // Converted Uin8Array data to base64
-    data: {data: string; message: string;}[];
+    data: string;
+    message: string;
     signer: string;
     chainId: AlgorandChainIDs;
   }) {
     const formattedSignTxnRequest = formatJsonRpcRequest(
       "algo_signData",
-      data.map((item) => ({
-        ...item,
-
-        signer,
-        chainId
-      }))
+      [{data, signer, chainID: chainId, message}]
     );
 
     try {
@@ -378,30 +374,31 @@ class PeraWalletConnect {
     }
   }
 
-  private signDataWithWeb({
-    data,
-    signer,
-    chainId,
-    webWalletURL
-  }: {
-    data: PeraWalletArbitraryData[];
-    signer: string;
-    chainId: AlgorandChainIDs;
-    webWalletURL: string;
-  }): Promise<Uint8Array[]> {
-    return new Promise<Uint8Array[]>((resolve, reject) =>
-      runWebSignTransactionFlow({
-        method: "SIGN_DATA",
-        signTxnRequestParams: data,
-        signer,
-        chainId,
-        webWalletURL,
-        // isCompactMode: this.compactMode,
-        resolve,
-        reject
-      })
-    );
-  }
+  // Disable arbitrary data signing for Web Wallet
+  // private signDataWithWeb({
+  //   data,
+  //   signer,
+  //   chainId,
+  //   webWalletURL
+  // }: {
+  //   data: PeraWalletArbitraryData[];
+  //   signer: string;
+  //   chainId: AlgorandChainIDs;
+  //   webWalletURL: string;
+  // }): Promise<Uint8Array[]> {
+  //   return new Promise<Uint8Array[]>((resolve, reject) =>
+  //     runWebSignTransactionFlow({
+  //       method: "SIGN_DATA",
+  //       signTxnRequestParams: data,
+  //       signer,
+  //       chainId,
+  //       webWalletURL,
+  //       // isCompactMode: this.compactMode,
+  //       resolve,
+  //       reject
+  //     })
+  //   );
+  // }
 
   async signTransaction(
     txGroups: SignerTransaction[][],
@@ -440,7 +437,7 @@ class PeraWalletConnect {
     // ================================================= //
   }
 
-  async signData(data: PeraWalletArbitraryData[], signer: string): Promise<Uint8Array[]> {
+  signData(data: Uint8Array, message: string, signer: string): Promise<Uint8Array[]> {
     // eslint-disable-next-line no-magic-numbers
     const chainId = this.chainId || 4160;
 
@@ -459,24 +456,24 @@ class PeraWalletConnect {
     }
 
     // Pera Wallet Web flow
-    if (this.platform === "web") {
-      const {webWalletURL} = await getPeraConnectConfig();
+    // if (this.platform === "web") {
+    //   const {webWalletURL} = await getPeraConnectConfig();
 
-      return this.signDataWithWeb({
-        data,
-        signer,
-        chainId,
-        webWalletURL
-      });
-    }
+    //   return this.signDataWithWeb({
+    //     data,
+    //     signer,
+    //     chainId,
+    //     webWalletURL
+    //   });
+    // }
 
-    const b64encodedData = data.map((item) => ({
-      ...item,
-      data: Buffer.from(item.data).toString('base64')
-    }));
+    // const b64encodedData = data.map((item) => ({
+    //   ...item,
+    //   data: Buffer.from(item).toString('base64')
+    // }));
 
     // Pera Mobile Wallet flow
-    return this.signDataWithMobile({data: b64encodedData, signer, chainId});
+    return this.signDataWithMobile({data: Buffer.from(data).toString('base64'), message, signer, chainId});
   }
 }
 
