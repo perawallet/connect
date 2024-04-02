@@ -14,7 +14,6 @@ import {
   PERA_WALLET_SIGN_TXN_TOAST_ID,
   PERA_WALLET_IFRAME_ID,
   PERA_WALLET_MODAL_CLASSNAME,
-  renderQRCode,
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
@@ -402,15 +401,13 @@ class PeraWalletConnect {
                 "algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73k",
                 "algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"
               ],
-              methods: ["algo_signTxn", "algo_signTxn"],
+              methods: ["algo_signTxn", "algo_signData"],
               events: []
             }
           }
         });
 
         if (uri) {
-          console.log(uri);
-
           openPeraWalletConnectModal({
             uri,
             isWebWalletAvailable,
@@ -418,10 +415,7 @@ class PeraWalletConnect {
             shouldUseSound,
             compactMode: this.compactMode,
             promoteMobile
-          })
-
-
-          renderQRCode(uri, isWebWalletAvailable);
+          });
 
           const peraWalletConnectModalWrapper = document.getElementById(
             PERA_WALLET_CONNECT_MODAL_ID
@@ -567,25 +561,19 @@ class PeraWalletConnect {
 
     if (client.session.length) {
       const lastKeyIndex = client!.session.keys.length - 1;
-
       const session = client.session.get(client.session.keys[lastKeyIndex]);
 
       this.session = session;
 
       const {namespaces: updatedNamespaces} = this.session;
-
-      console.log("RESTORED SESSION:", session);
-
       const accounts = Object.values(updatedNamespaces)
         .map((namespace) => namespace.accounts)
         .flat();
-
       const accountsArray: string[] = accounts.map((account) => {
         const [_namespace, _reference, address] = account.split(":");
 
         return address;
       });
-
       const [namespace, reference, _address] = accounts[0].split(":");
 
       saveWalletDetailsToStorage(

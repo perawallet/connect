@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 
 import {PeraWalletDetails, PeraWalletNetwork, PeraWalletPlatformType} from "../peraWalletTypes";
+
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storageConstants";
 
 function getLocalStorage() {

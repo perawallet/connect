@@ -1,7 +1,3 @@
-import PeraWalletLogoWithBlackBackground from "../asset/icon/PeraWalletWithBlackBackground.svg";
-
-import QRCodeStyling from "qr-code-styling";
-
 import PeraWalletConnectError from "../util/PeraWalletConnectError";
 import {waitForElementCreatedAtShadowDOM} from "../util/dom/domUtils";
 
@@ -61,19 +57,19 @@ function createModalWrapperOnDOM(modalId: string) {
  * @returns VoidFunction
  */
 function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
-    if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
-      const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
-      const {
-        uri,
-        isWebWalletAvailable,
-        shouldDisplayNewBadge,
-        shouldUseSound,
-        compactMode,
-        promoteMobile
-      } = modalConfig;
+  if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
+    const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
+    const {
+      uri,
+      isWebWalletAvailable,
+      shouldDisplayNewBadge,
+      shouldUseSound,
+      compactMode,
+      promoteMobile
+    } = modalConfig;
 
-      root.innerHTML = `<pera-wallet-connect-modal uri="${uri}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}"></pera-wallet-connect-modal>`;
-    }
+    root.innerHTML = `<pera-wallet-connect-modal uri="${uri}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}"></pera-wallet-connect-modal>`;
+  }
 }
 
 /**
@@ -130,9 +126,9 @@ function openPeraWalletSignTxnModal({isCompactMode}: {isCompactMode?: boolean}) 
 
   return signTxnModal
     ? waitForElementCreatedAtShadowDOM(
-        signTxnModal,
-        "pera-wallet-sign-txn-modal__body__content"
-      )
+      signTxnModal,
+      "pera-wallet-sign-txn-modal__body__content"
+    )
     : Promise.reject();
 }
 
@@ -191,46 +187,6 @@ function removeModalWrapperFromDOM(modalId: string) {
   }
 }
 
-function renderQRCode(uri: string, isWebWalletAvailable: boolean) {
-  // eslint-disable-next-line no-magic-numbers
-  const size = isWebWalletAvailable ? 205 : 250;
-  const peraWalletConnectModalDesktopMode = document
-    .querySelector("pera-wallet-connect-modal")
-    ?.shadowRoot?.querySelector("pera-wallet-modal-desktop-mode");
-
-  if (uri && peraWalletConnectModalDesktopMode) {
-    const qrCode = new QRCodeStyling({
-      width: size,
-      height: size,
-      type: "svg",
-      data: uri,
-      image: PeraWalletLogoWithBlackBackground,
-      dotsOptions: {
-        color: "#000",
-        type: "extra-rounded"
-      },
-      imageOptions: {
-        crossOrigin: "anonymous",
-        margin: 10
-      },
-      cornersSquareOptions: {type: "extra-rounded"},
-      cornersDotOptions: {
-        type: "dot"
-      }
-    });
-
-    const qrWrapper = peraWalletConnectModalDesktopMode.shadowRoot?.getElementById(
-      "pera-wallet-connect-modal-connect-qr-code"
-    );
-
-    if (qrWrapper) {
-      qrWrapper.innerHTML = "";
-
-      qrCode.append(qrWrapper);
-    }
-  }
-}
-
 /**
  * Return the close button element in the header as a result
  * @param type "connect" | "sign-txn"
@@ -267,6 +223,5 @@ export {
   removeModalWrapperFromDOM,
   openPeraWalletSignTxnModal,
   closePeraWalletSignTxnModal,
-  renderQRCode,
   getHeaderCloseButton
 };

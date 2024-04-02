@@ -7,6 +7,9 @@ import PlayStoreIcon from "../../../asset/icon/PlayStoreIcon.svg";
 import DownloadIcon from "../../../asset/icon/Download.svg";
 import PeraWebIcon from "../../../asset/icon/PeraWeb.svg";
 import ChevronRightIcon from "../../../asset/icon/ChevronRight.svg";
+import PeraWalletLogoWithBlackBackground from "../../../asset/icon/PeraWalletWithBlackBackground.svg";
+
+import QRCodeStyling from "qr-code-styling";
 
 import styles from "./_pera-wallet-connect-modal-desktop-mode.scss";
 import accordionStyles from "./accordion/_pera-wallet-accordion.scss";
@@ -224,17 +227,6 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
     }
 
     this.handleChangeView();
-
-    // if (peraWalletFlowType() === "EMBEDDED" && this.shadowRoot) {
-    //   const iframeWrapper = this.shadowRoot.querySelector(
-    //     ".pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
-    //   );
-
-    //   if (iframeWrapper && this.getAttribute("is-web-wallet-avaliable") === "true") {
-    //     // @ts-ignore ts-2339
-    //     window.onWebWalletConnect(iframeWrapper);
-    //   }
-    // }
   }
 
   handleChangeView() {
@@ -266,6 +258,7 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
       });
     }
 
+    this.renderQRCode();
     this.checkWebWalletAvaliability();
   }
 
@@ -299,6 +292,50 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
         }
 
         accordionItem.classList.toggle("pera-wallet-accordion-item--active");
+      }
+    }
+  }
+
+  renderQRCode() {
+    const URI = this.getAttribute("uri");
+    const isWebWalletAvailable = this.getAttribute("is-web-wallet-avaliable");
+    const isCompactMode = this.getAttribute("compact-mode") === "true";
+
+    /* eslint-disable no-magic-numbers */
+    let size = isWebWalletAvailable === "false" ? 250 : 205;
+
+    if (isCompactMode) {
+      size = 190;
+    }
+    /* eslint-enable no-magic-numbers */
+
+    if (URI) {
+      const qrCode = new QRCodeStyling({
+        width: size,
+        height: size,
+        type: "svg",
+        data: URI,
+        image: PeraWalletLogoWithBlackBackground,
+        dotsOptions: {
+          color: "#000",
+          type: "extra-rounded"
+        },
+        imageOptions: {
+          crossOrigin: "anonymous",
+          margin: 8
+        },
+        cornersSquareOptions: {type: "extra-rounded"},
+        cornersDotOptions: {
+          type: "dot"
+        }
+      });
+
+      const qrWrapper = this.shadowRoot?.getElementById(
+        "pera-wallet-connect-modal-connect-qr-code"
+      );
+
+      if (qrWrapper) {
+        qrCode.append(qrWrapper);
       }
     }
   }

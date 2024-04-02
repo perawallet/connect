@@ -21,11 +21,11 @@ interface PeraWalletDetails {
 }
 
 export type {
-  AppMeta,
-  PeraWalletNetwork,
   PeraWalletType,
   PeraWalletPlatformType,
   PeraWalletDetails,
   AlgorandChainIDs,
-  PeraWalletFlowType
+  PeraWalletFlowType,
+  PeraWalletNetwork,
+  AppMeta
 };
