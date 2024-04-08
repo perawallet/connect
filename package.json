@@ -37,9 +37,9 @@
   "dependencies": {
     "@evanhahn/lottie-web-light": "5.8.1",
     "@json-rpc-tools/utils": "1.7.6",
-    "@walletconnect/sign-client": "2.11.3",
-    "@walletconnect/types": "2.11.3",
-    "@walletconnect/utils": "2.11.3",
+    "@walletconnect/sign-client": "2.12.1",
+    "@walletconnect/types": "2.12.1",
+    "@walletconnect/utils": "2.12.1",
     "bowser": "2.11.0",
     "buffer": "^6.0.3",
     "qr-code-styling": "1.6.0-rc.1"
