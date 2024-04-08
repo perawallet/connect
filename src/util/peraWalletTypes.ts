@@ -1,3 +1,11 @@
+interface AppMeta {
+  logo: string;
+  name: string;
+  main_color: string;
+}
+
+
+type PeraWalletNetwork = "dev" | "testnet" | "mainnet";
 type PeraWalletType = "pera-wallet" | "pera-wallet-web";
 type PeraWalletPlatformType = "mobile" | "web" | null;
 type PeraWalletFlowType = "EMBEDDED" | "NEW_TAB";
@@ -9,6 +17,7 @@ interface PeraWalletDetails {
   type: PeraWalletType;
   accounts: string[];
   selectedAccount: string;
+  chainId?: string;
 }
 
 export type {
@@ -16,5 +25,7 @@ export type {
   PeraWalletPlatformType,
   PeraWalletDetails,
   AlgorandChainIDs,
-  PeraWalletFlowType
+  PeraWalletFlowType,
+  PeraWalletNetwork,
+  AppMeta
 };

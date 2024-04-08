@@ -5,9 +5,9 @@ import ArrowLeft from "../../../asset/icon/Left.svg";
 import AppStoreIcon from "../../../asset/icon/AppStoreIcon.svg";
 import PlayStoreIcon from "../../../asset/icon/PlayStoreIcon.svg";
 import DownloadIcon from "../../../asset/icon/Download.svg";
-import PeraWalletLogoWithBlackBackground from "../../../asset/icon/PeraWalletWithBlackBackground.svg";
 import PeraWebIcon from "../../../asset/icon/PeraWeb.svg";
 import ChevronRightIcon from "../../../asset/icon/ChevronRight.svg";
+import PeraWalletLogoWithBlackBackground from "../../../asset/icon/PeraWalletWithBlackBackground.svg";
 
 import QRCodeStyling from "qr-code-styling";
 
@@ -230,17 +230,6 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
     }
 
     this.handleChangeView();
-
-    // if (peraWalletFlowType() === "EMBEDDED" && this.shadowRoot) {
-    //   const iframeWrapper = this.shadowRoot.querySelector(
-    //     ".pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
-    //   );
-
-    //   if (iframeWrapper && this.getAttribute("is-web-wallet-avaliable") === "true") {
-    //     // @ts-ignore ts-2339
-    //     window.onWebWalletConnect(iframeWrapper);
-    //   }
-    // }
   }
 
   handleChangeView() {
