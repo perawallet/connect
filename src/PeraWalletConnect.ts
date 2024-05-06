@@ -34,7 +34,7 @@ import {
   formatJsonRpcRequest
 } from "./util/transaction/transactionUtils";
 import {detectBrowser, isMobile} from "./util/device/deviceUtils";
-import {AlgorandChainIDs, AppMeta, PeraWalletNetwork} from "./util/peraWalletTypes";
+import {AlgorandChainIDs, PeraWalletNetwork} from "./util/peraWalletTypes";
 import {runWebSignTransactionFlow} from "./util/sign/signTransactionFlow";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {getPeraWebWalletURL} from "./util/peraWalletConstants";
@@ -44,8 +44,6 @@ import {generateEmbeddedWalletURL} from "./util/peraWalletUtils";
 
 interface PeraWalletConnectOptions {
   projectId?: string;
-  deep_link?: string;
-  app_meta?: AppMeta;
   network?: PeraWalletNetwork;
   shouldShowSignTxnToast?: boolean;
   chainId?: AlgorandChainIDs;
@@ -62,20 +60,6 @@ class PeraWalletConnect {
   compactMode?: boolean;
 
   constructor(options: PeraWalletConnectOptions) {
-    if (options?.deep_link) {
-      getLocalStorage()?.setItem(
-        PERA_WALLET_LOCAL_STORAGE_KEYS.DEEP_LINK,
-        options.deep_link
-      );
-    }
-
-    if (options?.app_meta) {
-      getLocalStorage()?.setItem(
-        PERA_WALLET_LOCAL_STORAGE_KEYS.APP_META,
-        JSON.stringify(options.app_meta)
-      );
-    }
-
     if (options?.network) {
       this.network = options.network;
     }

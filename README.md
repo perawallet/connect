@@ -44,6 +44,8 @@ npm install --save @perawallet/connect
 
 ```jsx
 // Connect handler
+const peraWallet = new PeraWalletConnect();
+
 peraWallet
   .connect()
   .then((newAccounts) => {
@@ -91,6 +93,7 @@ try {
 | option                   | default | value                                 |          |
 | ------------------------ | ------- | ------------------------------------- | -------- |
 | `chainId`                | `4160`  | `416001`, `416002`, `416003` , `4160` | optional |
+| `projectId`              | `undefined`  | `string \| undefined` | optional |
 | `shouldShowSignTxnToast` | `true`  | `boolean`                             | optional |
 | `compactMode`            | `false` | `boolean`                             | optional |
 
@@ -105,6 +108,11 @@ Determines which Algorand network your dApp uses.
 **BetaNet**: 416003
 
 **All Networks**: 4160
+
+#### **`projectId`**
+
+This parameter is optional but strongly recommended to prevent malicious use of your project ID. Learn more on [Wallet Connect Docs](https://docs.walletconnect.com/cloud/relay).
+
 
 #### **`shouldShowSignTxnToast`**
 
@@ -142,26 +150,10 @@ Checks if there's any active session regardless of platform. Possible responses:
 
 Starts the sign process and returns the signed transaction in `Uint8Array`
 
-#### `PeraWalletConnect.signData(data: PeraWalletArbitraryData[], signer: string): Promise<Uint8Array[]>`
+#### `PeraWalletConnect.signData(data: PeraWalletArbitraryData[], signer: string, message: string): Promise<Uint8Array[]>`
 
-Starts the signing process for arbitrary data signing and returns the signed data in `Uint8Array`. Uses `signBytes` method of `algosdk` behind the scenes. `signer` should be a valid Algorand address that exists in the user's wallet.
+This function signs arbitrary data in the  [ARC-60](https://github.com/algorandfoundation/ARCs/pull/284) format. It initiates the signing process for arbitrary data and returns a promise containing the signed data as a `Uint8Array`. The `signer` parameter should be a valid Algorand address existing in the user's wallet. The `message` parameter will be displayed on the Arbitrary Data Sign screen within the Pera Wallet interface.
 
-<details>
-  <summary>See example</summary>
-  
-```typescript
-const signedData: Uint8Array[] = await peraWallet.signData([
-  {
-    data: new Uint8Array(Buffer.from(`timestamp//${Date.now()}`)),
-    message: "Timestamp confirmation"
-  },
-  {
-    data: new Uint8Array(Buffer.from(`agent//${navigator.userAgent}`)),
-    message: "User agent confirmation"
-  }
-], "SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4");
-```
-</details>
 
 ## Customizing Style
 
