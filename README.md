@@ -93,6 +93,7 @@ try {
 | option                   | default | value                                 |          |
 | ------------------------ | ------- | ------------------------------------- | -------- |
 | `chainId`                | `4160`  | `416001`, `416002`, `416003` , `4160` | optional |
+| `projectId`              | `undefined`  | `string \| undefined` | optional |
 | `shouldShowSignTxnToast` | `true`  | `boolean`                             | optional |
 | `compactMode`            | `false` | `boolean`                             | optional |
 
@@ -107,6 +108,11 @@ Determines which Algorand network your dApp uses.
 **BetaNet**: 416003
 
 **All Networks**: 4160
+
+#### **`projectId`**
+
+This parameter is optional but strongly recommended to prevent malicious use of your project ID. Learn more on [Wallet Connect Docs](https://docs.walletconnect.com/cloud/relay).
+
 
 #### **`shouldShowSignTxnToast`**
 
