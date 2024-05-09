@@ -477,7 +477,14 @@ class PeraWalletConnect {
         if (!walletDetails?.chainId) {
           await resetWalletDetailsFromStorage();
 
-          return;
+          reject(
+            new PeraWalletConnectError(
+              {
+                type: "SESSION_RECONNECT",
+                detail: "Failed to reconnect session due to Wallet Connect version mismatch"
+              },
+              "Failed to reconnect session"
+            ));
         }
 
         if (!walletDetails) {
