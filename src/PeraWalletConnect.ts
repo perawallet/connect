@@ -474,6 +474,12 @@ class PeraWalletConnect {
       try {
         const walletDetails = getWalletDetailsFromStorage();
 
+        if (!walletDetails?.chainId) {
+          await resetWalletDetailsFromStorage();
+
+          return;
+        }
+
         if (!walletDetails) {
           resolve([]);
 
