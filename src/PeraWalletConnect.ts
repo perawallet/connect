@@ -337,9 +337,7 @@ class PeraWalletConnect {
       removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
     }
 
-    return {
-      onWebWalletConnect
-    };
+    return onWebWalletConnect;
   }
 
   connect({network}: {network?: PeraWalletNetwork} = {}) {

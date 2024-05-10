@@ -10,7 +10,7 @@ export interface PeraWebWalletURLs {
 }
 
 function getPeraWebWalletURL(_webWalletURL: string): PeraWebWalletURLs {
-  const root = "https://staging.web.perawallet.app/";
+  const root = "https://web.perawallet.app/";
 
   return {
     ROOT: root,
