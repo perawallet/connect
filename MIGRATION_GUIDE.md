@@ -1,7 +1,6 @@
 # Migration Guide for Pera Wallet v2
 
-Pera Connect is upgrading to Wallet Connect v2. This update introduces some breaking changes. Please follow the steps below to ensure a seamless transition.
-
+Pera Connect is upgrading to WalletConnect v2. This update introduces some breaking changes. Please follow the steps below to ensure a seamless transition.
 
 ### 1. Initializing PeraWalletConnect Instance
 
