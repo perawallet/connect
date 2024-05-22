@@ -3,7 +3,7 @@
 Pera Connect is upgrading to Wallet Connect v2. This update introduces some breaking changes. Please follow the steps below to ensure a seamless transition.
 
 
-### 1. Initializing PeraWalletConnect Instance
+### 1. Initializing PeraWalletConnect Instance
 
 In the new version, you must pass a `projectId` when creating an instance of `PeraWalletConnect`. You can obtain your projectId from Wallet Connect. For more details, please refer to this link.
 
