@@ -444,13 +444,15 @@ class PeraWalletConnect {
           return address;
         });
 
+        const accountsSet = [...new Set(accountsArray)];
+
         saveWalletDetailsToStorage(
-          accountsArray || [],
+          accountsSet || [],
           "pera-wallet",
           `${namespace}:${reference}`
         );
 
-        resolve(accountsArray);
+        resolve(accountsSet);
       } catch (error: any) {
         console.log(error);
 
