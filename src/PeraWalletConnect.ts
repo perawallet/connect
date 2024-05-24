@@ -287,13 +287,15 @@ class PeraWalletConnect {
           return address;
         });
 
+        const accountsSet = [...new Set(accountsArray)];
+
         saveWalletDetailsToStorage(
-          accountsArray || [],
+          accountsSet || [],
           "pera-wallet",
           `${namespace}:${reference}`
         );
 
-        resolve(accountsArray);
+        resolve(accountsSet);
       } catch (error: any) {
         console.log(error);
 
@@ -324,7 +326,7 @@ class PeraWalletConnect {
             new PeraWalletConnectError(
               {
                 type: "SESSION_RECONNECT",
-                detail: "Failed to reconnect session due to Wallet Connect version mismatch"
+                detail: "Failed to reconnect session. Wallet Connect version mismatch."
               },
               "Failed to reconnect session"
             ));
