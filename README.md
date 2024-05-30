@@ -1,6 +1,6 @@
 ![Pera Connect Cover Image](https://user-images.githubusercontent.com/54077855/179966121-bd9295c3-5f61-4203-b13f-851434e72d35.png)
 
-## @perawallet/connect
+## @perawallet/connect-beta (Beta version of Pera Connect)
 
 JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web applications. For more detailed information, please check our [Pera Connect Docs](https://docs.perawallet.app/references/pera-connect/).
 
@@ -36,10 +36,10 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 ## Quick Start
 
-Let's start with installing `@perawallet/connect`
+Let's start with installing `@perawallet/connect-beta`
 
 ```
-npm install --save @perawallet/connect
+npm install --save @perawallet/connect-beta
 ```
 
 ```jsx

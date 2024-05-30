@@ -12,7 +12,7 @@ import {
   PERA_WALLET_REDIRECT_MODAL_ID,
   openPeraWalletSignTxnToast,
   PERA_WALLET_SIGN_TXN_TOAST_ID,
-  PERA_WALLET_MODAL_CLASSNAME,
+  PERA_WALLET_MODAL_CLASSNAME
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
@@ -23,10 +23,7 @@ import {
   resetWalletDetailsFromStorage
 } from "./util/storage/storageUtils";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
-import {
-  PeraWalletTransaction,
-  SignerTransaction,
-} from "./util/model/peraWalletModels";
+import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
   base64ToUint8Array,
   composeTransaction,
@@ -39,6 +36,7 @@ import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {getPeraWebWalletURL} from "./util/peraWalletConstants";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
 import {getMetaInfo, waitForTabOpening} from "./util/dom/domUtils";
+import {formatWalletConnectSessionResponse} from "./util/wallet-connect/walletConnectUtils";
 
 interface PeraWalletConnectOptions {
   projectId?: string;
@@ -109,7 +107,6 @@ class PeraWalletConnect {
     const webWalletURLs = getPeraWebWalletURL(webWalletURL);
 
     function onWebWalletConnect() {
-
       waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
         if (newPeraWalletTab && newPeraWalletTab.opener) {
           appTellerManager.sendMessage({
@@ -165,7 +162,7 @@ class PeraWalletConnect {
                     detail: event.data.message.error
                   },
                   event.data.message.error ||
-                  `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
+                    `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
                 )
               );
 
@@ -273,29 +270,17 @@ class PeraWalletConnect {
 
         this.session = await approval();
 
-        const {namespaces} = this.session;
-
-        const accounts = Object.values(namespaces)
-          .map((namespace) => namespace.accounts)
-          .flat();
-
-        const [namespace, reference, _address] = accounts[0].split(":");
-
-        const accountsArray: string[] = accounts.map((account) => {
-          const [_namespace, _reference, address] = account.split(":");
-
-          return address;
-        });
-
-        const accountsSet = [...new Set(accountsArray)];
+        const {namespace, reference, accounts} = formatWalletConnectSessionResponse(
+          this.session
+        );
 
         saveWalletDetailsToStorage(
-          accountsSet || [],
+          accounts || [],
           "pera-wallet",
           `${namespace}:${reference}`
         );
 
-        resolve(accountsSet);
+        resolve(accounts);
       } catch (error: any) {
         console.log(error);
 
@@ -319,7 +304,14 @@ class PeraWalletConnect {
       try {
         const walletDetails = getWalletDetailsFromStorage();
 
-        if (!walletDetails?.chainId) {
+        if (!walletDetails) {
+          resolve([]);
+
+          return;
+        }
+
+        // Do not reconnect if the last session was connected with Wallet Connect v1
+        if (!walletDetails?.version) {
           await resetWalletDetailsFromStorage();
 
           reject(
@@ -328,14 +320,9 @@ class PeraWalletConnect {
                 type: "SESSION_RECONNECT",
                 detail: "Failed to reconnect session. Wallet Connect version mismatch."
               },
-              "Failed to reconnect session"
-            ));
-        }
-
-        if (!walletDetails) {
-          resolve([]);
-
-          return;
+              "Failed to reconnect session. Please try to connect again."
+            )
+          );
         }
 
         // ================================================= //
@@ -408,19 +395,12 @@ class PeraWalletConnect {
 
       this.session = session;
 
-      const {namespaces: updatedNamespaces} = this.session;
-      const accounts = Object.values(updatedNamespaces)
-        .map((namespace) => namespace.accounts)
-        .flat();
-      const accountsArray: string[] = accounts.map((account) => {
-        const [_namespace, _reference, address] = account.split(":");
-
-        return address;
-      });
-      const [namespace, reference, _address] = accounts[0].split(":");
+      const {namespace, reference, accounts} = formatWalletConnectSessionResponse(
+        this.session
+      );
 
       saveWalletDetailsToStorage(
-        accountsArray || [],
+        accounts || [],
         "pera-wallet",
         `${namespace}:${reference}`
       );
@@ -435,7 +415,7 @@ class PeraWalletConnect {
         }
 
         if (typeof this.client?.session === "undefined") {
-          reject(new Error("WalletConnect is not initialized"));
+          reject(new Error("WalletConnect is not initialized 2"));
         }
 
         try {
@@ -541,10 +521,9 @@ class PeraWalletConnect {
     signer: string;
     chainId: AlgorandChainIDs;
   }) {
-    const formattedSignTxnRequest = formatJsonRpcRequest(
-      "algo_signData",
-      [{data, signer, chainID: chainId, message}]
-    );
+    const formattedSignTxnRequest = formatJsonRpcRequest("algo_signData", [
+      {data, signer, chainID: chainId, message}
+    ]);
 
     try {
       try {
@@ -617,7 +596,7 @@ class PeraWalletConnect {
     // ================================================= //
   }
 
-  signData(data: Uint8Array, signer: string, message: string,): Promise<Uint8Array[]> {
+  signData(data: Uint8Array, signer: string, message: string): Promise<Uint8Array[]> {
     // eslint-disable-next-line no-magic-numbers
     const chainId = (this.chainId || 4160) as AlgorandChainIDs;
 
@@ -636,7 +615,12 @@ class PeraWalletConnect {
     }
 
     // Pera Mobile Wallet flow
-    return this.signDataWithMobile({data: Buffer.from(data).toString('base64'), message, signer, chainId});
+    return this.signDataWithMobile({
+      data: Buffer.from(data).toString("base64"),
+      message,
+      signer,
+      chainId
+    });
   }
 }
 

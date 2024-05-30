@@ -1,14 +1,10 @@
 import PeraWalletConnectError from "../PeraWalletConnectError";
-import {
-  waitForTabOpening
-} from "../dom/domUtils";
+import {waitForTabOpening} from "../dom/domUtils";
 import {PeraWalletArbitraryData, PeraWalletTransaction} from "../model/peraWalletModels";
 import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "../peraWalletConstants";
 import {RunSignTransactionFlowParams} from "./signTransactionFlowModels";
-import {
-  newTabSignTransactionFlowTellerReducer
-} from "./signTransactionFlowReducers";
+import {newTabSignTransactionFlowTellerReducer} from "./signTransactionFlowReducers";
 
 function runWebSignTransactionFlow({
   method,
@@ -23,7 +19,6 @@ function runWebSignTransactionFlow({
   const webWalletURLs = getPeraWebWalletURL(webWalletURL);
 
   runNewTabSignFlow();
-  
   // =========== New Tab Sign Flow ===========
   async function runNewTabSignFlow() {
     try {

@@ -1,9 +1,7 @@
 import PeraWalletConnectError from "../PeraWalletConnectError";
 import {resetWalletDetailsFromStorage} from "../storage/storageUtils";
 import {base64ToUint8Array} from "../transaction/transactionUtils";
-import {
-  NewTabSignTransactionFlowTellerReducerParams
-} from "./signTransactionFlowModels";
+import {NewTabSignTransactionFlowTellerReducerParams} from "./signTransactionFlowModels";
 
 // =========== New Tab Sign Flow ===========
 function newTabSignTransactionFlowTellerReducer({

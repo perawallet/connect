@@ -1,6 +1,10 @@
 // eslint-disable-next-line import/no-unresolved
 
-import {PeraWalletDetails, PeraWalletNetwork, PeraWalletPlatformType} from "../peraWalletTypes";
+import {
+  PeraWalletDetails,
+  PeraWalletNetwork,
+  PeraWalletPlatformType
+} from "../peraWalletTypes";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storageConstants";
 
 function getLocalStorage() {
@@ -18,7 +22,8 @@ function saveWalletDetailsToStorage(
       type: type || "pera-wallet",
       accounts,
       selectedAccount: accounts[0],
-      chainId
+      chainId,
+      version: "2.0"
     })
   );
 }

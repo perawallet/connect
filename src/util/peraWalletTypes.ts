@@ -10,6 +10,7 @@ interface PeraWalletDetails {
   type: PeraWalletType;
   accounts: string[];
   selectedAccount: string;
+  version: string;
   chainId?: string;
 }
 
