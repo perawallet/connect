@@ -12,8 +12,7 @@ import {
   PERA_WALLET_REDIRECT_MODAL_ID,
   openPeraWalletSignTxnToast,
   PERA_WALLET_SIGN_TXN_TOAST_ID,
-  PERA_WALLET_IFRAME_ID,
-  PERA_WALLET_MODAL_CLASSNAME,
+  PERA_WALLET_MODAL_CLASSNAME
 } from "./modal/peraWalletConnectModalUtils";
 import {
   getWalletDetailsFromStorage,
@@ -24,23 +23,20 @@ import {
   resetWalletDetailsFromStorage
 } from "./util/storage/storageUtils";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
-import {
-  PeraWalletTransaction,
-  SignerTransaction,
-} from "./util/model/peraWalletModels";
+import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
   base64ToUint8Array,
   composeTransaction,
   formatJsonRpcRequest
 } from "./util/transaction/transactionUtils";
-import {detectBrowser, isMobile} from "./util/device/deviceUtils";
+import {isMobile} from "./util/device/deviceUtils";
 import {AlgorandChainIDs, PeraWalletNetwork} from "./util/peraWalletTypes";
 import {runWebSignTransactionFlow} from "./util/sign/signTransactionFlow";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {getPeraWebWalletURL} from "./util/peraWalletConstants";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
 import {getMetaInfo, waitForTabOpening} from "./util/dom/domUtils";
-import {generateEmbeddedWalletURL} from "./util/peraWalletUtils";
+import {formatWalletConnectSessionResponse} from "./util/wallet-connect/walletConnectUtils";
 
 interface PeraWalletConnectOptions {
   projectId?: string;
@@ -108,143 +104,11 @@ class PeraWalletConnect {
     webWalletURL: string,
     chainId: number | undefined
   ) {
-    const browser = detectBrowser();
     const webWalletURLs = getPeraWebWalletURL(webWalletURL);
 
-    const peraWalletIframe = document.createElement("iframe");
-
-    function onReceiveMessage(event: MessageEvent<TellerMessage<PeraTeller>>) {
-      if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
-        const accounts = event.data.message.data.addresses;
-
-        saveWalletDetailsToStorage(accounts, "pera-wallet-web");
-
-        resolve(accounts);
-
-        onClose();
-
-        document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
-      } else if (event.data.message.type === "CONNECT_NETWORK_MISMATCH") {
-        reject(
-          new PeraWalletConnectError(
-            {
-              type: "CONNECT_NETWORK_MISMATCH",
-              detail: event.data.message.error
-            },
-            event.data.message.error ||
-            `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
-          )
-        );
-
-        onClose();
-
-        document.getElementById(PERA_WALLET_IFRAME_ID)?.remove();
-      } else if (
-        ["CREATE_PASSCODE_EMBEDDED", "SELECT_ACCOUNT_EMBEDDED"].includes(
-          event.data.message.type
-        )
-      ) {
-        if (event.data.message.type === "CREATE_PASSCODE_EMBEDDED") {
-          const newPeraWalletTab = window.open(webWalletURLs.CONNECT, "_blank");
-
-          if (newPeraWalletTab && newPeraWalletTab.opener) {
-            appTellerManager.sendMessage({
-              message: {
-                type: "CONNECT",
-                data: {
-                  ...getMetaInfo(),
-                  chainId
-                }
-              },
-
-              origin: webWalletURLs.CONNECT,
-              targetWindow: newPeraWalletTab
-            });
-          }
-
-          const checkTabIsAliveInterval = setInterval(() => {
-            if (newPeraWalletTab?.closed === true) {
-              reject(
-                new PeraWalletConnectError(
-                  {
-                    type: "CONNECT_CANCELLED"
-                  },
-                  "Connect is cancelled by user"
-                )
-              );
-
-              onClose();
-              clearInterval(checkTabIsAliveInterval);
-            }
-
-            // eslint-disable-next-line no-magic-numbers
-          }, 2000);
-
-          appTellerManager.setupListener({
-            onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
-              if (resolve && newTabEvent.data.message.type === "CONNECT_CALLBACK") {
-                const accounts = newTabEvent.data.message.data.addresses;
-
-                saveWalletDetailsToStorage(accounts, "pera-wallet-web");
-
-                resolve(accounts);
-
-                onClose();
-
-                newPeraWalletTab?.close();
-              }
-            }
-          });
-        } else if (event.data.message.type === "SELECT_ACCOUNT_EMBEDDED") {
-          const peraWalletConnectModalWrapper = document.getElementById(
-            PERA_WALLET_CONNECT_MODAL_ID
-          );
-
-          const peraWalletConnectModal = peraWalletConnectModalWrapper
-            ?.querySelector("pera-wallet-connect-modal")
-            ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
-
-          const peraWalletConnectModalDesktopMode = peraWalletConnectModal
-            ?.querySelector("pera-wallet-modal-desktop-mode")
-            ?.shadowRoot?.querySelector(".pera-wallet-connect-modal-desktop-mode");
-
-          if (peraWalletConnectModal && peraWalletConnectModalDesktopMode) {
-            peraWalletConnectModal.classList.add(
-              `${PERA_WALLET_MODAL_CLASSNAME}--select-account`
-            );
-            peraWalletConnectModal.classList.remove(
-              `${PERA_WALLET_MODAL_CLASSNAME}--create-passcode`
-            );
-            peraWalletConnectModalDesktopMode.classList.add(
-              `pera-wallet-connect-modal-desktop-mode--select-account`
-            );
-            peraWalletConnectModalDesktopMode.classList.remove(
-              `pera-wallet-connect-modal-desktop-mode--create-passcode`
-            );
-          }
-
-          appTellerManager.sendMessage({
-            message: {
-              type: "SELECT_ACCOUNT_EMBEDDED_CALLBACK"
-            },
-            origin: webWalletURLs.CONNECT,
-            targetWindow: peraWalletIframe.contentWindow!
-          });
-        }
-      }
-    }
-
-    function onWebWalletConnect(peraWalletIframeWrapper: Element) {
-      if (browser === "Chrome") {
-        peraWalletIframe.setAttribute("id", PERA_WALLET_IFRAME_ID);
-        peraWalletIframe.setAttribute(
-          "src",
-          generateEmbeddedWalletURL(webWalletURLs.CONNECT)
-        );
-
-        peraWalletIframeWrapper.appendChild(peraWalletIframe);
-
-        if (peraWalletIframe.contentWindow) {
+    function onWebWalletConnect() {
+      waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
+        if (newPeraWalletTab && newPeraWalletTab.opener) {
           appTellerManager.sendMessage({
             message: {
               type: "CONNECT",
@@ -255,82 +119,60 @@ class PeraWalletConnect {
             },
 
             origin: webWalletURLs.CONNECT,
-            targetWindow: peraWalletIframe.contentWindow,
+            targetWindow: newPeraWalletTab,
             timeout: 5000
           });
         }
 
-        appTellerManager.setupListener({
-          onReceiveMessage
-        });
-      } else {
-        waitForTabOpening(webWalletURLs.CONNECT).then((newPeraWalletTab) => {
-          if (newPeraWalletTab && newPeraWalletTab.opener) {
-            appTellerManager.sendMessage({
-              message: {
-                type: "CONNECT",
-                data: {
-                  ...getMetaInfo(),
-                  chainId
-                }
-              },
+        const checkTabIsAliveInterval = setInterval(() => {
+          if (newPeraWalletTab?.closed === true) {
+            reject(
+              new PeraWalletConnectError(
+                {
+                  type: "CONNECT_CANCELLED"
+                },
+                "Connect is cancelled by user"
+              )
+            );
 
-              origin: webWalletURLs.CONNECT,
-              targetWindow: newPeraWalletTab,
-              timeout: 5000
-            });
+            clearInterval(checkTabIsAliveInterval);
+            onClose();
           }
 
-          const checkTabIsAliveInterval = setInterval(() => {
-            if (newPeraWalletTab?.closed === true) {
+          // eslint-disable-next-line no-magic-numbers
+        }, 2000);
+
+        appTellerManager.setupListener({
+          onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
+            if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
+              const accounts = event.data.message.data.addresses;
+
+              saveWalletDetailsToStorage(accounts, "pera-wallet-web");
+
+              resolve(accounts);
+
+              onClose();
+
+              newPeraWalletTab?.close();
+            } else if (event.data.message.type === "CONNECT_NETWORK_MISMATCH") {
               reject(
                 new PeraWalletConnectError(
                   {
-                    type: "CONNECT_CANCELLED"
+                    type: "CONNECT_NETWORK_MISMATCH",
+                    detail: event.data.message.error
                   },
-                  "Connect is cancelled by user"
+                  event.data.message.error ||
+                    `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
                 )
               );
 
-              clearInterval(checkTabIsAliveInterval);
               onClose();
+
+              newPeraWalletTab?.close();
             }
-
-            // eslint-disable-next-line no-magic-numbers
-          }, 2000);
-
-          appTellerManager.setupListener({
-            onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) => {
-              if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
-                const accounts = event.data.message.data.addresses;
-
-                saveWalletDetailsToStorage(accounts, "pera-wallet-web");
-
-                resolve(accounts);
-
-                onClose();
-
-                newPeraWalletTab?.close();
-              } else if (event.data.message.type === "CONNECT_NETWORK_MISMATCH") {
-                reject(
-                  new PeraWalletConnectError(
-                    {
-                      type: "CONNECT_NETWORK_MISMATCH",
-                      detail: event.data.message.error
-                    },
-                    event.data.message.error ||
-                    `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
-                  )
-                );
-
-                onClose();
-
-                newPeraWalletTab?.close();
-              }
-            }
-          });
+          }
         });
-      }
+      });
     }
 
     function onClose() {
@@ -430,29 +272,17 @@ class PeraWalletConnect {
 
         this.session = await approval();
 
-        const {namespaces} = this.session;
-
-        const accounts = Object.values(namespaces)
-          .map((namespace) => namespace.accounts)
-          .flat();
-
-        const [namespace, reference, _address] = accounts[0].split(":");
-
-        const accountsArray: string[] = accounts.map((account) => {
-          const [_namespace, _reference, address] = account.split(":");
-
-          return address;
-        });
-
-        const accountsSet = [...new Set(accountsArray)];
+        const {namespace, reference, accounts} = formatWalletConnectSessionResponse(
+          this.session
+        );
 
         saveWalletDetailsToStorage(
-          accountsSet || [],
+          accounts || [],
           "pera-wallet",
           `${namespace}:${reference}`
         );
 
-        resolve(accountsSet);
+        resolve(accounts);
       } catch (error: any) {
         console.log(error);
 
@@ -476,7 +306,14 @@ class PeraWalletConnect {
       try {
         const walletDetails = getWalletDetailsFromStorage();
 
-        if (!walletDetails?.chainId) {
+        if (!walletDetails) {
+          resolve([]);
+
+          return;
+        }
+
+        // Do not reconnect if the last session was connected with Wallet Connect v1
+        if (!walletDetails?.version) {
           await resetWalletDetailsFromStorage();
 
           reject(
@@ -485,14 +322,9 @@ class PeraWalletConnect {
                 type: "SESSION_RECONNECT",
                 detail: "Failed to reconnect session. Wallet Connect version mismatch."
               },
-              "Failed to reconnect session"
-            ));
-        }
-
-        if (!walletDetails) {
-          resolve([]);
-
-          return;
+              "Failed to reconnect session. Please try to connect again."
+            )
+          );
         }
 
         // ================================================= //
@@ -565,19 +397,12 @@ class PeraWalletConnect {
 
       this.session = session;
 
-      const {namespaces: updatedNamespaces} = this.session;
-      const accounts = Object.values(updatedNamespaces)
-        .map((namespace) => namespace.accounts)
-        .flat();
-      const accountsArray: string[] = accounts.map((account) => {
-        const [_namespace, _reference, address] = account.split(":");
-
-        return address;
-      });
-      const [namespace, reference, _address] = accounts[0].split(":");
+      const {namespace, reference, accounts} = formatWalletConnectSessionResponse(
+        this.session
+      );
 
       saveWalletDetailsToStorage(
-        accountsArray || [],
+        accounts || [],
         "pera-wallet",
         `${namespace}:${reference}`
       );
@@ -592,7 +417,7 @@ class PeraWalletConnect {
         }
 
         if (typeof this.client?.session === "undefined") {
-          reject(new Error("WalletConnect is not initialized"));
+          reject(new Error("WalletConnect is not initialized 2"));
         }
 
         try {
@@ -698,10 +523,9 @@ class PeraWalletConnect {
     signer: string;
     chainId: AlgorandChainIDs;
   }) {
-    const formattedSignTxnRequest = formatJsonRpcRequest(
-      "algo_signData",
-      [{data, signer, chainID: chainId, message}]
-    );
+    const formattedSignTxnRequest = formatJsonRpcRequest("algo_signData", [
+      {data, signer, chainID: chainId, message}
+    ]);
 
     try {
       try {
@@ -774,7 +598,7 @@ class PeraWalletConnect {
     // ================================================= //
   }
 
-  signData(data: Uint8Array, signer: string, message: string,): Promise<Uint8Array[]> {
+  signData(data: Uint8Array, signer: string, message: string): Promise<Uint8Array[]> {
     // eslint-disable-next-line no-magic-numbers
     const chainId = (this.chainId || 4160) as AlgorandChainIDs;
 
@@ -793,7 +617,12 @@ class PeraWalletConnect {
     }
 
     // Pera Mobile Wallet flow
-    return this.signDataWithMobile({data: Buffer.from(data).toString('base64'), message, signer, chainId});
+    return this.signDataWithMobile({
+      data: Buffer.from(data).toString("base64"),
+      message,
+      signer,
+      chainId
+    });
   }
 }
 

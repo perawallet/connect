@@ -17,8 +17,4 @@ function getPeraWebWalletURL(webWalletURL: string): PeraWebWalletURLs {
   };
 }
 
-export {
-  PERA_WALLET_APP_DEEP_LINK,
-  getPeraWebWalletURL,
-  PERA_DOWNLOAD_URL
-};
+export {PERA_WALLET_APP_DEEP_LINK, getPeraWebWalletURL, PERA_DOWNLOAD_URL};

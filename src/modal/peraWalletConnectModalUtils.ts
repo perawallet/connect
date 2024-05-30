@@ -126,9 +126,9 @@ function openPeraWalletSignTxnModal({isCompactMode}: {isCompactMode?: boolean}) 
 
   return signTxnModal
     ? waitForElementCreatedAtShadowDOM(
-      signTxnModal,
-      "pera-wallet-sign-txn-modal__body__content"
-    )
+        signTxnModal,
+        "pera-wallet-sign-txn-modal__body__content"
+      )
     : Promise.reject();
 }
 
