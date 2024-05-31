@@ -162,7 +162,7 @@ class PeraWalletConnect {
                     detail: event.data.message.error
                   },
                   event.data.message.error ||
-                    `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
+                  `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
                 )
               );
 
@@ -346,6 +346,10 @@ class PeraWalletConnect {
         }
 
         if (this.isConnected) {
+          if (!this.client) {
+            this.client = await this.createClient();
+          }
+
           resolve(walletDetails!.accounts);
         }
         // If there is no wallet details in storage, resolve the promise with empty array
