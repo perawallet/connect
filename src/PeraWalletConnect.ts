@@ -186,7 +186,7 @@ class PeraWalletConnect {
     return new Promise<string[]>(async (resolve, reject) => {
       try {
         if (this.client?.session) {
-          this.disconnect();
+          await this.disconnect();
         }
 
         if (network) {
@@ -574,7 +574,7 @@ class PeraWalletConnect {
       }
 
       if (!this.client) {
-        throw new Error("PeraWalletConnect was not initialized correctly.");
+        throw new Error("PeraWalletConnect was not initialized correctly while signing transaction.");
       }
     }
 
