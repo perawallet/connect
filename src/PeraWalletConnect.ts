@@ -376,7 +376,8 @@ class PeraWalletConnect {
       const client = await Client.init({
         relayUrl: "wss://relay.walletconnect.com",
         projectId: this.projectId,
-        metadata: getAppMetadata()
+        metadata: getAppMetadata(),
+        logger: "debug"
       });
 
       this.client = client;
