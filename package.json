@@ -37,6 +37,7 @@
   "dependencies": {
     "@evanhahn/lottie-web-light": "5.8.1",
     "@walletconnect/client": "^1.8.0",
+    "@walletconnect/socket-transport": "github:awesome-algorand/walletconnect-socket-transport",
     "@walletconnect/types": "^1.8.0",
     "bowser": "2.11.0",
     "buffer": "^6.0.3",
