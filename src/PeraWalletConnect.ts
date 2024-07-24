@@ -23,7 +23,7 @@ import {
   resetWalletDetailsFromStorage
 } from "./util/storage/storageUtils";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
-import {PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
+import {PeraWalletArbitraryData, PeraWalletTransaction, SignerTransaction} from "./util/model/peraWalletModels";
 import {
   base64ToUint8Array,
   composeTransaction,
@@ -33,13 +33,13 @@ import {isMobile} from "./util/device/deviceUtils";
 import {AlgorandChainIDs, PeraWalletNetwork} from "./util/peraWalletTypes";
 import {runWebSignTransactionFlow} from "./util/sign/signTransactionFlow";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
-import {getPeraWebWalletURL} from "./util/peraWalletConstants";
+import {AlgorandChainNamespace, AlgorandMethod, getPeraWebWalletURL} from "./util/peraWalletConstants";
 import appTellerManager, {PeraTeller} from "./util/network/teller/appTellerManager";
 import {getMetaInfo, waitForTabOpening} from "./util/dom/domUtils";
 import {formatWalletConnectSessionResponse} from "./util/wallet-connect/walletConnectUtils";
 
 interface PeraWalletConnectOptions {
-  projectId?: string;
+  projectId: string;
   network?: PeraWalletNetwork;
   shouldShowSignTxnToast?: boolean;
   chainId?: AlgorandChainIDs;
@@ -56,6 +56,8 @@ class PeraWalletConnect {
   compactMode?: boolean;
 
   constructor(options: PeraWalletConnectOptions) {
+    this.projectId = options.projectId;
+
     if (options?.network) {
       this.network = options.network;
     }
@@ -64,10 +66,6 @@ class PeraWalletConnect {
       PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK,
       options?.network || "mainnet"
     );
-
-    if (options.projectId) {
-      this.projectId = options.projectId;
-    }
 
     this.shouldShowSignTxnToast =
       typeof options?.shouldShowSignTxnToast === "undefined"
@@ -220,13 +218,15 @@ class PeraWalletConnect {
 
         const {uri, approval} = await this.client.connect({
           requiredNamespaces: {
-            // TODO: We should update this after align with mobile team
             algorand: {
               chains: [
-                "algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73k",
-                "algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe"
+                AlgorandChainNamespace.Mainnet,
+                AlgorandChainNamespace.Testnet
               ],
-              methods: ["algo_signTxn", "algo_signData"],
+              methods: [
+                AlgorandMethod.SignTransaction,
+                AlgorandMethod.SignData
+              ],
               events: []
             }
           }
@@ -445,19 +445,16 @@ class PeraWalletConnect {
   }
 
   private async signTransactionWithMobile(signTxnRequestParams: PeraWalletTransaction[]) {
-    const formattedSignTxnRequest = formatJsonRpcRequest("algo_signTxn", [
-      signTxnRequestParams
-    ]);
+    const formattedSignTxnRequest = formatJsonRpcRequest(
+      AlgorandMethod.SignTransaction, [signTxnRequestParams]
+    );
     const walletDetails = getWalletDetailsFromStorage();
 
     try {
       try {
-        // const {silent} = await getPeraConnectConfig();
-
         if (walletDetails?.chainId) {
           const response = await this.client!.request<any>({
             topic: this.session!.topic,
-            // TODO: We should update this after align with mobile team
             request: formattedSignTxnRequest,
             chainId: walletDetails.chainId
           });
@@ -516,19 +513,22 @@ class PeraWalletConnect {
 
   private async signDataWithMobile({
     data,
-    message,
     signer,
     chainId
   }: {
-    // Converted Uin8Array data to base64
-    data: string;
-    message: string;
+    // Converted Uint8Array data to base64
+    data: {data: string; message: string;}[];
     signer: string;
     chainId: AlgorandChainIDs;
   }) {
-    const formattedSignTxnRequest = formatJsonRpcRequest("algo_signData", [
-      {data, signer, chainID: chainId, message}
-    ]);
+    const formattedSignDataRequest = formatJsonRpcRequest(
+      AlgorandMethod.SignData,
+      data.map((item) => ({
+        ...item,
+        signer,
+        chainID: chainId
+      }))
+    );
 
     try {
       try {
@@ -536,7 +536,7 @@ class PeraWalletConnect {
 
         const response = await this.client!.request<any>({
           topic: this.session!.topic,
-          request: formattedSignTxnRequest,
+          request: formattedSignDataRequest,
           chainId: walletDetails?.chainId || "4610"
         });
 
@@ -601,7 +601,7 @@ class PeraWalletConnect {
     // ================================================= //
   }
 
-  signData(data: Uint8Array, signer: string, message: string): Promise<Uint8Array[]> {
+  signData(data: PeraWalletArbitraryData[], signer: string): Promise<Uint8Array[]> {
     // eslint-disable-next-line no-magic-numbers
     const chainId = (this.chainId || 4160) as AlgorandChainIDs;
 
@@ -619,13 +619,13 @@ class PeraWalletConnect {
       }
     }
 
+    const b64encodedData = data.map((item) => ({
+      ...item,
+      data: Buffer.from(item.data).toString('base64')
+    }));
+
     // Pera Mobile Wallet flow
-    return this.signDataWithMobile({
-      data: Buffer.from(data).toString("base64"),
-      message,
-      signer,
-      chainId
-    });
+    return this.signDataWithMobile({data: b64encodedData, signer, chainId});
   }
 }
 

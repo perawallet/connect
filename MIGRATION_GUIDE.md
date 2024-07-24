@@ -4,7 +4,7 @@ Pera Connect is upgrading to WalletConnect v2. This update introduces some break
 
 ### 1. Initializing PeraWalletConnect Instance
 
-In the new version, you must pass a `projectId` when creating an instance of `PeraWalletConnect`. You can obtain your projectId from Wallet Connect. For more details, please refer to this [documentation](https://docs.walletconnect.com/cloud/relay).
+In the new version, you must pass a `projectId` when creating an instance of `PeraWalletConnect`. You can obtain your `projectId` from Wallet Connect. For more details, please refer to this [documentation](https://docs.walletconnect.com/cloud/relay).
 
 ```js
 const peraWallet = new PeraWalletConnect({projectId: <YOUR_PROJECT_ID>});
