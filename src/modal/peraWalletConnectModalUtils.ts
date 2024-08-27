@@ -9,6 +9,7 @@ export interface PeraWalletModalConfig {
   shouldUseSound: boolean;
   promoteMobile?: boolean;
   compactMode?: boolean;
+  singleAccount?: boolean;
 }
 
 // The ID of the wrapper element for PeraWalletConnectModal
@@ -65,10 +66,11 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
         shouldDisplayNewBadge,
         shouldUseSound,
         compactMode,
-        promoteMobile
+        promoteMobile,
+        singleAccount
       } = modalConfig;
 
-      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}"></pera-wallet-connect-modal>`;
+      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}"></pera-wallet-connect-modal>`;
     }
   };
 }

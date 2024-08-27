@@ -227,17 +227,6 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
     }
 
     this.handleChangeView();
-
-    // if (peraWalletFlowType() === "EMBEDDED" && this.shadowRoot) {
-    //   const iframeWrapper = this.shadowRoot.querySelector(
-    //     ".pera-wallet-connect-modal-desktop-mode__web-wallet-iframe"
-    //   );
-
-    //   if (iframeWrapper && this.getAttribute("is-web-wallet-avaliable") === "true") {
-    //     // @ts-ignore ts-2339
-    //     window.onWebWalletConnect(iframeWrapper);
-    //   }
-    // }
   }
 
   handleChangeView() {
@@ -308,9 +297,14 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
   }
 
   renderQRCode() {
-    const URI = this.getAttribute("uri");
     const isWebWalletAvailable = this.getAttribute("is-web-wallet-avaliable");
     const isCompactMode = this.getAttribute("compact-mode") === "true";
+    const singleAccount = this.getAttribute("single-account") === "true";
+    let URI = this.getAttribute("uri");
+
+    if (singleAccount) {
+      URI = `${URI}&singleAccount=true`;
+    }
 
     /* eslint-disable no-magic-numbers */
     let size = isWebWalletAvailable === "false" ? 250 : 205;

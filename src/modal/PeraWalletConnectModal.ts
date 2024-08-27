@@ -26,6 +26,8 @@ export class PeraWalletConnectModal extends HTMLElement {
         peraWalletConnectModalClassNames = `${peraWalletConnectModalClassNames} ${PERA_WALLET_MODAL_CLASSNAME}--compact`;
       }
 
+      const singleAccount = this.getAttribute("single-account") === "true";
+
       if (isMobile()) {
         peraWalletConnectModal.innerHTML = `
         <div class="${peraWalletConnectModalClassNames}">
@@ -61,7 +63,8 @@ export class PeraWalletConnectModal extends HTMLElement {
           "compact-mode"
         )}" promote-mobile="${this.getAttribute(
           "promote-mobile"
-        )}"></pera-wallet-modal-desktop-mode>
+        )}" single-account="${singleAccount}"
+        ></pera-wallet-modal-desktop-mode>
             </div>
           </div>
         `;

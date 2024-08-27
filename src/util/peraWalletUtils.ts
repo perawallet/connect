@@ -1,5 +1,6 @@
 import {detectBrowser, isAndroid, isIOS} from "./device/deviceUtils";
 import {PERA_WALLET_APP_DEEP_LINK} from "./peraWalletConstants";
+import {PeraWalletAutoConnectOptions} from "./peraWalletTypes";
 
 function generatePeraWalletAppDeepLink(shouldAddBrowserName = true): string {
   let appDeepLink = PERA_WALLET_APP_DEEP_LINK;
@@ -24,9 +25,15 @@ function generateEmbeddedWalletURL(url: string, isCompactMode?: boolean) {
 
 /**
  * @param {string} uri WalletConnect uri
+ * @param {Object} params Optional parameters
  * @returns {string} Pera Wallet deeplink
  */
-function generatePeraWalletConnectDeepLink(uri: string): string {
+function generatePeraWalletConnectDeepLink(
+  uri: string,
+  params?: {
+    singleAccount?: boolean;
+  } & PeraWalletAutoConnectOptions
+): string {
   let appDeepLink = generatePeraWalletAppDeepLink(false);
 
   // Add `wc` suffix to the deeplink if it doesn't exist
@@ -43,6 +50,14 @@ function generatePeraWalletConnectDeepLink(uri: string): string {
 
   if (browserName) {
     deepLink = `${deepLink}&browser=${encodeURIComponent(browserName)}`;
+  }
+
+  if (params?.singleAccount) {
+    deepLink = `${deepLink}&singleAccount=true`;
+  }
+
+  if (params?.selectedAccount) {
+    deepLink = `${deepLink}&selectedAccount=${params.selectedAccount}`;
   }
 
   return deepLink;

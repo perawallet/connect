@@ -52,7 +52,7 @@ peraWallet
 
     setAccountAddress(newAccounts[0]);
   })
-  .reject((error) => {
+  .catch((error) => {
     // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
     // For the async/await syntax you MUST use try/catch
     if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
@@ -86,6 +86,31 @@ try {
 }
 ```
 
+You can also use the `autoConnect` function to connect to the mobile wallet without any UI. This function is specifically designed for mobile browsers.
+
+
+```jsx
+// Auto Connect
+peraWallet.autoConnect()
+  .then((accounts) => {
+    // Setup the disconnect event listener
+    peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
+
+    if (accounts.length) {
+      setAccountAddress(accounts[0]);
+    }
+  })
+  .catch((error) => {
+    // You MUST handle the rejection when running outside of a mobile browser,
+    // as the peraWallet.autoConnect() promise will be rejected.
+    // For the async/await syntax you MUST use try/catch
+    if (error?.data?.type !== "CONNECT_CANCELLED") {
+      // log the necessary errors
+    }
+  });
+
+```
+
 ## Options
 
 | option                   | default | value                                 |          |
@@ -93,6 +118,7 @@ try {
 | `chainId`                | `4160`  | `416001`, `416002`, `416003` , `4160` | optional |
 | `shouldShowSignTxnToast` | `true`  | `boolean`                             | optional |
 | `compactMode`            | `false` | `boolean`                             | optional |
+| `singleAccount`          | `false` | `boolean`                             | optional |
 
 #### **`chainId`**
 
@@ -116,6 +142,10 @@ It's enabled by default but in some cases, you may not need the toast message (e
 
 It offers a compact UI optimized for smaller screens, with a minimum resolution of 400x400 pixels.
 
+#### **`singleAccount`**
+
+It allows you to select only one account.
+
 ## Methods
 
 #### `PeraWalletConnect.connect(): Promise<string[]>`
@@ -129,6 +159,10 @@ Reconnects to the wallet if there is any active connection and returns the array
 #### `PeraWalletConnect.disconnect(): Promise<void | undefined>`
 
 Disconnects from the wallet and resets the related storage items.
+
+#### `PeraWalletConnect.autoConnect(): Promise<string[]>`
+
+
 
 #### `PeraWalletConnect.platform: PeraWalletPlatformType`
 

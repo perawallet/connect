@@ -11,10 +11,16 @@ interface PeraWalletDetails {
   selectedAccount: string;
 }
 
+interface PeraWalletAutoConnectOptions {
+  // `selectedAccount` option is only applicable for Pera Wallet products
+  selectedAccount?: string;
+}
+
 export type {
   PeraWalletType,
   PeraWalletPlatformType,
   PeraWalletDetails,
   AlgorandChainIDs,
-  PeraWalletFlowType
+  PeraWalletFlowType,
+  PeraWalletAutoConnectOptions
 };

@@ -32,15 +32,17 @@ import {
   formatJsonRpcRequest
 } from "./util/transaction/transactionUtils";
 import {isMobile} from "./util/device/deviceUtils";
-import {AlgorandChainIDs} from "./util/peraWalletTypes";
+import {AlgorandChainIDs, PeraWalletAutoConnectOptions} from "./util/peraWalletTypes";
 import {runWebSignTransactionFlow} from "./util/sign/signTransactionFlow";
 import {runWebConnectFlow} from "./util/connect/connectFlow";
+import {generatePeraWalletConnectDeepLink} from "./util/peraWalletUtils";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
   shouldShowSignTxnToast?: boolean;
   chainId?: AlgorandChainIDs;
   compactMode?: boolean;
+  singleAccount?: boolean;
 }
 
 function generatePeraWalletConnectModalActions({
@@ -48,7 +50,8 @@ function generatePeraWalletConnectModalActions({
   shouldDisplayNewBadge,
   shouldUseSound,
   compactMode,
-  promoteMobile
+  promoteMobile,
+  singleAccount
 }: PeraWalletModalConfig) {
   return {
     open: openPeraWalletConnectModal({
@@ -56,7 +59,8 @@ function generatePeraWalletConnectModalActions({
       shouldDisplayNewBadge,
       shouldUseSound,
       compactMode,
-      promoteMobile
+      promoteMobile,
+      singleAccount
     }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
@@ -68,6 +72,7 @@ class PeraWalletConnect {
   shouldShowSignTxnToast: boolean;
   chainId?: AlgorandChainIDs;
   compactMode?: boolean;
+  singleAccount?: boolean;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
@@ -80,6 +85,7 @@ class PeraWalletConnect {
 
     this.chainId = options?.chainId;
     this.compactMode = options?.compactMode || false;
+    this.singleAccount = options?.singleAccount || false;
   }
 
   get platform() {
@@ -139,8 +145,86 @@ class PeraWalletConnect {
             shouldDisplayNewBadge,
             shouldUseSound,
             compactMode: this.compactMode,
-            promoteMobile
+            promoteMobile,
+            singleAccount: this.singleAccount
           })
+        });
+
+        await this.connector.createSession({
+          // eslint-disable-next-line no-magic-numbers
+          chainId: this.chainId || 4160
+        });
+
+        setupPeraWalletConnectModalCloseListener(PERA_WALLET_CONNECT_MODAL_ID, () =>
+          reject(
+            new PeraWalletConnectError(
+              {
+                type: "CONNECT_MODAL_CLOSED"
+              },
+              "Connect modal is closed by user"
+            )
+          )
+        );
+
+        this.connector.on("connect", (error, _payload) => {
+          if (error) {
+            reject(error);
+          }
+
+          resolve(this.connector?.accounts || []);
+
+          saveWalletDetailsToStorage(this.connector?.accounts || []);
+        });
+      } catch (error: any) {
+        console.log(error);
+
+        reject(
+          new PeraWalletConnectError(
+            {
+              type: "SESSION_CONNECT",
+              detail: error
+            },
+            error.message || `There was an error while connecting to Pera Wallet`
+          )
+        );
+      }
+    });
+  }
+
+  autoConnect(options?: PeraWalletAutoConnectOptions) {
+    return new Promise<string[]>(async (resolve, reject) => {
+      try {
+        if (!isMobile()) {
+          reject(
+            new PeraWalletConnectError(
+              {
+                type: "CONNECT_CANCELLED",
+              },
+              "autoConnect() method is only available on mobile browsers"
+            )
+          )
+        }
+        // check if already connected and kill session first before creating a new one.
+        // This is to kill the last session and make sure user start from scratch whenever `.connect()` method is called.
+        if (this.connector?.connected) {
+          try {
+            await this.connector.killSession();
+          } catch (_error) {
+            // No need to handle
+          }
+        }
+
+        const {bridgeURL} = await getPeraConnectConfig();
+
+        // Create Connector instance
+        this.connector = new WalletConnect({
+          bridge: this.bridge || bridgeURL || "https://bridge.walletconnect.org",
+          qrcodeModal: {
+            open: (uri: string) => {
+              window.open(`${generatePeraWalletConnectDeepLink(uri, options)}`, "_self");
+            },
+            close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
+          }
         });
 
         await this.connector.createSession({
@@ -328,7 +412,7 @@ class PeraWalletConnect {
     chainId
   }: {
     // Converted Uin8Array data to base64
-    data: {data: string; message: string;}[];
+    data: {data: string; message: string}[];
     signer: string;
     chainId: AlgorandChainIDs;
   }) {
@@ -472,7 +556,7 @@ class PeraWalletConnect {
 
     const b64encodedData = data.map((item) => ({
       ...item,
-      data: Buffer.from(item.data).toString('base64')
+      data: Buffer.from(item.data).toString("base64")
     }));
 
     // Pera Mobile Wallet flow
