@@ -47,7 +47,7 @@ export default [
       json(),
       sizes(),
       replace({
-        PERA_CONNECT_VERSION: `v${PeraConnectVersion}`,
+        PERA_CONNECT_VERSION: `v${PeraConnectVersion} - BETA`,
         preventAssignment: true
       })
     ]
