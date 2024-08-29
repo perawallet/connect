@@ -1,6 +1,5 @@
 import {detectBrowser, isAndroid, isIOS} from "./device/deviceUtils";
 import {PERA_WALLET_APP_DEEP_LINK} from "./peraWalletConstants";
-import {PeraWalletAutoConnectOptions} from "./peraWalletTypes";
 
 function generatePeraWalletAppDeepLink(shouldAddBrowserName = true): string {
   let appDeepLink = PERA_WALLET_APP_DEEP_LINK;
@@ -32,7 +31,8 @@ function generatePeraWalletConnectDeepLink(
   uri: string,
   params?: {
     singleAccount?: boolean;
-  } & PeraWalletAutoConnectOptions
+    selectedAccount?: string;
+  } 
 ): string {
   let appDeepLink = generatePeraWalletAppDeepLink(false);
 
