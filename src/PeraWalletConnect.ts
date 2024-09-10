@@ -185,10 +185,6 @@ class PeraWalletConnect {
   connect({network}: {network?: PeraWalletNetwork} = {}) {
     return new Promise<string[]>(async (resolve, reject) => {
       try {
-        if (this.client?.session) {
-          await this.disconnect();
-        }
-
         if (network) {
           // override network if provided
           getLocalStorage()?.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK, network);
