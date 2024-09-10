@@ -183,10 +183,6 @@ class PeraWalletConnect {
   connect({network}: {network?: PeraWalletNetwork} = {}) {
     return new Promise<string[]>(async (resolve, reject) => {
       try {
-        if (this.client?.session) {
-          await this.disconnect();
-        }
-
         if (network) {
           // override network if provided
           getLocalStorage()?.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK, network);
@@ -416,11 +412,11 @@ class PeraWalletConnect {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected && this.platform === "mobile") {
         if (typeof this.client === "undefined") {
-          reject(new Error("WalletConnect is not initialized"));
+          reject(new Error("WalletConnect client could not initialized"));
         }
 
         if (typeof this.client?.session === "undefined") {
-          reject(new Error("WalletConnect is not initialized 2"));
+          reject(new Error("WalletConnect session could not initialized"));
         }
 
         try {

@@ -45,7 +45,7 @@
     "qr-code-styling": "1.6.0-rc.1"
   },
   "peerDependencies": {
-    "algosdk": "^2.1.0"
+    "algosdk": "^2.8.0"
   },
   "types": "./dist/index.d.ts",
   "repository": {

@@ -44,13 +44,15 @@ npm install --save @perawallet/connect-beta
 
 ```jsx
 // Connect handler
-const peraWallet = new PeraWalletConnect();
+const peraWallet = new PeraWalletConnect({
+  projectId: <YOUR_PROJECT_ID>
+});
 
 peraWallet
   .connect()
   .then((newAccounts) => {
     // Setup the disconnect event listener
-    peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
+    peraWallet.client?.on("session_delete", handleDisconnectWalletClick);
 
     setAccountAddress(newAccounts[0]);
   })
@@ -69,7 +71,7 @@ If you don't want the user's account information to be lost by the dApp when the
 // On the every page refresh
 peraWallet.reconnectSession().then((accounts) => {
   // Setup the disconnect event listener
-  peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
+  peraWallet.client?.on("session_delete", handleDisconnectWalletClick);
 
   if (accounts.length) {
     setAccountAddress(accounts[0]);
