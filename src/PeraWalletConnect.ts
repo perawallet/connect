@@ -44,6 +44,7 @@ interface PeraWalletConnectOptions {
   shouldShowSignTxnToast?: boolean;
   chainId?: AlgorandChainIDs;
   compactMode?: boolean;
+  debugger?: boolean;
 }
 
 class PeraWalletConnect {
@@ -54,9 +55,11 @@ class PeraWalletConnect {
   projectId?: string;
   chainId?: number;
   compactMode?: boolean;
+  debugger?: boolean;
 
   constructor(options: PeraWalletConnectOptions) {
     this.projectId = options.projectId;
+    this.debugger = options.debugger;
 
     if (options?.network) {
       this.network = options.network;
@@ -373,7 +376,7 @@ class PeraWalletConnect {
         relayUrl: "wss://relay.walletconnect.com",
         projectId: this.projectId,
         metadata: getAppMetadata(),
-        logger: "debug"
+        logger: this.debugger ? "debug" : undefined
       });
 
       this.client = client;
