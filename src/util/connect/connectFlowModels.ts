@@ -1,5 +1,4 @@
 import {PeraTeller} from "../network/teller/appTellerManager";
-import {PeraWebWalletURLs} from "../peraWalletConstants";
 import {AlgorandChainIDs} from "../peraWalletTypes";
 
 interface ConnectFlowPromise {
