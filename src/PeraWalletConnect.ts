@@ -471,6 +471,8 @@ class PeraWalletConnect {
     try {
       try {
         if (walletDetails?.chainId) {
+          this.checkPersistedState(this.client!);
+          
           const response = await this.client!.request<any>({
             topic: this.session!.topic,
             request: formattedSignTxnRequest,
