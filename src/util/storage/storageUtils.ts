@@ -52,6 +52,7 @@ function resetWalletDetailsFromStorage() {
   return new Promise<undefined>((resolve, reject) => {
     try {
       getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET);
+      getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK);
       resolve(undefined);
     } catch (error) {
       reject(error);

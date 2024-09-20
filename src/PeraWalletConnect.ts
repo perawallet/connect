@@ -316,6 +316,10 @@ class PeraWalletConnect {
 
       this.checkPersistedState(client);
 
+      client.on("session_delete", () => {
+        resetWalletDetailsFromStorage();
+      });
+
       return client;
     } catch (err) {
       throw err;
