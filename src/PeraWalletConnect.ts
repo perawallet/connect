@@ -476,9 +476,21 @@ class PeraWalletConnect {
       try {
         if (walletDetails?.chainId) {
           this.checkPersistedState(this.client!);
+
+          if (!this.session?.topic) {
+            return await Promise.reject(
+              new PeraWalletConnectError(
+                {
+                  type: "SESSION_RECONNECT",
+                  detail: "Failed to reconnect session."
+                },
+                "Failed to reconnect session. Please try to connect again."
+              )
+            );
+          }
           
           const response = await this.client!.request<any>({
-            topic: this.session!.topic,
+            topic: this.session.topic,
             request: formattedSignTxnRequest,
             chainId: walletDetails.chainId
           });
