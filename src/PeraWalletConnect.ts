@@ -307,83 +307,6 @@ class PeraWalletConnect {
     });
   }
 
-  private async createClient() {
-    try {
-      const client = await Client.init({
-        relayUrl: "wss://relay.walletconnect.com",
-        projectId: this.projectId,
-        metadata: getAppMetadata(),
-        logger: this.debugger ? "debug" : undefined
-      });
-
-      this.client = client;
-
-      this.checkPersistedState(client);
-
-      client.on("session_delete", () => {
-        resetWalletDetailsFromStorage();
-      });
-
-      return client;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  private checkPersistedState(client: Client) {
-    if (typeof this.session !== "undefined") return;
-    // populates (the last) existing session to state
-
-    if (client.session.length) {
-      const lastKeyIndex = client!.session.keys.length - 1;
-      const session = client.session.get(client.session.keys[lastKeyIndex]);
-
-      this.session = session;
-
-      const {namespace, reference, accounts} = formatWalletConnectSessionResponse(
-        this.session
-      );
-
-      saveWalletDetailsToStorage(
-        accounts || [],
-        "pera-wallet",
-        `${namespace}:${reference}`
-      );
-    }
-  }
-
-  disconnect() {
-    return new Promise(async (resolve, reject) => {
-      if (this.isConnected && this.platform === "mobile") {
-        if (typeof this.client === "undefined") {
-          reject(new Error("WalletConnect client could not initialized"));
-        }
-
-        if (typeof this.client?.session === "undefined") {
-          reject(new Error("WalletConnect session could not initialized"));
-        }
-
-        try {
-          if (this.session && this.client) {
-            await this.client.disconnect({
-              topic: this.session.topic,
-              reason: getSdkError("USER_DISCONNECTED")
-            });
-
-            this.client = null;
-            this.session = null;
-            resolve(null);
-          }
-        } catch (error) {
-          reject(error);
-        }
-      }
-
-      await resetWalletDetailsFromStorage();
-      resolve(null);
-    });
-  }
-
   private connectWithWebWallet(
     resolve: (accounts: string[]) => void,
     reject: (reason?: any) => void,
@@ -448,7 +371,7 @@ class PeraWalletConnect {
                     detail: event.data.message.error
                   },
                   event.data.message.error ||
-                    `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
+                  `Your wallet is connected to a different network to this dApp. Update your wallet to the correct network (MainNet or TestNet) to continue.`
                 )
               );
 
@@ -465,9 +388,83 @@ class PeraWalletConnect {
       removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
     }
 
-    return {
-      onWebWalletConnect
-    };
+    return onWebWalletConnect;
+  }
+
+  private async createClient() {
+    try {
+      const client = await Client.init({
+        relayUrl: "wss://relay.walletconnect.com",
+        projectId: this.projectId,
+        metadata: getAppMetadata()
+      });
+
+      this.client = client;
+
+      this.checkPersistedState(this.client);
+
+      this.client.on("session_delete", () => {
+        resetWalletDetailsFromStorage();
+      });
+
+      return client;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  private checkPersistedState(client: Client) {
+    if (typeof this.session !== "undefined") return;
+    // populates (the last) existing session to state
+
+    if (client.session.length) {
+      const lastKeyIndex = client!.session.keys.length - 1;
+      const session = client.session.get(client.session.keys[lastKeyIndex]);
+
+      this.session = session;
+
+      const {namespace, reference, accounts} = formatWalletConnectSessionResponse(
+        this.session
+      );
+
+      saveWalletDetailsToStorage(
+        accounts || [],
+        "pera-wallet",
+        `${namespace}:${reference}`
+      );
+    }
+  }
+
+  disconnect() {
+    return new Promise(async (resolve, reject) => {
+      if (this.isConnected && this.platform === "mobile") {
+        if (typeof this.client === "undefined") {
+          reject(new Error("WalletConnect client could not initialized"));
+        }
+
+        if (typeof this.client?.session === "undefined") {
+          reject(new Error("WalletConnect session could not initialized"));
+        }
+
+        try {
+          if (this.session && this.client) {
+            await this.client.disconnect({
+              topic: this.session.topic,
+              reason: getSdkError("USER_DISCONNECTED")
+            });
+
+            this.client = null;
+            this.session = null;
+            resolve(null);
+          }
+        } catch (error) {
+          reject(error);
+        }
+      }
+
+      await resetWalletDetailsFromStorage();
+      resolve(null);
+    });
   }
 
   private async signTransactionWithMobile(signTxnRequestParams: PeraWalletTransaction[]) {
