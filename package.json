@@ -1,8 +1,17 @@
 {
-  "version": "2.0.19",
+  "version": "2.1.0",
   "name": "@perawallet/connect-beta",
   "description": "Beta version of Pera Wallet Connect",
-  "main": "dist/index.js",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "exports": {
+    ".": {
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
+    }
+  },
+  "type": "module",
   "scripts": {
     "dev": "./node_modules/.bin/rollup -c -w",
     "build": "npm run eslint && ./node_modules/.bin/rollup -c",
@@ -26,12 +35,13 @@
     "node-sass": "^8.0.0",
     "prettier": "^2.6.1",
     "rollup": "^2.70.1",
+    "rollup-plugin-bundle-esm": "^0.1.1",
     "rollup-plugin-eslint": "^7.0.0",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-sizes": "^1.0.5",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.31.2",
-    "sass": "^1.49.11",
+    "sass": "^1.79.2",
     "typescript": "^4.6.3"
   },
   "dependencies": {
@@ -47,7 +57,7 @@
   "peerDependencies": {
     "algosdk": "^2.8.0"
   },
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/perawallet/connect.git"
