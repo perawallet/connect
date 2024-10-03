@@ -87,3 +87,5 @@ export interface PeraWalletArbitraryData {
    */
   message: string;
 }
+
+export type SignTxnsResponse = Array<Uint8Array | number[] | string | null | undefined>

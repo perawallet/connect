@@ -13,7 +13,7 @@ function getLocalStorage() {
 
 function saveWalletDetailsToStorage(
   accounts: string[],
-  type?: "pera-wallet" | "pera-wallet-web",
+  type: "pera-wallet" | "pera-wallet-web",
   chainId?: string
 ) {
   getLocalStorage()?.setItem(

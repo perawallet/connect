@@ -1,7 +1,7 @@
 import {version as PeraConnectVersion} from "./package.json";
 
 import typescript from "rollup-plugin-typescript2";
-import {terser} from "rollup-plugin-terser";
+import terser from '@rollup/plugin-terser';
 import postcss from "rollup-plugin-postcss";
 import image from "@rollup/plugin-image";
 import json from "@rollup/plugin-json";
