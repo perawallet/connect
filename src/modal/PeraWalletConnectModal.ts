@@ -1,5 +1,4 @@
 import {isMobile} from "../util/device/deviceUtils";
-import {isSmallScreen} from "../util/screen/screenSizeUtils";
 import {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_MODAL_CLASSNAME
@@ -27,17 +26,20 @@ export class PeraWalletConnectModal extends HTMLElement {
         peraWalletConnectModalClassNames = `${peraWalletConnectModalClassNames} ${PERA_WALLET_MODAL_CLASSNAME}--compact`;
       }
 
-      if (isSmallScreen() && isMobile()) {
+      const singleAccount = this.getAttribute("single-account") === "true";
+      const selectedAccount = this.getAttribute("selected-account");
+
+      if (isMobile()) {
         peraWalletConnectModal.innerHTML = `
         <div class="${peraWalletConnectModalClassNames}">
           <div class="pera-wallet-modal__body" part="body">
-            <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header/>
+            <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header>
       
             <pera-wallet-modal-touch-screen-mode uri="${this.getAttribute(
               "uri"
             )}" should-use-sound="${this.getAttribute(
           "should-use-sound"
-        )}"></pera-wallet-modal-touch-screen-mode>
+        )}" single-account="${singleAccount}" selected-account="${selectedAccount}"></pera-wallet-modal-touch-screen-mode>
           </div>
         </div>
       `;
@@ -62,7 +64,7 @@ export class PeraWalletConnectModal extends HTMLElement {
           "compact-mode"
         )}" promote-mobile="${this.getAttribute(
           "promote-mobile"
-        )}"></pera-wallet-modal-desktop-mode>
+        )}" single-account="${singleAccount}"></pera-wallet-modal-desktop-mode>
             </div>
           </div>
         `;

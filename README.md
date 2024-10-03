@@ -44,11 +44,15 @@ npm install --save @perawallet/connect
 
 ```jsx
 // Connect handler
+const peraWallet = new PeraWalletConnect({
+  projectId: <YOUR_PROJECT_ID>
+});
+
 peraWallet
   .connect()
   .then((newAccounts) => {
     // Setup the disconnect event listener
-    peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
+    peraWallet.client?.on("session_delete", handleDisconnectWalletClick);
 
     setAccountAddress(newAccounts[0]);
   })
@@ -67,7 +71,7 @@ If you don't want the user's account information to be lost by the dApp when the
 // On the every page refresh
 peraWallet.reconnectSession().then((accounts) => {
   // Setup the disconnect event listener
-  peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
+  peraWallet.client?.on("session_delete", handleDisconnectWalletClick);
 
   if (accounts.length) {
     setAccountAddress(accounts[0]);
@@ -90,9 +94,14 @@ try {
 
 | option                   | default | value                                 |          |
 | ------------------------ | ------- | ------------------------------------- | -------- |
+| `projectId`              |         | `string`                               | required |
 | `chainId`                | `4160`  | `416001`, `416002`, `416003` , `4160` | optional |
 | `shouldShowSignTxnToast` | `true`  | `boolean`                             | optional |
 | `compactMode`            | `false` | `boolean`                             | optional |
+
+#### **`projectId` (required)**
+
+Your project's unique identifier that can be obtained at [Wallet Connect Cloud](https://cloud.walletconnect.com). Learn more on [Wallet Connect Docs](https://docs.walletconnect.com/cloud/relay).
 
 #### **`chainId`**
 
@@ -137,10 +146,6 @@ Returns the platform of the active session. Possible responses: _`mobile | web |
 #### `PeraWalletConnect.isConnected: boolean`
 
 Checks if there's any active session regardless of platform. Possible responses: _`true | false`_
-
-#### `PeraWalletConnect.signTransaction(txGroups: SignerTransaction[][], signerAddress?: string): Promise<Uint8Array[]>`
-
-Starts the sign process and returns the signed transaction in `Uint8Array`
 
 #### `PeraWalletConnect.signData(data: PeraWalletArbitraryData[], signer: string): Promise<Uint8Array[]>`
 

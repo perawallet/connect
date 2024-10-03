@@ -1,7 +1,7 @@
 import {version as PeraConnectVersion} from "./package.json";
 
 import typescript from "rollup-plugin-typescript2";
-import {terser} from "rollup-plugin-terser";
+import terser from '@rollup/plugin-terser';
 import postcss from "rollup-plugin-postcss";
 import image from "@rollup/plugin-image";
 import json from "@rollup/plugin-json";
@@ -18,16 +18,19 @@ export default [
       format: "cjs",
       name: "PeraConnect",
       globals: {
-        "@walletconnect/client": "WalletConnect",
+        "@walletconnect/sign-client": "WalletConnect",
         algosdk: "algosdk",
         bowser: "bowser",
+        "@json-rpc-tools/utils": "format",
         "qr-code-styling": "QRCodeStyling",
         "@evanhahn/lottie-web-light": "lottie"
       }
     },
     external: [
-      "@walletconnect/client",
+      "@walletconnect/sign-client",
+      "@walletconnect/utils",
       "@walletconnect/types",
+      "@json-rpc-tools/utils",
       "algosdk",
       "@evanhahn/lottie-web-light",
       "bowser",

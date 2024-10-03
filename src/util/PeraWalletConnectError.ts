@@ -1,7 +1,11 @@
 interface PeraWalletConnectErrorData {
   type:
+    // General
     | "MESSAGE_NOT_RECEIVED"
     | "OPERATION_CANCELLED"
+
+    // Client
+    | "CLIENT_INIT_FAILED"
 
     // Connect
     | "CONNECT_MODAL_CLOSED"

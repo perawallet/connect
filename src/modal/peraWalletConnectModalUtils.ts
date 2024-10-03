@@ -4,11 +4,14 @@ import {waitForElementCreatedAtShadowDOM} from "../util/dom/domUtils";
 export type PERA_CONNECT_MODAL_VIEWS = "default" | "download-pera";
 
 export interface PeraWalletModalConfig {
+  uri: string;
   isWebWalletAvailable: boolean;
   shouldDisplayNewBadge: boolean;
   shouldUseSound: boolean;
   promoteMobile?: boolean;
   compactMode?: boolean;
+  singleAccount?: boolean;
+  selectedAccount?: string;
 }
 
 // The ID of the wrapper element for PeraWalletConnectModal
@@ -56,21 +59,23 @@ function createModalWrapperOnDOM(modalId: string) {
  * @returns VoidFunction
  */
 function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
-  return (uri: string) => {
-    if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
-      const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
-      const newURI = `${uri}&algorand=true`;
-      const {
-        isWebWalletAvailable,
-        shouldDisplayNewBadge,
-        shouldUseSound,
-        compactMode,
-        promoteMobile
-      } = modalConfig;
+  if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
+    const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
+    const {
+      uri,
+      isWebWalletAvailable,
+      shouldDisplayNewBadge,
+      shouldUseSound,
+      compactMode,
+      promoteMobile,
+      singleAccount,
+      selectedAccount
+    } = modalConfig;
 
-      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}"></pera-wallet-connect-modal>`;
-    }
-  };
+    root.innerHTML = `<pera-wallet-connect-modal uri="${uri}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${
+      selectedAccount || ""
+    }"></pera-wallet-connect-modal>`;
+  }
 }
 
 /**

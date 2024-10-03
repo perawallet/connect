@@ -1,7 +1,10 @@
 // eslint-disable-next-line import/no-unresolved
-import {IWalletConnectSession} from "@walletconnect/types";
 
-import {PeraWalletDetails, PeraWalletPlatformType} from "../peraWalletTypes";
+import {
+  PeraWalletDetails,
+  PeraWalletNetwork,
+  PeraWalletPlatformType
+} from "../peraWalletTypes";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./storageConstants";
 
 function getLocalStorage() {
@@ -10,14 +13,17 @@ function getLocalStorage() {
 
 function saveWalletDetailsToStorage(
   accounts: string[],
-  type?: "pera-wallet" | "pera-wallet-web"
+  type: "pera-wallet" | "pera-wallet-web",
+  chainId?: string
 ) {
   getLocalStorage()?.setItem(
     PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET,
     JSON.stringify({
       type: type || "pera-wallet",
       accounts,
-      selectedAccount: accounts[0]
+      selectedAccount: accounts[0],
+      chainId,
+      version: "2.0"
     })
   );
 }
@@ -34,23 +40,19 @@ function getWalletDetailsFromStorage(): PeraWalletDetails | null {
   return null;
 }
 
-function getWalletConnectObjectFromStorage(): IWalletConnectSession | null {
-  const storedWalletConnectObject = getLocalStorage()?.getItem(
-    PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
-  );
+function getNetworkFromStorage(): PeraWalletNetwork {
+  const storedNetwork = getLocalStorage()?.getItem(
+    PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK
+  ) as PeraWalletNetwork;
 
-  if (storedWalletConnectObject) {
-    return JSON.parse(storedWalletConnectObject) as IWalletConnectSession;
-  }
-
-  return null;
+  return storedNetwork || "mainnet";
 }
 
 function resetWalletDetailsFromStorage() {
   return new Promise<undefined>((resolve, reject) => {
     try {
-      getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT);
       getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET);
+      getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.NETWORK);
       resolve(undefined);
     } catch (error) {
       reject(error);
@@ -76,6 +78,6 @@ export {
   saveWalletDetailsToStorage,
   resetWalletDetailsFromStorage,
   getWalletDetailsFromStorage,
-  getWalletConnectObjectFromStorage,
+  getNetworkFromStorage,
   getWalletPlatformFromStorage
 };

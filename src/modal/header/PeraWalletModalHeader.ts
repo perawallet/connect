@@ -3,7 +3,6 @@ import CloseIcon from "../../asset/icon/Close.svg";
 import CloseIconDark from "../../asset/icon/Close--dark.svg";
 
 import styles from "./_pera-wallet-modal-header.scss";
-import {isSmallScreen} from "../../util/screen/screenSizeUtils";
 import {isMobile} from "../../util/device/deviceUtils";
 import {
   PERA_WALLET_REDIRECT_MODAL_ID,
@@ -19,7 +18,7 @@ const headerClassName = isMobile()
 peraWalletModalHeader.innerHTML = `
   <div class="${headerClassName}">
       ${
-        isSmallScreen() && isMobile()
+        isMobile()
           ? ""
           : `<div class="pera-wallet-modal-header__brand">
               <img src="${PeraConnectIcon}" />
@@ -38,7 +37,7 @@ peraWalletModalHeader.innerHTML = `
         class="pera-wallet-button pera-wallet-modal-header__close-button">
         <img
           class="pera-wallet-modal-header__close-button__close-icon"
-          src="${isSmallScreen() && isMobile() ? CloseIconDark : CloseIcon}"
+          src="${isMobile() ? CloseIconDark : CloseIcon}"
         />
       </button>
     </div>
