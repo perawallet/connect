@@ -52,7 +52,7 @@ peraWallet
 
     setAccountAddress(newAccounts[0]);
   })
-  .reject((error) => {
+  .catch((error) => {
     // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
     // For the async/await syntax you MUST use try/catch
     if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
@@ -130,6 +130,7 @@ Reconnects to the wallet if there is any active connection and returns the array
 
 Disconnects from the wallet and resets the related storage items.
 
+
 #### `PeraWalletConnect.platform: PeraWalletPlatformType`
 
 Returns the platform of the active session. Possible responses: _`mobile | web | null`_
@@ -137,6 +138,10 @@ Returns the platform of the active session. Possible responses: _`mobile | web |
 #### `PeraWalletConnect.isConnected: boolean`
 
 Checks if there's any active session regardless of platform. Possible responses: _`true | false`_
+
+#### `PeraWalletConnect.isPeraDiscoverBrowser: boolean`
+
+Checks if it is on Pera Discover Browser. Possible responses: _`true | false`_
 
 #### `PeraWalletConnect.signTransaction(txGroups: SignerTransaction[][], signerAddress?: string): Promise<Uint8Array[]>`
 

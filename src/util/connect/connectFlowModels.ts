@@ -1,5 +1,4 @@
 import {PeraTeller} from "../network/teller/appTellerManager";
-import {PeraWebWalletURLs} from "../peraWalletConstants";
 import {AlgorandChainIDs} from "../peraWalletTypes";
 
 interface ConnectFlowPromise {
@@ -13,14 +12,6 @@ interface RunWebConnectFlowTypes extends ConnectFlowPromise {
   isCompactMode?: boolean;
 }
 
-interface EmbeddedConnectFlowTellerReducerParams extends ConnectFlowPromise {
-  event: MessageEvent<TellerMessage<PeraTeller>>;
-  peraWalletIframe: HTMLIFrameElement;
-  chainId: AlgorandChainIDs | undefined;
-  isIframeInitializedChecker: NodeJS.Timer;
-  webWalletURLs: PeraWebWalletURLs;
-}
-
 interface NewTabConnectFlowTellerReducerParams extends ConnectFlowPromise {
   event: MessageEvent<TellerMessage<PeraTeller>>;
   newPeraWalletTab: Window | null;
@@ -29,6 +20,5 @@ interface NewTabConnectFlowTellerReducerParams extends ConnectFlowPromise {
 export type {
   ConnectFlowPromise,
   RunWebConnectFlowTypes,
-  EmbeddedConnectFlowTellerReducerParams,
   NewTabConnectFlowTellerReducerParams
 };

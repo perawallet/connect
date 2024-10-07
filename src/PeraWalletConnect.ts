@@ -41,6 +41,7 @@ interface PeraWalletConnectOptions {
   shouldShowSignTxnToast?: boolean;
   chainId?: AlgorandChainIDs;
   compactMode?: boolean;
+  singleAccount?: boolean;
 }
 
 function generatePeraWalletConnectModalActions({
@@ -48,7 +49,9 @@ function generatePeraWalletConnectModalActions({
   shouldDisplayNewBadge,
   shouldUseSound,
   compactMode,
-  promoteMobile
+  promoteMobile,
+  singleAccount,
+  selectedAccount
 }: PeraWalletModalConfig) {
   return {
     open: openPeraWalletConnectModal({
@@ -56,7 +59,9 @@ function generatePeraWalletConnectModalActions({
       shouldDisplayNewBadge,
       shouldUseSound,
       compactMode,
-      promoteMobile
+      promoteMobile,
+      singleAccount,
+      selectedAccount
     }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
@@ -68,6 +73,7 @@ class PeraWalletConnect {
   shouldShowSignTxnToast: boolean;
   chainId?: AlgorandChainIDs;
   compactMode?: boolean;
+  singleAccount?: boolean;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
@@ -80,6 +86,7 @@ class PeraWalletConnect {
 
     this.chainId = options?.chainId;
     this.compactMode = options?.compactMode || false;
+    this.singleAccount = options?.singleAccount || false;
   }
 
   get platform() {
@@ -96,7 +103,12 @@ class PeraWalletConnect {
     return false;
   }
 
-  connect() {
+  get isPeraDiscoverBrowser() {
+    return this.checkIsPeraDiscoverBrowser();
+  }
+
+  // `selectedAccount` option is only applicable for Pera Wallet products
+  connect(options?: {selectedAccount?: string}) {
     return new Promise<string[]>(async (resolve, reject) => {
       try {
         // check if already connected and kill session first before creating a new one.
@@ -139,7 +151,9 @@ class PeraWalletConnect {
             shouldDisplayNewBadge,
             shouldUseSound,
             compactMode: this.compactMode,
-            promoteMobile
+            promoteMobile,
+            singleAccount: this.singleAccount,
+            selectedAccount: options?.selectedAccount
           })
         });
 
@@ -328,7 +342,7 @@ class PeraWalletConnect {
     chainId
   }: {
     // Converted Uin8Array data to base64
-    data: {data: string; message: string;}[];
+    data: {data: string; message: string}[];
     signer: string;
     chainId: AlgorandChainIDs;
   }) {
@@ -403,6 +417,12 @@ class PeraWalletConnect {
     );
   }
 
+  private checkIsPeraDiscoverBrowser() {
+    const userAget = window.navigator.userAgent;
+
+    return userAget.includes("pera");
+  }
+
   async signTransaction(
     txGroups: SignerTransaction[][],
     signerAddress?: string
@@ -472,7 +492,7 @@ class PeraWalletConnect {
 
     const b64encodedData = data.map((item) => ({
       ...item,
-      data: Buffer.from(item.data).toString('base64')
+      data: Buffer.from(item.data).toString("base64")
     }));
 
     // Pera Mobile Wallet flow
