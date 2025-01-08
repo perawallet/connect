@@ -15,7 +15,7 @@ export default [
     },
     output: {
       dir: "dist",
-      format: "cjs",
+      format: "esm",
       name: "PeraConnect",
       globals: {
         "@walletconnect/client": "WalletConnect",
@@ -32,7 +32,6 @@ export default [
       "@evanhahn/lottie-web-light",
       "bowser",
       "qr-code-styling",
-      "bufferutil",
       "utf-8-validate"
     ],
     plugins: [
