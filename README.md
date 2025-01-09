@@ -2,7 +2,7 @@
 
 ## @perawallet/connect
 
-JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web applications. For more detailed information, please check our [Pera Connect Docs](https://docs.perawallet.app/references/pera-connect/).
+JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web applications. For more detailed information, please check our [Pera Connect Docs](https://docs.perawallet.app/references/pera-connect/). You may also want to check the [use-wallet](https://github.com/TxnLab/use-wallet). Use-wallet provides an easy way to integrate multiple wallets into your dApp. 
 
 [![](https://img.shields.io/npm/v/@perawallet/connect?style=flat-square)](https://www.npmjs.com/package/@perawallet/connect) [![](https://img.shields.io/bundlephobia/min/@perawallet/connect?style=flat-square)](https://www.npmjs.com/package/@perawallet/connect)
 
