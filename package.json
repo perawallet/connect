@@ -2,7 +2,15 @@
   "version": "1.4.0",
   "name": "@perawallet/connect",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "module": "dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "./node_modules/.bin/rollup -c -w",
     "build": "npm run eslint && ./node_modules/.bin/rollup -c",
@@ -45,7 +53,6 @@
   "peerDependencies": {
     "algosdk": "^3.0.0"
   },
-  "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/perawallet/connect.git"
