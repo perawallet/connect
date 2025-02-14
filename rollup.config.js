@@ -7,6 +7,7 @@ import image from "@rollup/plugin-image";
 import json from "@rollup/plugin-json";
 import replace from "@rollup/plugin-replace";
 import sizes from "rollup-plugin-sizes";
+import nodePolyfills from "rollup-plugin-node-polyfills";
 
 export default [
   {
@@ -48,7 +49,8 @@ export default [
       replace({
         PERA_CONNECT_VERSION: `v${PeraConnectVersion}`,
         preventAssignment: true
-      })
+      }),
+      nodePolyfills()
     ]
   }
 ];
