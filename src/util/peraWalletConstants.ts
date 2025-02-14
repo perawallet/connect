@@ -1,6 +1,4 @@
-import {isAndroid} from "./device/deviceUtils";
-
-const PERA_WALLET_APP_DEEP_LINK = isAndroid() ? "algorand://" : "perawallet-wc://";
+const PERA_WALLET_APP_DEEP_LINK = "perawallet-wc://";
 const PERA_DOWNLOAD_URL = "https://perawallet.app/download/";
 
 export interface PeraWebWalletURLs {
