@@ -5,7 +5,7 @@
 import { callMobileMethodWithResponse } from "./webviewBridge";
 import type { PublicSettings } from "./webviewApiTypes";
 
-const DEFAULT_TIMEOUT = 5000;
+const DEFAULT_TIMEOUT = 2000;
 
 /**
  * Get public settings

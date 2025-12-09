@@ -33,14 +33,10 @@ export class PeraWalletConnectModal extends HTMLElement {
     // Only check for webview on mobile devices
     if (isMobile()) {
       try {
-        // Use a shorter timeout for faster fallback
-        // eslint-disable-next-line no-magic-numbers
-        await getPublicSettings(2000);
+        await getPublicSettings();
 
         this.isInWebview = true;
       } catch {
-        // If getPublicSettings fails, we're not in webview
-        // Fall back to normal touch-screen mode
         this.isInWebview = false;
       }
     }
