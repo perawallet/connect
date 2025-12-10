@@ -35,6 +35,7 @@ import {isMobile} from "./util/device/deviceUtils";
 import {AlgorandChainIDs} from "./util/peraWalletTypes";
 import {runWebSignTransactionFlow} from "./util/sign/signTransactionFlow";
 import {runWebConnectFlow} from "./util/connect/connectFlow";
+import {getPublicSettings} from "./util/webview-api/webviewApi";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -71,6 +72,7 @@ class PeraWalletConnect {
   bridge: string;
   connector: WalletConnect | null;
   shouldShowSignTxnToast: boolean;
+  isInWebview: boolean;
   chainId?: AlgorandChainIDs;
   compactMode?: boolean;
   singleAccount?: boolean;
@@ -85,6 +87,7 @@ class PeraWalletConnect {
         : options.shouldShowSignTxnToast;
 
     this.chainId = options?.chainId;
+    this.isInWebview = false;
     this.compactMode = options?.compactMode || false;
     this.singleAccount = options?.singleAccount || false;
   }
@@ -105,6 +108,20 @@ class PeraWalletConnect {
 
   get isPeraDiscoverBrowser() {
     return this.checkIsPeraDiscoverBrowser();
+  }
+
+  private async checkIsInWebview(): Promise<boolean> {
+    if (isMobile()) {
+      try {
+        await getPublicSettings();
+
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    return false;
   }
 
   // `selectedAccount` option is only applicable for Pera Wallet products
@@ -130,6 +147,8 @@ class PeraWalletConnect {
           promoteMobile
         } = await getPeraConnectConfig();
 
+        this.isInWebview = await this.checkIsInWebview();
+
         const onWebWalletConnect = runWebConnectFlow({
           resolve,
           reject,
@@ -153,7 +172,8 @@ class PeraWalletConnect {
             compactMode: this.compactMode,
             promoteMobile,
             singleAccount: this.singleAccount,
-            selectedAccount: options?.selectedAccount
+            selectedAccount: options?.selectedAccount,
+            isInWebview: this.isInWebview
           })
         });
 
@@ -428,7 +448,7 @@ class PeraWalletConnect {
     signerAddress?: string
   ): Promise<Uint8Array[]> {
     if (this.platform === "mobile") {
-      if (isMobile()) {
+      if (isMobile() && !this.isInWebview) {
         // This is to automatically open the wallet app when trying to sign with it.
         openPeraWalletRedirectModal();
       } else if (!isMobile() && this.shouldShowSignTxnToast) {
@@ -457,7 +477,6 @@ class PeraWalletConnect {
 
     // Pera Mobile Wallet flow
     return this.signTransactionWithMobile(signTxnRequestParams);
-    // ================================================= //
   }
 
   async signData(data: PeraWalletArbitraryData[], signer: string): Promise<Uint8Array[]> {
@@ -465,7 +484,7 @@ class PeraWalletConnect {
     const chainId = this.chainId || 4160;
 
     if (this.platform === "mobile") {
-      if (isMobile()) {
+      if (isMobile() && !this.isInWebview) {
         // This is to automatically open the wallet app when trying to sign with it.
         openPeraWalletRedirectModal();
       } else if (!isMobile() && this.shouldShowSignTxnToast) {

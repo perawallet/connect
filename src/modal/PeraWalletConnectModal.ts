@@ -4,8 +4,6 @@ import {
   PERA_WALLET_MODAL_CLASSNAME
 } from "./peraWalletConnectModalUtils";
 import styles from "./_pera-wallet-modal.scss";
-import {getPublicSettings} from "../util/webview-api/webviewApi";
-import {generatePeraWalletConnectDeepLink} from "../util/peraWalletUtils";
 
 const peraWalletConnectModal = document.createElement("template");
 let peraWalletConnectModalClassNames = isMobile()
@@ -13,35 +11,15 @@ let peraWalletConnectModalClassNames = isMobile()
   : `${PERA_WALLET_MODAL_CLASSNAME} ${PERA_WALLET_MODAL_CLASSNAME}--desktop`;
 
 export class PeraWalletConnectModal extends HTMLElement {
-  private isWebviewChecked = false;
-  private isInWebview = false;
-
   constructor() {
     super();
     this.attachShadow({mode: "open"});
   }
 
   connectedCallback() {
-    if (this.shadowRoot && !this.isWebviewChecked) {
-      this.checkWebviewAndRender();
+    if (this.shadowRoot) {
+      this.render();
     }
-  }
-
-  private async checkWebviewAndRender() {
-    this.isWebviewChecked = true;
-
-    // Only check for webview on mobile devices
-    if (isMobile()) {
-      try {
-        await getPublicSettings();
-
-        this.isInWebview = true;
-      } catch {
-        this.isInWebview = false;
-      }
-    }
-
-    this.render();
   }
 
   private render() {
@@ -62,40 +40,26 @@ export class PeraWalletConnectModal extends HTMLElement {
     const singleAccount = this.getAttribute("single-account") === "true";
     const selectedAccount = this.getAttribute("selected-account") || undefined;
 
-    // If we're in webview on mobile, skip touch-screen mode and trigger the deep link instead
     if (isMobile()) {
-      if (this.isInWebview) {
-        // Webview on mobile
-        const URI = this.getAttribute("uri");
-
-        if (URI) {
-          const deepLink = generatePeraWalletConnectDeepLink(URI, {singleAccount, selectedAccount});
-
-          window.open(deepLink, "_blank");
-        }
-      } else {
-        // Touch-screen mode
-        peraWalletConnectModal.innerHTML = `
+      peraWalletConnectModal.innerHTML = `
           <div class="${peraWalletConnectModalClassNames}">
             <div class="pera-wallet-modal__body" part="body">
               <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header/>
         
               <pera-wallet-modal-touch-screen-mode uri="${this.getAttribute(
-          "uri"
-        )}" should-use-sound="${this.getAttribute(
-          "should-use-sound"
-        )}" single-account="${singleAccount}" selected-account="${selectedAccount}"></pera-wallet-modal-touch-screen-mode>
+        "uri"
+      )}" should-use-sound="${this.getAttribute(
+        "should-use-sound"
+      )}" single-account="${singleAccount}" selected-account="${selectedAccount}"></pera-wallet-modal-touch-screen-mode>
             </div>
           </div>
         `;
 
-        this.shadowRoot.append(
-          peraWalletConnectModal.content.cloneNode(true),
-          styleSheet
-        );
-      }
+      this.shadowRoot.append(
+        peraWalletConnectModal.content.cloneNode(true),
+        styleSheet
+      );
     } else {
-      // Desktop mode
       peraWalletConnectModal.innerHTML = `
         <div class="${peraWalletConnectModalClassNames}">
           <div class="pera-wallet-modal__body">
