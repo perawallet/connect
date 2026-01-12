@@ -49,10 +49,11 @@
     "@walletconnect/types": "^1.8.0",
     "bowser": "2.11.0",
     "buffer": "^6.0.3",
-    "qr-code-styling": "1.6.0-rc.1"
+    "qr-code-styling": "1.6.0-rc.1",
+    "tweetnacl": "^1.0.3"
   },
   "peerDependencies": {
-    "algosdk": "^3.0.0"
+    "algosdk": "^3.5.2"
   },
   "repository": {
     "type": "git",
