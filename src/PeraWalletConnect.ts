@@ -1,5 +1,7 @@
 /* eslint-disable max-lines */
 import WalletConnect from "@walletconnect/client";
+import algosdk from "algosdk";
+import nacl from "tweetnacl";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
@@ -35,6 +37,8 @@ import {isMobile} from "./util/device/deviceUtils";
 import {AlgorandChainIDs} from "./util/peraWalletTypes";
 import {runWebSignTransactionFlow} from "./util/sign/signTransactionFlow";
 import {runWebConnectFlow} from "./util/connect/connectFlow";
+import {concatArrays} from "./util/array/arrayUtils";
+import {PERA_WALLET_SIGNATURE_PREFIX} from "./util/peraWalletConstants";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -279,6 +283,21 @@ class PeraWalletConnect {
     await resetWalletDetailsFromStorage();
   }
 
+  verifySignature(
+    data: Uint8Array,
+    signature: Uint8Array,
+    signerAddress: string
+  ): boolean {
+    try {
+      const {publicKey} = algosdk.decodeAddress(signerAddress);
+      const toBeVerified = concatArrays(PERA_WALLET_SIGNATURE_PREFIX, data);
+
+      return nacl.sign.detached.verify(toBeVerified, signature, publicKey);
+    } catch (error) {
+      return false;
+    }
+  }
+
   private async signTransactionWithMobile(signTxnRequestParams: PeraWalletTransaction[]) {
     const formattedSignTxnRequest = formatJsonRpcRequest("algo_signTxn", [
       signTxnRequestParams
@@ -367,14 +386,9 @@ class PeraWalletConnect {
           }
         );
 
-        // We send the full txn group to the mobile wallet.
-        // Therefore, we first filter out txns that were not signed by the wallet.
-        // These are received as `null`.
-        const nonNullResponse = response.filter(Boolean) as (string | number[])[];
-
-        return typeof nonNullResponse[0] === "string"
-          ? (nonNullResponse as string[]).map(base64ToUint8Array)
-          : (nonNullResponse as number[][]).map((item) => Uint8Array.from(item));
+        return typeof response[0] === "string"
+          ? (response as string[]).map(base64ToUint8Array)
+          : (response as number[][]).map((item) => Uint8Array.from(item));
       } catch (error) {
         return await Promise.reject(
           new PeraWalletConnectError(
@@ -436,6 +450,7 @@ class PeraWalletConnect {
         openPeraWalletSignTxnToast();
       }
 
+
       if (!this.connector) {
         throw new Error("PeraWalletConnect was not initialized correctly.");
       }
@@ -457,10 +472,9 @@ class PeraWalletConnect {
 
     // Pera Mobile Wallet flow
     return this.signTransactionWithMobile(signTxnRequestParams);
-    // ================================================= //
   }
 
-  async signData(data: PeraWalletArbitraryData[], signer: string): Promise<Uint8Array[]> {
+  async signData(data: PeraWalletArbitraryData[], signer: string, validateSignature?: boolean): Promise<Uint8Array[]> {
     // eslint-disable-next-line no-magic-numbers
     const chainId = this.chainId || 4160;
 
@@ -473,30 +487,52 @@ class PeraWalletConnect {
         openPeraWalletSignTxnToast();
       }
 
+
       if (!this.connector) {
         throw new Error("PeraWalletConnect was not initialized correctly.");
       }
     }
 
+    let signatures: Uint8Array[];
+
     // Pera Wallet Web flow
     if (this.platform === "web") {
       const {webWalletURL} = await getPeraConnectConfig();
 
-      return this.signDataWithWeb({
+      signatures = await this.signDataWithWeb({
         data,
         signer,
         chainId,
         webWalletURL
       });
+    } else {
+      const b64encodedData = data.map((item) => ({
+        ...item,
+        data: Buffer.from(item.data).toString("base64")
+      }));
+
+      // Pera Mobile Wallet flow
+      signatures = await this.signDataWithMobile({data: b64encodedData, signer, chainId});
     }
 
-    const b64encodedData = data.map((item) => ({
-      ...item,
-      data: Buffer.from(item.data).toString("base64")
-    }));
+    // Verify signatures if validateSignature is true
+    if (validateSignature) {
+      for (let i = 0; i < signatures.length; i++) {
+        const signature = signatures[i];
+        const originalData = data[i].data;
 
-    // Pera Mobile Wallet flow
-    return this.signDataWithMobile({data: b64encodedData, signer, chainId});
+        if (!this.verifySignature(originalData, signature, signer)) {
+          throw new PeraWalletConnectError(
+            {
+              type: "SIGN_DATA_VERIFICATION_FAILED"
+            },
+            `Signature verification failed for data item at index ${i}`
+          );
+        }
+      }
+    }
+
+    return signatures;
   }
 }
 
