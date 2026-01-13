@@ -38,6 +38,10 @@ import {AlgorandChainIDs} from "./util/peraWalletTypes";
 import {runWebSignTransactionFlow} from "./util/sign/signTransactionFlow";
 import {runWebConnectFlow} from "./util/connect/connectFlow";
 import {concatArrays} from "./util/array/arrayUtils";
+import {AlgodManager} from "./util/algod/algod";
+import {DEFAULT_ALGORAND_NODE_PROVIDER_TYPE} from "./util/algod/algodConstants";
+import {NetworkToggle} from "./util/algod/algodTypes";
+import {getNetworkFromChainId} from "./util/algod/algodUtils";
 import {PERA_WALLET_SIGNATURE_PREFIX} from "./util/peraWalletConstants";
 
 interface PeraWalletConnectOptions {
@@ -78,6 +82,7 @@ class PeraWalletConnect {
   chainId?: AlgorandChainIDs;
   compactMode?: boolean;
   singleAccount?: boolean;
+  private algodClients: Map<NetworkToggle, AlgodManager>;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
@@ -91,6 +96,7 @@ class PeraWalletConnect {
     this.chainId = options?.chainId;
     this.compactMode = options?.compactMode || false;
     this.singleAccount = options?.singleAccount || false;
+    this.algodClients = new Map();
   }
 
   get platform() {
@@ -437,6 +443,33 @@ class PeraWalletConnect {
     return userAget.includes("pera");
   }
 
+  private getAlgodClient(network: NetworkToggle): AlgodManager {
+    if (!this.algodClients.has(network)) {
+      const algodClient = new AlgodManager({
+        network,
+        providerType: DEFAULT_ALGORAND_NODE_PROVIDER_TYPE
+      });
+
+      this.algodClients.set(network, algodClient);
+    }
+
+    return this.algodClients.get(network)!;
+  }
+
+  private async getAccountAuthAddr(signer: string, chainId: AlgorandChainIDs): Promise<string | null> {
+    try {
+      const network = getNetworkFromChainId(chainId);
+      const algodClient = this.getAlgodClient(network);
+      const accountInfo = await algodClient.client.accountInformation(signer).do();
+
+      return accountInfo.authAddr ? String(accountInfo.authAddr) : null;
+    } catch (error) {
+      // If account fetch fails, return null to fall back to using the original signer
+      // This ensures signing can proceed even if there's a network issue
+      return null;
+    }
+  }
+
   async signTransaction(
     txGroups: SignerTransaction[][],
     signerAddress?: string
@@ -474,7 +507,7 @@ class PeraWalletConnect {
     return this.signTransactionWithMobile(signTxnRequestParams);
   }
 
-  async signData(data: PeraWalletArbitraryData[], signer: string, validateSignature?: boolean): Promise<Uint8Array[]> {
+  async signData(data: PeraWalletArbitraryData[], signer: string, verifySignature?: boolean): Promise<Uint8Array[]> {
     // eslint-disable-next-line no-magic-numbers
     const chainId = this.chainId || 4160;
 
@@ -493,6 +526,9 @@ class PeraWalletConnect {
       }
     }
 
+    // Fetch account information to check for authAddr (rekeyed accounts)
+    const authAddr = await this.getAccountAuthAddr(signer, chainId);
+    const effectiveSigner = authAddr || signer;
     let signatures: Uint8Array[];
 
     // Pera Wallet Web flow
@@ -501,7 +537,7 @@ class PeraWalletConnect {
 
       signatures = await this.signDataWithWeb({
         data,
-        signer,
+        signer: effectiveSigner,
         chainId,
         webWalletURL
       });
@@ -512,16 +548,16 @@ class PeraWalletConnect {
       }));
 
       // Pera Mobile Wallet flow
-      signatures = await this.signDataWithMobile({data: b64encodedData, signer, chainId});
+      signatures = await this.signDataWithMobile({data: b64encodedData, signer: effectiveSigner, chainId});
     }
 
     // Verify signatures if validateSignature is true
-    if (validateSignature) {
+    if (verifySignature) {
       for (let i = 0; i < signatures.length; i++) {
         const signature = signatures[i];
         const originalData = data[i].data;
 
-        if (!this.verifySignature(originalData, signature, signer)) {
+        if (!this.verifySignature(originalData, signature, effectiveSigner)) {
           throw new PeraWalletConnectError(
             {
               type: "SIGN_DATA_VERIFICATION_FAILED"
