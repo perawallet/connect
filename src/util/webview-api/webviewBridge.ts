@@ -7,7 +7,7 @@
 
 // Reference global types
 // eslint-disable-next-line spaced-comment, @typescript-eslint/triple-slash-reference
-/// <reference types="./webviewBridgeTypes" />
+/// <reference path="./webviewBridgeTypes.d.ts" />
 
 import {
   type Platform,
