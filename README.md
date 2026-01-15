@@ -160,7 +160,7 @@ Starts the signing process for arbitrary data signing and returns the signed dat
 1. Fetch account information from the Algorand network
 2. Check if the account has an `authAddr` (rekeyed account)
 3. Automatically use the `authAddr` as the signer if it exists, otherwise use the provided `signer` address
-4. Verify each signature after signing to ensure data integrity
+4. Verify each signature after signing using the `verifySignature` method (see below)
 
 <details>
   <summary>See example</summary>
@@ -190,14 +190,16 @@ const verifiedSignedData: Uint8Array[] = await peraWallet.signData([
 
 #### `PeraWalletConnect.verifySignature(data: Uint8Array, signature: Uint8Array, signerAddress: string): boolean`
 
-Verifies a signature against the provided data and signer address. This method can be used independently to verify signatures returned from `signData` or other sources.
+Verifies a signature against the provided data and signer address. This method can be used independently to verify signatures returned from `signData` or other sources. When `signData` is called with `verifySignature: true`, it uses this method internally to verify the signatures.
 
 **Parameters:**
-- `data`: The original data that will be signed (as `Uint8Array`)
+- `data`: The original data that was signed (as `Uint8Array`)
 - `signature`: The signature to verify (as `Uint8Array`)
 - `signerAddress`: The Algorand address that should have signed the data
 
 **Returns:** `true` if the signature is valid, `false` otherwise.
+
+**Note:** This method automatically prefixes the data with "MX" (bytes `[77, 88]`) before verification to be consistent with `algosdk.verifyBytes` function. This ensures compatibility with Algorand's standard signature verification format. The data passed to this method should be the original data without the "MX" prefix, as the prefix is added internally.
 
 <details>
   <summary>See example</summary>
