@@ -52,7 +52,8 @@ function generatePeraWalletConnectModalActions({
   compactMode,
   promoteMobile,
   singleAccount,
-  selectedAccount
+  selectedAccount,
+  isInWebview
 }: PeraWalletModalConfig) {
   return {
     open: openPeraWalletConnectModal({
@@ -62,7 +63,8 @@ function generatePeraWalletConnectModalActions({
       compactMode,
       promoteMobile,
       singleAccount,
-      selectedAccount
+      selectedAccount,
+      isInWebview
     }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
