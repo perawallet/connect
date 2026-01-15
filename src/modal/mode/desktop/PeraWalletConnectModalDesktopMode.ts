@@ -13,7 +13,6 @@ import QRCodeStyling from "qr-code-styling";
 
 import styles from "./_pera-wallet-connect-modal-desktop-mode.scss";
 import accordionStyles from "./accordion/_pera-wallet-accordion.scss";
-// import {peraWalletFlowType} from "../../../util/device/deviceUtils";
 
 const peraWalletConnectModalDesktopMode = document.createElement("template");
 const styleSheet = document.createElement("style");

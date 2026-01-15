@@ -1,5 +1,6 @@
 import PeraWalletConnectError from "../util/PeraWalletConnectError";
 import {waitForElementCreatedAtShadowDOM} from "../util/dom/domUtils";
+import {generatePeraWalletConnectDeepLink} from "../util/peraWalletUtils";
 
 export type PERA_CONNECT_MODAL_VIEWS = "default" | "download-pera";
 
@@ -11,6 +12,7 @@ export interface PeraWalletModalConfig {
   compactMode?: boolean;
   singleAccount?: boolean;
   selectedAccount?: string;
+  isInWebview?: boolean;
 }
 
 // The ID of the wrapper element for PeraWalletConnectModal
@@ -59,20 +61,26 @@ function createModalWrapperOnDOM(modalId: string) {
  */
 function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
   return (uri: string) => {
-    if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
+    const {
+      isWebWalletAvailable,
+      shouldDisplayNewBadge,
+      shouldUseSound,
+      compactMode,
+      promoteMobile,
+      singleAccount,
+      selectedAccount,
+      isInWebview
+    } = modalConfig;
+
+    if (isInWebview) {
+      const deepLink = generatePeraWalletConnectDeepLink(uri, {singleAccount, selectedAccount});
+
+      window.open(deepLink, "_blank");
+    } else if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
       const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
       const newURI = `${uri}&algorand=true`;
-      const {
-        isWebWalletAvailable,
-        shouldDisplayNewBadge,
-        shouldUseSound,
-        compactMode,
-        promoteMobile,
-        singleAccount,
-        selectedAccount
-      } = modalConfig;
 
-      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${selectedAccount || ''}"></pera-wallet-connect-modal>`;
+      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${selectedAccount || ''}" is-in-webview="${isInWebview || false}"></pera-wallet-connect-modal>`;
     }
   };
 }
