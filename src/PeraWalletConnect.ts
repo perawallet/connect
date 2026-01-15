@@ -526,9 +526,6 @@ class PeraWalletConnect {
       }
     }
 
-    // Fetch account information to check for authAddr (rekeyed accounts)
-    const authAddr = await this.getAccountAuthAddr(signer, chainId);
-    const effectiveSigner = authAddr || signer;
     let signatures: Uint8Array[];
 
     // Pera Wallet Web flow
@@ -537,7 +534,7 @@ class PeraWalletConnect {
 
       signatures = await this.signDataWithWeb({
         data,
-        signer: effectiveSigner,
+        signer,
         chainId,
         webWalletURL
       });
@@ -548,11 +545,14 @@ class PeraWalletConnect {
       }));
 
       // Pera Mobile Wallet flow
-      signatures = await this.signDataWithMobile({data: b64encodedData, signer: effectiveSigner, chainId});
+      signatures = await this.signDataWithMobile({data: b64encodedData, signer, chainId});
     }
 
     // Verify signatures if validateSignature is true
     if (verifySignature) {
+      const authAddr = await this.getAccountAuthAddr(signer, chainId);
+      const effectiveSigner = authAddr || signer;
+
       for (let i = 0; i < signatures.length; i++) {
         const signature = signatures[i];
         const originalData = data[i].data;
