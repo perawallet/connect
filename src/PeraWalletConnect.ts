@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 import WalletConnect from "@walletconnect/client";
 import algosdk from "algosdk";
-import nacl from "tweetnacl";
+import {sign_detached_verify} from "tweetnacl-ts";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
@@ -318,7 +318,7 @@ class PeraWalletConnect {
       const {publicKey} = algosdk.decodeAddress(signerAddress);
       const toBeVerified = concatArrays(PERA_WALLET_SIGNATURE_PREFIX, data);
 
-      return nacl.sign.detached.verify(toBeVerified, signature, publicKey);
+      return sign_detached_verify(toBeVerified, signature, publicKey);
     } catch (error) {
       return false;
     }
