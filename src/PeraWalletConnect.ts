@@ -115,9 +115,9 @@ class PeraWalletConnect {
   private async checkIsInWebview(): Promise<boolean> {
     if (isMobile()) {
       try {
-        await getPublicSettings();
+        const publicSettings = await getPublicSettings();
 
-        return true;
+        return publicSettings !== null;
       } catch {
         return false;
       }
