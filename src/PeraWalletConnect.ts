@@ -252,6 +252,8 @@ class PeraWalletConnect {
         }
 
         // Pera Mobile Wallet flow
+        this.isInWebview = await this.checkIsInWebview();
+
         if (this.connector) {
           resolve(this.connector.accounts || []);
         }
