@@ -147,14 +147,26 @@ Checks if it is on Pera Discover Browser. Possible responses: _`true | false`_
 
 Starts the sign process and returns the signed transaction in `Uint8Array`
 
-#### `PeraWalletConnect.signData(data: PeraWalletArbitraryData[], signer: string): Promise<Uint8Array[]>`
+#### `PeraWalletConnect.signData(data: PeraWalletArbitraryData[], signer: string, verifySignature?: boolean): Promise<Uint8Array[]>`
 
 Starts the signing process for arbitrary data signing and returns the signed data in `Uint8Array`. Uses `signBytes` method of `algosdk` behind the scenes. `signer` should be a valid Algorand address that exists in the user's wallet.
+
+**Parameters:**
+- `data`: Array of arbitrary data to sign
+- `signer`: Algorand address that will sign the data
+- `verifySignature` (optional): If `true`, automatically detects if the account is rekeyed (has `authAddr`) and uses the `authAddr` as the signer. After signing, verifies each signature against the original data. Defaults to `false`.
+
+**Note:** When `verifySignature` is `true`, the function will:
+1. Fetch account information from the Algorand network
+2. Check if the account has an `authAddr` (rekeyed account)
+3. Automatically use the `authAddr` as the signer if it exists, otherwise use the provided `signer` address
+4. Verify each signature after signing using the `verifySignature` method (see below)
 
 <details>
   <summary>See example</summary>
   
 ```typescript
+// Basic usage
 const signedData: Uint8Array[] = await peraWallet.signData([
   {
     data: new Uint8Array(Buffer.from(`timestamp//${Date.now()}`)),
@@ -165,6 +177,46 @@ const signedData: Uint8Array[] = await peraWallet.signData([
     message: "User agent confirmation"
   }
 ], "SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4");
+
+// With signature verification (automatically handles rekeyed accounts)
+const verifiedSignedData: Uint8Array[] = await peraWallet.signData([
+  {
+    data: new Uint8Array(Buffer.from(`timestamp//${Date.now()}`)),
+    message: "Timestamp confirmation"
+  }
+], "SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4", true);
+```
+</details>
+
+#### `PeraWalletConnect.verifySignature(data: Uint8Array, signature: Uint8Array, signerAddress: string): boolean`
+
+Verifies a signature against the provided data and signer address. This method can be used independently to verify signatures returned from `signData` or other sources. When `signData` is called with `verifySignature: true`, it uses this method internally to verify the signatures.
+
+**Parameters:**
+- `data`: The original data that was signed (as `Uint8Array`)
+- `signature`: The signature to verify (as `Uint8Array`)
+- `signerAddress`: The Algorand address that should have signed the data
+
+**Returns:** `true` if the signature is valid, `false` otherwise.
+
+**Note:** This method automatically prefixes the data with "MX" (bytes `[77, 88]`) before verification to be consistent with `algosdk.verifyBytes` function. This ensures compatibility with Algorand's standard signature verification format. The data passed to this method should be the original data without the "MX" prefix, as the prefix is added internally.
+
+<details>
+  <summary>See example</summary>
+  
+```typescript
+// Verify a signature independently
+const isValid = peraWallet.verifySignature(
+  originalData,
+  signature,
+  "SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4"
+);
+
+if (isValid) {
+  console.log("Signature is valid!");
+} else {
+  console.log("Signature verification failed!");
+}
 ```
 </details>
 
