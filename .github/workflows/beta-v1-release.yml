@@ -25,6 +25,6 @@ jobs:
         run: npm ci && npm run build:release
 
       - name: 🚀 publish
-        run: npm publish --access public
+        run: npm publish --access public --tag beta-v1
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
