@@ -56,7 +56,7 @@ function generatePeraWalletConnectDeepLink(
     deepLink = `${deepLink}&singleAccount=true`;
   }
 
-  if (params?.selectedAccount) {
+  if (params?.selectedAccount && params.selectedAccount !== "undefined") {
     deepLink = `${deepLink}&selectedAccount=${params.selectedAccount}`;
   }
 
