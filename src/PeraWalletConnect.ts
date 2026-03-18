@@ -87,6 +87,8 @@ class PeraWalletConnect {
   compactMode?: boolean;
   singleAccount?: boolean;
   private algodClients: Map<NetworkToggle, AlgodManager>;
+  private _configPromise: ReturnType<typeof getPeraConnectConfig> | null = null;
+  private _webviewCheckPromise: Promise<boolean> | null = null;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
@@ -102,6 +104,11 @@ class PeraWalletConnect {
     this.compactMode = options?.compactMode || false;
     this.singleAccount = options?.singleAccount || false;
     this.algodClients = new Map();
+
+    // Eagerly start the two blocking operations so they resolve
+    // before the user taps Connect — avoids delay on iOS Safari.
+    this._configPromise = getPeraConnectConfig();
+    this._webviewCheckPromise = this.checkIsInWebview();
   }
 
   get platform() {
@@ -157,9 +164,13 @@ class PeraWalletConnect {
           shouldDisplayNewBadge,
           shouldUseSound,
           promoteMobile
-        } = await getPeraConnectConfig();
+        } = await (this._configPromise ?? getPeraConnectConfig());
 
-        this.isInWebview = await this.checkIsInWebview();
+        // Re-prime for next connect() call so it also benefits from prefetching
+        this._configPromise = getPeraConnectConfig();
+
+        this.isInWebview = await (this._webviewCheckPromise ?? this.checkIsInWebview());
+        this._webviewCheckPromise = this.checkIsInWebview();
 
         const onWebWalletConnect = runWebConnectFlow({
           resolve,
