@@ -18,17 +18,24 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
+          cache: pnpm
 
       - name: Debug npm registry
         run: npm config get registry
 
       - name: Build app
-        run: npm ci && npm run build:release
+        run: pnpm install --frozen-lockfile && pnpm run build:release
+
+      - name: Audit dependencies
+        run: pnpm audit --prod
 
       - name: 🚀 publish
-        run: npm publish --access public --provenance
+        run: pnpm publish --access public --provenance --no-git-checks

@@ -1,4 +1,4 @@
-@import "../../../../ui/styles/media-queries";
+@use "../../../../ui/styles/media-queries";
 
 .pera-wallet-accordion-item {
   background-color: #ffffff;
@@ -131,7 +131,7 @@
   cursor: pointer;
 }
 
-@include for-small-screens {
+@include media-queries.for-small-screens {
   .pera-wallet-accordion-toggle {
     font-size: 14px;
     font-weight: 500;
