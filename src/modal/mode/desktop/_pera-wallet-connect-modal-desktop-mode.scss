@@ -1,4 +1,4 @@
-@import "../../../ui/styles/media-queries";
+@use "../../../ui/styles/media-queries";
 
 .pera-wallet-connect-modal-desktop-mode {
   display: grid;
@@ -434,7 +434,7 @@
   border: none;
 }
 
-@include for-small-screens {
+@include media-queries.for-small-screens {
   .pera-wallet-connect-modal-desktop-mode {
     grid-template-columns: 1fr;
     gap: 24px;
