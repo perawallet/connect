@@ -1,4 +1,4 @@
-@import "../../../../ui/styles/media-queries";
+@use "../../../../ui/styles/media-queries";
 
 .pera-wallet-download-qr-code-wrapper {
   display: flex;
@@ -15,7 +15,7 @@
   border-radius: 24px;
 }
 
-@include for-small-screens {
+@include media-queries.for-small-screens {
   .pera-wallet-download-qr-code-wrapper {
     margin-top: 51px;
   }

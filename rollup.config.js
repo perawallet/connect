@@ -38,9 +38,14 @@ export default [
     plugins: [
       image(),
       terser(),
-      postcss(),
+      postcss({
+        use: {
+          sass: {silenceDeprecations: ["legacy-js-api"]}
+        }
+      }),
       typescript({
         rollupCommonJSResolveHack: true,
+        include: ["**/*.ts", "**/*.tsx"],
         exclude: "**/__tests__/**",
         clean: true
       }),
