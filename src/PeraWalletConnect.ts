@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import WalletConnect from "@walletconnect/client";
+import WalletConnect from "@perawallet/walletconnect";
 import algosdk from "algosdk";
 import {sign_detached_verify} from "tweetnacl-ts";
 

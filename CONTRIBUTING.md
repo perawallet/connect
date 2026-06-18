@@ -7,7 +7,7 @@ The following steps will get you setup to contribute changes to this repo:
 - Fork the repo and create your branch from `next-release`.
 - Install depencencies and build.
 
-We use npm to manage installation of dependencies and running various scripts. To get everything installed, make sure you have npm and run `npm install` from the root of the repository.
+We use [pnpm](https://pnpm.io) to manage installation of dependencies and running various scripts. To get everything installed, make sure you have pnpm and run `pnpm install` from the root of the repository.
 
 #### Reporting new issues
 
@@ -20,7 +20,7 @@ When opening a new issue, always make sure to fill out the issue template.
 
 ##### Building
 
-Running npm run build from the root directory will run the build command for package.
+Running `pnpm run build` from the root directory will run the build command for package.
 
 ##### Branch Organization
 
@@ -70,4 +70,4 @@ You can work on your local project with this package. All you have to do is repl
 "@perawallet/connect": "file:../connect"
 ```
 
-After doing this, you can run `npm run dev` and in this way, you can see the changes you have made to the package simultaneously.
+After doing this, you can run `pnpm run dev` and in this way, you can see the changes you have made to the package simultaneously.
