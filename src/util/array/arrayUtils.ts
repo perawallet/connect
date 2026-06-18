@@ -34,5 +34,4 @@ function concatArrays(...arrs: ArrayLike<number>[]) {
   return c;
 }
 
-
 export {shuffleArray, concatArrays};

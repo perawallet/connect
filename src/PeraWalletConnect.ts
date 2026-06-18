@@ -512,7 +512,10 @@ class PeraWalletConnect {
     return this.algodClients.get(network)!;
   }
 
-  private async getAccountAuthAddr(signer: string, chainId: AlgorandChainIDs): Promise<string | null> {
+  private async getAccountAuthAddr(
+    signer: string,
+    chainId: AlgorandChainIDs
+  ): Promise<string | null> {
     try {
       const network = getNetworkFromChainId(chainId);
       const algodClient = this.getAlgodClient(network);
@@ -539,7 +542,6 @@ class PeraWalletConnect {
         openPeraWalletSignTxnToast();
       }
 
-
       if (!this.connector) {
         throw new Error("PeraWalletConnect was not initialized correctly.");
       }
@@ -563,7 +565,11 @@ class PeraWalletConnect {
     return this.signTransactionWithMobile(signTxnRequestParams);
   }
 
-  async signData(data: PeraWalletArbitraryData[], signer: string, verifySignature?: boolean): Promise<Uint8Array[]> {
+  async signData(
+    data: PeraWalletArbitraryData[],
+    signer: string,
+    verifySignature?: boolean
+  ): Promise<Uint8Array[]> {
     // eslint-disable-next-line no-magic-numbers
     const chainId = this.chainId || 4160;
 
@@ -575,7 +581,6 @@ class PeraWalletConnect {
         // This is to inform user go the wallet app when trying to sign with it.
         openPeraWalletSignTxnToast();
       }
-
 
       if (!this.connector) {
         throw new Error("PeraWalletConnect was not initialized correctly.");

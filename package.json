@@ -16,7 +16,7 @@
     "build": "pnpm run eslint && rollup -c",
     "build:release": "rollup -c",
     "eslint": "eslint --ext .jsx,.js,.tsx,.ts src/",
-    "prettify": "prettier --config ./.prettierrc.js --write \"src/**/*.{ts,tsx}\"",
+    "prettify": "prettier --config ./.prettierrc.cjs --write \"src/**/*.{ts,tsx}\"",
     "type-check:watch": "tsc --watch"
   },
   "author": "Pera Wallet",

@@ -73,14 +73,19 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
     } = modalConfig;
 
     if (isInWebview) {
-      const deepLink = generatePeraWalletConnectDeepLink(uri, {singleAccount, selectedAccount});
+      const deepLink = generatePeraWalletConnectDeepLink(uri, {
+        singleAccount,
+        selectedAccount
+      });
 
       window.open(deepLink, "_blank");
     } else if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
       const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
       const newURI = `${uri}&algorand=true`;
 
-      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${selectedAccount || ''}" is-in-webview="${isInWebview || false}"></pera-wallet-connect-modal>`;
+      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${
+        selectedAccount || ""
+      }" is-in-webview="${isInWebview || false}"></pera-wallet-connect-modal>`;
     }
   };
 }

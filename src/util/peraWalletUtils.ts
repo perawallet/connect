@@ -32,7 +32,7 @@ function generatePeraWalletConnectDeepLink(
   params?: {
     singleAccount?: boolean;
     selectedAccount?: string;
-  } 
+  }
 ): string {
   let appDeepLink = generatePeraWalletAppDeepLink(false);
 
