@@ -1,4 +1,4 @@
-import {Buffer} from 'buffer';
+import {Buffer} from "buffer";
 
 if (typeof window !== "undefined") {
   // Pollyfill for Buffer
@@ -8,7 +8,6 @@ if (typeof window !== "undefined") {
 
   import("./App");
 }
-
 
 import PeraWalletConnect from "./PeraWalletConnect";
 import {closePeraWalletSignTxnToast} from "./modal/peraWalletConnectModalUtils";

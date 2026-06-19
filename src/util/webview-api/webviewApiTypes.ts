@@ -1,4 +1,3 @@
-
 /**
  * Webview API Types
  * Type definitions for webview API communication
@@ -52,7 +51,7 @@ export enum JsonRpcErrorCode {
 export interface JsonRpcRequest {
   jsonrpc: "2.0";
   method: string;
-  params?: unknown; /* Can be Array (by-position) or Object (by-name) */
+  params?: unknown /* Can be Array (by-position) or Object (by-name) */;
   id: string | number;
 }
 

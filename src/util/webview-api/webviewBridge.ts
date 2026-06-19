@@ -69,7 +69,7 @@ function createRequest(
   return {
     jsonrpc: "2.0",
     method,
-    ...(params !== undefined && { params }),
+    ...(params !== undefined && {params}),
     id: requestId
   };
 }
@@ -108,11 +108,7 @@ function isJsonRpcNotification(obj: unknown): obj is JsonRpcNotification {
 
   const notif = obj as Record<string, unknown>;
 
-  return (
-    notif.jsonrpc === "2.0" &&
-    typeof notif.method === "string" &&
-    !("id" in notif)
-  );
+  return notif.jsonrpc === "2.0" && typeof notif.method === "string" && !("id" in notif);
 }
 
 // ============================================================================
@@ -310,7 +306,7 @@ class MessageListener {
    * Handle JSON-RPC 2.0 response (success or error)
    */
   private handleJsonRpcResponse(response: JsonRpcResponse): void {
-    const { id } = response;
+    const {id} = response;
 
     // Responses with null id are invalid (except for parse errors)
     if (id === null) {
@@ -354,8 +350,11 @@ class MessageListener {
   /**
    * Handle JSON-RPC 2.0 notification (for event-based subscriptions)
    */
-  private handleJsonRpcNotification(notification: { method: string; params?: unknown }): void {
-    const { method, params } = notification;
+  private handleJsonRpcNotification(notification: {
+    method: string;
+    params?: unknown;
+  }): void {
+    const {method, params} = notification;
     const handlers = this.listeners.get(method);
 
     if (handlers) {
@@ -410,7 +409,9 @@ class MessageListener {
 
       if (existing) {
         clearTimeout(existing.timeoutHandle);
-        existing.reject(new Error(`New request for ${method} (id: ${id}) cancelled previous request`));
+        existing.reject(
+          new Error(`New request for ${method} (id: ${id}) cancelled previous request`)
+        );
       }
 
       const timeoutHandle = setTimeout(() => {
@@ -486,7 +487,9 @@ const messageListener = new MessageListener();
  * Works for both Android and iOS
  * Uses unified handleRequest function for both single requests/notifications and batch requests
  */
-function sendJsonRpcMessage(message: JsonRpcRequest | JsonRpcNotification | JsonRpcBatchRequest): void {
+function sendJsonRpcMessage(
+  message: JsonRpcRequest | JsonRpcNotification | JsonRpcBatchRequest
+): void {
   const androidInterface = getAndroidInterface();
   const iosInterface = getIosInterface();
 
@@ -519,7 +522,11 @@ export function callMobileMethodWithResponse<T>(
   const requestId = generateRequestId();
 
   // Register listener for the response before sending the message
-  const responsePromise = messageListener.waitForResponse<T>(requestId, methodName, timeoutMs);
+  const responsePromise = messageListener.waitForResponse<T>(
+    requestId,
+    methodName,
+    timeoutMs
+  );
 
   // Create and send JSON-RPC request
   const request = createRequest(methodName, params, requestId);
@@ -539,7 +546,6 @@ export function isMobileMethodAvailable(): boolean {
 
   // Check if handleRequest exists (method availability is now handled by mobile app)
   return Boolean(
-    androidInterface?.handleRequest ||
-    iosInterface?.handleRequest?.postMessage
+    androidInterface?.handleRequest || iosInterface?.handleRequest?.postMessage
   );
 }

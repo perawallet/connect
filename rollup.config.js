@@ -19,7 +19,7 @@ export default [
       format: "esm",
       name: "PeraConnect",
       globals: {
-        "@walletconnect/client": "WalletConnect",
+        "@perawallet/walletconnect": "WalletConnect",
         algosdk: "algosdk",
         bowser: "bowser",
         "qr-code-styling": "QRCodeStyling",
@@ -27,8 +27,7 @@ export default [
       }
     },
     external: [
-      "@walletconnect/client",
-      "@walletconnect/types",
+      "@perawallet/walletconnect",
       "algosdk",
       "@evanhahn/lottie-web-light",
       "bowser",

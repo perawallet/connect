@@ -6,3 +6,9 @@ overrides:
   serialize-javascript@<=7.0.2: '>=7.0.3'
   tmp@<=0.2.3: '>=0.2.4'
   ws@>=7.0.0 <7.5.10: '>=7.5.10'
+
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - "@perawallet/walletconnect"
+
+strictPeerDependencies: true

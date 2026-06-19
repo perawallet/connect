@@ -38,8 +38,15 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 Let's start with installing `@perawallet/connect`
 
-```
-npm install --save @perawallet/connect
+```sh
+# pnpm
+pnpm add @perawallet/connect
+
+# npm
+npm install @perawallet/connect
+
+# yarn
+yarn add @perawallet/connect
 ```
 
 ```jsx

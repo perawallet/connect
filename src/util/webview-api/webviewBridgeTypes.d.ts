@@ -47,7 +47,7 @@ declare global {
      * - A single JSON-RPC request/notification object
      * - An array of JSON-RPC requests/notifications (batch request)
      */
-    handleRequest?: { postMessage: (jsonRpcMessage: string) => void };
+    handleRequest?: {postMessage: (jsonRpcMessage: string) => void};
   }
 }
 
