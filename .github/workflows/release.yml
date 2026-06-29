@@ -2,8 +2,8 @@ name: "🚀 release"
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*"
 
 # Least-privilege default. The publish job opts into id-token below.
 permissions:
@@ -39,5 +39,28 @@ jobs:
       - name: Audit dependencies
         run: pnpm audit --prod --audit-level=moderate
 
+      - name: Resolve release channel
+        id: channel
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag ($TAG_VERSION) does not match package.json ($PKG_VERSION)"
+            exit 1
+          fi
+          if [[ "$TAG_VERSION" == *-* ]]; then
+            echo "dist_tag=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "dist_tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: 🚀 publish
-        run: pnpm publish --access public --provenance --no-git-checks
+        run: pnpm publish --access public --tag ${{ steps.channel.outputs.dist_tag }} --provenance --no-git-checks
+
+      # TODO: enable GitHub Releases once the action is pinned to a commit SHA.
+      # Requires bumping the job permission `contents: read` -> `contents: write`.
+      # - name: Create GitHub Release
+      #   uses: softprops/action-gh-release@<PIN-TO-SHA> # v2
+      #   with:
+      #     generate_release_notes: true
+      #     prerelease: ${{ contains(github.ref_name, '-') }}
