@@ -35,6 +35,9 @@ importers:
       qr-code-styling:
         specifier: 1.6.0-rc.1
         version: 1.6.0-rc.1
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
       tweetnacl-ts:
         specifier: ^1.0.3
         version: 1.0.3
@@ -54,6 +57,9 @@ importers:
       '@rollup/plugin-replace':
         specifier: ^5.0.2
         version: 5.0.7(rollup@2.80.0)
+      '@types/node':
+        specifier: ^25.5.2
+        version: 25.5.2
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.17.0
         version: 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@4.9.5))(eslint@8.57.1)(typescript@4.9.5)
