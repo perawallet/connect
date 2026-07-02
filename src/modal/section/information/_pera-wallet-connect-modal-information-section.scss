@@ -1,4 +1,4 @@
-@import "../../../ui/styles/media-queries";
+@use "../../../ui/styles/media-queries";
 
 .pera-wallet-connect-modal-information-section {
   padding: 12px;
@@ -119,7 +119,7 @@
   letter-spacing: 0.01px;
 }
 
-@include for-small-screens {
+@include media-queries.for-small-screens {
   .pera-wallet-connect-modal-information-section--desktop {
     padding: 0;
 

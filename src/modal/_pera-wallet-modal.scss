@@ -1,5 +1,6 @@
+@use "../ui/styles/media-queries";
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-@import "../ui/styles/media-queries";
 
 .pera-wallet-modal {
   --pera-wallet-modal-font-family: "Inter", sans-serif;
@@ -163,7 +164,7 @@
   }
 }
 
-@include for-small-screens {
+@include media-queries.for-small-screens {
   .pera-wallet-modal--desktop {
     .pera-wallet-modal__body {
       width: 100%;

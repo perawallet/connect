@@ -1,7 +1,7 @@
 {
-  "version": "1.5.2",
+  "version": "1.6.0-beta.0",
   "name": "@perawallet/connect",
-  "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
+  "description": "JavaScript SDK for integrating Pera Wallet to web applications",
   "type": "module",
   "exports": {
     ".": {
@@ -12,11 +12,11 @@
   "module": "dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "./node_modules/.bin/rollup -c -w",
-    "build": "npm run eslint && ./node_modules/.bin/rollup -c",
-    "build:release": "./node_modules/.bin/rollup -c",
-    "eslint": "./node_modules/.bin/eslint --ext .jsx,.js,.tsx,.ts src/",
-    "prettify": "prettier --config ./.prettierrc.js --write \"src/**/*.{ts,tsx}\"",
+    "dev": "rollup -c -w",
+    "build": "pnpm run eslint && rollup -c",
+    "build:release": "rollup -c",
+    "eslint": "eslint --ext .jsx,.js,.tsx,.ts src/",
+    "prettify": "prettier --config ./.prettierrc.cjs --write \"src/**/*.{ts,tsx}\"",
     "type-check:watch": "tsc --watch"
   },
   "author": "Pera Wallet",
@@ -27,6 +27,7 @@
     "@rollup/plugin-image": "^2.1.1",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-replace": "^5.0.2",
+    "@types/node": "^25.5.2",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "eslint": "^8.12.0",
@@ -44,11 +45,11 @@
   },
   "dependencies": {
     "@evanhahn/lottie-web-light": "5.8.1",
-    "@walletconnect/client": "^1.8.0",
-    "@walletconnect/types": "^1.8.0",
+    "@perawallet/walletconnect": "1.0.0",
     "bowser": "2.11.0",
     "buffer": "^6.0.3",
     "qr-code-styling": "1.6.0-rc.1",
+    "tslib": "^2.8.1",
     "tweetnacl-ts": "^1.0.3"
   },
   "peerDependencies": {
@@ -61,5 +62,6 @@
   "bugs": {
     "url": "https://github.com/perawallet/connect/issues"
   },
-  "homepage": "https://github.com/perawallet/connect#readme"
+  "homepage": "https://github.com/perawallet/connect#readme",
+  "packageManager": "pnpm@10.28.1+sha512.7d7dbbca9e99447b7c3bf7a73286afaaf6be99251eb9498baefa7d406892f67b879adb3a1d7e687fc4ccc1a388c7175fbaae567a26ab44d1067b54fcb0d6a316"
 }

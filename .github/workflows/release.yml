@@ -2,33 +2,65 @@ name: "🚀 release"
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*"
+
+# Least-privilege default. The publish job opts into id-token below.
+permissions:
+  contents: read
 
 jobs:
   release:
     name: 🚀 release
     runs-on: ubuntu-latest
     permissions:
+      # OIDC token for npm trusted-publisher provenance.
       id-token: write
       contents: read
     steps:
       - name: Setup repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 24.x
-          registry-url: https://registry.npmjs.org
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
 
-      - name: Debug npm registry
-        run: npm config get registry
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: ".tool-versions"
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
 
       - name: Build app
-        run: npm ci && npm run build:release
+        run: pnpm install --frozen-lockfile && pnpm run build:release
+
+      - name: Audit dependencies
+        run: pnpm audit --prod --audit-level=moderate
+
+      - name: Resolve release channel
+        id: channel
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag ($TAG_VERSION) does not match package.json ($PKG_VERSION)"
+            exit 1
+          fi
+          if [[ "$TAG_VERSION" == *-* ]]; then
+            echo "dist_tag=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "dist_tag=latest" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: 🚀 publish
-        run: npm publish --access public --provenance
+        run: pnpm publish --access public --tag ${{ steps.channel.outputs.dist_tag }} --provenance --no-git-checks
+
+      # TODO: enable GitHub Releases once the action is pinned to a commit SHA.
+      # Requires bumping the job permission `contents: read` -> `contents: write`.
+      # - name: Create GitHub Release
+      #   uses: softprops/action-gh-release@<PIN-TO-SHA> # v2
+      #   with:
+      #     generate_release_notes: true
+      #     prerelease: ${{ contains(github.ref_name, '-') }}

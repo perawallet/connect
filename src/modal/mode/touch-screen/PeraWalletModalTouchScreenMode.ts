@@ -61,7 +61,10 @@ export class PeraWalletModalTouchScreenMode extends HTMLElement {
       const selectedAccount = this.getAttribute("selected-account") || undefined;
 
       if (launchPeraLink && URI) {
-        launchPeraLink.setAttribute("href", generatePeraWalletConnectDeepLink(URI, {singleAccount, selectedAccount}));
+        launchPeraLink.setAttribute(
+          "href",
+          generatePeraWalletConnectDeepLink(URI, {singleAccount, selectedAccount})
+        );
         launchPeraLink.addEventListener("click", () => {
           this.onClickLaunch();
         });

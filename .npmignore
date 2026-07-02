@@ -6,3 +6,11 @@ node_modules
 .DS_Store
 npm-debug.log
 .npm
+pnpm-debug.log
+
+# pnpm / tooling config — not needed by consumers
+pnpm-lock.yaml
+pnpm-workspace.yaml
+.tool-versions
+.npmrc
+.github

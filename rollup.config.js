@@ -19,7 +19,7 @@ export default [
       format: "esm",
       name: "PeraConnect",
       globals: {
-        "@walletconnect/client": "WalletConnect",
+        "@perawallet/walletconnect": "WalletConnect",
         algosdk: "algosdk",
         bowser: "bowser",
         "qr-code-styling": "QRCodeStyling",
@@ -27,8 +27,7 @@ export default [
       }
     },
     external: [
-      "@walletconnect/client",
-      "@walletconnect/types",
+      "@perawallet/walletconnect",
       "algosdk",
       "@evanhahn/lottie-web-light",
       "bowser",
@@ -38,16 +37,21 @@ export default [
     plugins: [
       image(),
       terser(),
-      postcss(),
+      postcss({
+        use: {
+          sass: {silenceDeprecations: ["legacy-js-api"]}
+        }
+      }),
       typescript({
         rollupCommonJSResolveHack: true,
+        include: ["**/*.ts", "**/*.tsx"],
         exclude: "**/__tests__/**",
         clean: true
       }),
       json(),
       sizes(),
       replace({
-        PERA_CONNECT_VERSION: `v${PeraConnectVersion}`,
+        PERA_CONNECT_VERSION: `v${PeraConnectVersion} - BETA`,
         preventAssignment: true
       }),
       nodePolyfills()

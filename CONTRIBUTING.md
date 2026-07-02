@@ -4,10 +4,10 @@ To contribute to the codebase, you will need to fork the repository.
 
 The following steps will get you setup to contribute changes to this repo:
 
-- Fork the repo and create your branch from `next-release`.
+- Fork the repo and create your branch from `main`.
 - Install depencencies and build.
 
-We use npm to manage installation of dependencies and running various scripts. To get everything installed, make sure you have npm and run `npm install` from the root of the repository.
+We use [pnpm](https://pnpm.io) to manage installation of dependencies and running various scripts. To get everything installed, make sure you have pnpm and run `pnpm install` from the root of the repository.
 
 #### Reporting new issues
 
@@ -20,16 +20,29 @@ When opening a new issue, always make sure to fill out the issue template.
 
 ##### Building
 
-Running npm run build from the root directory will run the build command for package.
+Running `pnpm run build` from the root directory will run the build command for package.
 
 ##### Branch Organization
 
-- main Branch: main branch is used version in npm.
-- next-release Branch: next-release branch includes tested and ready for next version of package.
+- `main` Branch: the single trunk for all development. Both stable and beta releases are cut from `main`.
 
 ##### Feature Branches
 
-When starting to work on a new feature development or a bug fix, you must branch out from next-release. The name of the branch should reflect its purpose.
+When starting to work on a new feature development or a bug fix, you must branch out from `main`. The name of the branch should reflect its purpose.
+
+##### Releasing
+
+`@perawallet/connect` is published from `main` and releases are triggered by pushing a git tag. The
+[release workflow](.github/workflows/release.yml) determines the npm dist-tag from the version:
+a prerelease version (containing a `-`) publishes under `beta`, a clean version publishes under `latest`.
+
+- **Cut a beta:** `npm version prerelease --preid beta` (e.g. `1.6.0-beta.0` → `1.6.0-beta.1` → …)
+  then `git push --follow-tags`. Published to `@perawallet/connect@beta`.
+- **Promote to stable:** `npm version 1.6.0` then `git push --follow-tags`. Published to
+  `@perawallet/connect@latest`.
+
+Consumers install stable with `npm i @perawallet/connect` and prereleases with
+`npm i @perawallet/connect@beta`.
 
 ##### Commit Messages
 
@@ -48,7 +61,7 @@ feat(connect-modal): change typography of connect modal.
 
 ##### Pull Requests
 
-When the work on a feature/bug-fix branch is completed, a pull request (PR) should be opened to next-release.
+When the work on a feature/bug-fix branch is completed, a pull request (PR) should be opened to `main`.
 
 ##### PR Titles
 
@@ -70,4 +83,4 @@ You can work on your local project with this package. All you have to do is repl
 "@perawallet/connect": "file:../connect"
 ```
 
-After doing this, you can run `npm run dev` and in this way, you can see the changes you have made to the package simultaneously.
+After doing this, you can run `pnpm run dev` and in this way, you can see the changes you have made to the package simultaneously.

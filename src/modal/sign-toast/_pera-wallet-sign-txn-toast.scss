@@ -1,4 +1,4 @@
-@import "../../ui/styles/media-queries";
+@use "../../ui/styles/media-queries";
 
 .pera-wallet-sign-txn-toast {
   --pera-wallet-sign-txn-toast-width: 422px;
@@ -81,7 +81,7 @@
   letter-spacing: -0.1px;
 }
 
-@include for-small-screens {
+@include media-queries.for-small-screens {
   .pera-wallet-sign-txn-toast {
     display: none;
   }

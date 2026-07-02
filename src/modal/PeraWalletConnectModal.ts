@@ -47,18 +47,15 @@ export class PeraWalletConnectModal extends HTMLElement {
               <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header/>
         
               <pera-wallet-modal-touch-screen-mode uri="${this.getAttribute(
-        "uri"
-      )}" should-use-sound="${this.getAttribute(
+                "uri"
+              )}" should-use-sound="${this.getAttribute(
         "should-use-sound"
       )}" single-account="${singleAccount}" selected-account="${selectedAccount}"></pera-wallet-modal-touch-screen-mode>
             </div>
           </div>
         `;
 
-      this.shadowRoot.append(
-        peraWalletConnectModal.content.cloneNode(true),
-        styleSheet
-      );
+      this.shadowRoot.append(peraWalletConnectModal.content.cloneNode(true), styleSheet);
     } else {
       peraWalletConnectModal.innerHTML = `
         <div class="${peraWalletConnectModalClassNames}">
@@ -66,8 +63,8 @@ export class PeraWalletConnectModal extends HTMLElement {
             <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header/>
       
             <pera-wallet-modal-desktop-mode id="pera-wallet-modal-desktop-mode" uri="${this.getAttribute(
-        "uri"
-      )}" is-web-wallet-avaliable="${this.getAttribute(
+              "uri"
+            )}" is-web-wallet-avaliable="${this.getAttribute(
         "is-web-wallet-avaliable"
       )}" should-display-new-badge="${this.getAttribute(
         "should-display-new-badge"
@@ -81,10 +78,7 @@ export class PeraWalletConnectModal extends HTMLElement {
         </div>
       `;
 
-      this.shadowRoot.append(
-        peraWalletConnectModal.content.cloneNode(true),
-        styleSheet
-      );
+      this.shadowRoot.append(peraWalletConnectModal.content.cloneNode(true), styleSheet);
     }
   }
 }
