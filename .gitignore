@@ -12,3 +12,4 @@ pnpm-debug.log
 # pnpm is the only supported package manager; block stray lockfiles
 package-lock.json
 yarn.lock
+/coverage

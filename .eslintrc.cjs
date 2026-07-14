@@ -40,6 +40,17 @@ module.exports = {
       rules: {
         "newline-after-var": "off"
       }
+    },
+    {
+      files: ["**/__tests__/**/*.{ts,tsx}"],
+      rules: {
+        "no-magic-numbers": "off",
+        "@typescript-eslint/no-magic-numbers": "off",
+        "max-nested-callbacks": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "no-undefined": "off"
+      }
     }
   ],
   rules: {
