@@ -26,6 +26,7 @@ import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
 import {
   PeraWalletArbitraryData,
   PeraWalletArc60SignData,
+  PeraWalletArc60SignDataResponse,
   PeraWalletTransaction,
   SignerTransaction
 } from "./util/model/peraWalletModels";
@@ -641,12 +642,16 @@ class PeraWalletConnect {
    * `ed25519(sha256(data) || sha256(authenticatorData))` per ARC-60, not a
    * raw signature over `data`.
    *
+   * Resolves with the full ARC-60 `SignDataResponse` shape (signed payload,
+   * signer public key, domain, authenticatorData and signature) so responses
+   * are interchangeable with use-wallet / lute-connect.
+   *
    * Currently only the mobile flow is supported.
    */
   async signArc60Data(
     payload: PeraWalletArc60SignData,
     verifySignature?: boolean
-  ): Promise<Uint8Array> {
+  ): Promise<PeraWalletArc60SignDataResponse> {
     if (this.platform !== "mobile") {
       throw new Error(
         "ARC-60 signing is currently only supported via the Pera mobile wallet."
@@ -662,11 +667,10 @@ class PeraWalletConnect {
       throw new Error("PeraWalletConnect was not initialized correctly.");
     }
 
-    // eslint-disable-next-line no-magic-numbers
-    const chainId = this.chainId || 4160;
+    const dataBase64 = Buffer.from(payload.data).toString("base64");
 
     const wireParams: Record<string, unknown> = {
-      data: Buffer.from(payload.data).toString("base64"),
+      data: dataBase64,
       signer: payload.signer,
       domain: payload.domain,
       authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
@@ -703,13 +707,14 @@ class PeraWalletConnect {
           : Uint8Array.from(first as number[]);
 
       if (verifySignature) {
-        const authAddr = await this.getAccountAuthAddr(payload.signer, chainId);
-        const effectiveSigner = authAddr || payload.signer;
+        // ARC-60 signatures are always produced by the requested account's
+        // own key — the wallet does not follow rekeys for off-chain data —
+        // so verify against the signer address's pubkey, not its auth addr.
         const ok = await this.verifyArc60Signature(
           payload.data,
           payload.authenticatorData,
           signature,
-          effectiveSigner
+          payload.signer
         );
 
         if (!ok) {
@@ -720,7 +725,15 @@ class PeraWalletConnect {
         }
       }
 
-      return signature;
+      return {
+        data: dataBase64,
+        signer: algosdk.decodeAddress(payload.signer).publicKey,
+        domain: payload.domain,
+        authenticatorData: payload.authenticatorData,
+        ...(payload.requestId !== undefined && {requestId: payload.requestId}),
+        ...(payload.hdPath !== undefined && {hdPath: payload.hdPath}),
+        signature
+      };
     } catch (error) {
       return Promise.reject(
         new PeraWalletConnectError(

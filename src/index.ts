@@ -17,6 +17,7 @@ export {
   ScopeType,
   type PeraWalletArbitraryData,
   type PeraWalletArc60SignData,
+  type PeraWalletArc60SignDataResponse,
   type PeraWalletMultisigMetadata,
   type PeraWalletTransaction,
   type SignerTransaction,
