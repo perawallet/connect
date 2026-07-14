@@ -173,3 +173,49 @@ export interface PeraWalletArc60SignData {
 
   metadata: SignMetadata;
 }
+
+/**
+ * ARC-60 `signData` response as returned by `PeraWalletConnect.signArc60Data`.
+ * Mirrors the `SignDataResponse` shape used by use-wallet and lute-connect so
+ * dApps can verify Pera and Lute signatures with the same code path.
+ */
+export interface PeraWalletArc60SignDataResponse {
+  /**
+   * Base64 encoding of the signed payload bytes, exactly as sent to the
+   * wallet on the wire.
+   */
+  data: string;
+
+  /**
+   * 32-byte ed25519 public key of the signing account. ARC-60 signatures are
+   * always produced by the requested account's own key (rekeys are not
+   * followed), so this is derived from the request's signer address.
+   */
+  signer: Uint8Array;
+
+  /**
+   * Origin/domain the signature is bound to.
+   */
+  domain: string;
+
+  /**
+   * FIDO-style authenticator data covered by the signature. First 32 bytes
+   * equal sha256(domain).
+   */
+  authenticatorData: Uint8Array;
+
+  /**
+   * Optional request ID for replay protection.
+   */
+  requestId?: string;
+
+  /**
+   * Optional BIP44 derivation path.
+   */
+  hdPath?: string;
+
+  /**
+   * `ed25519(sha256(data) || sha256(authenticatorData))` per ARC-60.
+   */
+  signature: Uint8Array;
+}
