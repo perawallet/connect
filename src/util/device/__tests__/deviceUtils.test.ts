@@ -10,7 +10,11 @@ const USER_AGENTS = {
   chromeDesktop:
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   firefoxDesktop:
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0"
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0",
+  duckDuckGo:
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Version/17.0 DuckDuckGo/5 Safari/537.36",
+  operaGX:
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPX/1.0"
 };
 
 function stubUserAgent(userAgent: string) {
@@ -59,6 +63,32 @@ describe("deviceUtils", () => {
       stubUserAgent(USER_AGENTS.firefoxDesktop);
 
       expect(detectBrowser()).toBe("Firefox");
+    });
+
+    it("identifies DuckDuckGo", () => {
+      stubUserAgent(USER_AGENTS.duckDuckGo);
+
+      expect(detectBrowser()).toBe("DuckDuckGo");
+    });
+
+    it("identifies Opera GX", () => {
+      stubUserAgent(USER_AGENTS.operaGX);
+
+      expect(detectBrowser()).toBe("Opera GX");
+    });
+
+    it("identifies Brave via the navigator.brave marker", () => {
+      stubUserAgent(USER_AGENTS.chromeDesktop);
+      Object.defineProperty(window.navigator, "brave", {
+        configurable: true,
+        value: {}
+      });
+
+      try {
+        expect(detectBrowser()).toBe("Brave");
+      } finally {
+        delete (window.navigator as {brave?: unknown}).brave;
+      }
     });
   });
 

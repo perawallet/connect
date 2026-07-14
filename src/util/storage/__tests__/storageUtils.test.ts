@@ -1,4 +1,4 @@
-import {describe, it, expect, beforeEach} from "vitest";
+import {describe, it, expect, beforeEach, vi} from "vitest";
 
 import {
   saveWalletDetailsToStorage,
@@ -70,6 +70,20 @@ describe("storageUtils", () => {
       expect(
         localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT)
       ).toBeNull();
+    });
+
+    it("rejects when removing from storage throws", async () => {
+      const removeItemSpy = vi
+        .spyOn(Storage.prototype, "removeItem")
+        .mockImplementation(() => {
+          throw new Error("storage unavailable");
+        });
+
+      await expect(resetWalletDetailsFromStorage()).rejects.toThrow(
+        "storage unavailable"
+      );
+
+      removeItemSpy.mockRestore();
     });
   });
 

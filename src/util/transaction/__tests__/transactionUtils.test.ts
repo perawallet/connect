@@ -77,6 +77,12 @@ describe("transactionUtils", () => {
       expect(result.signers).toEqual([]);
     });
 
+    it("adds an empty signers array when the transaction has no signers field", () => {
+      const result = composeTransaction(makeSignerTransaction(), "SIGNER_ADDRESS");
+
+      expect(result.signers).toEqual([]);
+    });
+
     it("omits signers when the signer address is already in the list", () => {
       const result = composeTransaction(
         makeSignerTransaction({signers: ["SIGNER_ADDRESS"]}),
