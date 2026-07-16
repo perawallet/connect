@@ -248,6 +248,30 @@ In some cases, you may want to customize it. You can achieve this by adding a me
 <meta name="name" content="My dApp" />
 ```
 
+## Browser extension (ARC-0027) — experimental
+
+Extension support is **experimental** and disabled by default. Opt in to
+experimental features with:
+
+```typescript
+const peraWallet = new PeraWalletConnect({experimental: true});
+```
+
+While enabled, the connect modal always lists a "Connect with Pera Extension"
+option. When a compatible Pera browser extension is installed, `connect()`
+auto-detects it (via an ARC-0027 `discover` round-trip) and pre-selects that
+option; otherwise the option shows an install link and the usual default option
+stays expanded. Users can still fall back to the QR / Pera Web options in the
+same modal.
+
+- Disable auto-detection (while keeping extension support enabled) with
+  `shouldPreferExtension: false`.
+- Check availability yourself with `await peraWallet.isExtensionAvailable()`
+  (always `false` when experimental support is off).
+- `signArc60Data` is supported on the extension; on that path `domain` must match
+  your page origin. Legacy `signData` (arbitrary data) is not yet supported on the
+  extension and throws `EXTENSION_UNSUPPORTED_OPERATION`.
+
 ## Contributing
 
 All contributions are welcomed! To get more information about the details, please read the [contribution](./CONTRIBUTING.md) guide first.

@@ -2,6 +2,8 @@ interface PeraWalletConnectErrorData {
   type:
     | "MESSAGE_NOT_RECEIVED"
     | "OPERATION_CANCELLED"
+    | "EXTENSION_NOT_AVAILABLE"
+    | "EXTENSION_UNSUPPORTED_OPERATION"
 
     // Connect
     | "CONNECT_MODAL_CLOSED"

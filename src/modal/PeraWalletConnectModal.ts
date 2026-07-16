@@ -72,7 +72,11 @@ export class PeraWalletConnectModal extends HTMLElement {
         "compact-mode"
       )}" promote-mobile="${this.getAttribute(
         "promote-mobile"
-      )}" single-account="${singleAccount}"
+      )}" single-account="${singleAccount}" is-extension-enabled="${this.getAttribute(
+        "is-extension-enabled"
+      )}" is-extension-available="${this.getAttribute(
+        "is-extension-available"
+      )}" extension-name="${this.getAttribute("extension-name")}"
         ></pera-wallet-modal-desktop-mode>
           </div>
         </div>

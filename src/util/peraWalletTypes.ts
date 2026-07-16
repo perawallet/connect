@@ -1,5 +1,5 @@
-type PeraWalletType = "pera-wallet" | "pera-wallet-web";
-type PeraWalletPlatformType = "mobile" | "web" | null;
+type PeraWalletType = "pera-wallet" | "pera-wallet-web" | "pera-wallet-extension";
+type PeraWalletPlatformType = "mobile" | "web" | "extension" | null;
 type PeraWalletFlowType = "EMBEDDED" | "NEW_TAB";
 
 // eslint-disable-next-line no-magic-numbers

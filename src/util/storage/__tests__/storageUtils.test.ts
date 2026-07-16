@@ -1,4 +1,4 @@
-import {describe, it, expect, beforeEach, vi} from "vitest";
+import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
 
 import {
   saveWalletDetailsToStorage,
@@ -102,6 +102,16 @@ describe("storageUtils", () => {
 
     it("returns null when no wallet details are stored", () => {
       expect(getWalletPlatformFromStorage()).toBeNull();
+    });
+  });
+
+  describe("extension platform mapping", () => {
+    afterEach(() => resetWalletDetailsFromStorage());
+
+    it("maps the pera-wallet-extension type to the 'extension' platform", () => {
+      saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
+
+      expect(getWalletPlatformFromStorage()).toBe("extension");
     });
   });
 });
