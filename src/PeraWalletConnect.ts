@@ -656,7 +656,7 @@ class PeraWalletConnect {
           payload.data,
           payload.authenticatorData,
           response.signature,
-          payload.signer
+          algosdk.encodeAddress(payload.signer)
         );
 
         if (!ok) {
@@ -717,6 +717,7 @@ class PeraWalletConnect {
         typeof first === "string"
           ? base64ToUint8Array(first)
           : Uint8Array.from(first as number[]);
+      const effectiveSigner = algosdk.encodeAddress(payload.signer);
 
       if (verifySignature) {
         // ARC-60 signatures are always produced by the requested account's
@@ -726,7 +727,7 @@ class PeraWalletConnect {
           payload.data,
           payload.authenticatorData,
           signature,
-          payload.signer
+          effectiveSigner
         );
 
         if (!ok) {
@@ -738,8 +739,8 @@ class PeraWalletConnect {
       }
 
       return {
-        data: dataBase64,
-        signer: algosdk.decodeAddress(payload.signer).publicKey,
+        data: Buffer.from(dataBase64, "base64"),
+        signer: algosdk.decodeAddress(effectiveSigner).publicKey,
         domain: payload.domain,
         authenticatorData: payload.authenticatorData,
         ...(payload.requestId !== undefined && {requestId: payload.requestId}),

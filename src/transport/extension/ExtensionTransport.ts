@@ -158,7 +158,7 @@ export class ExtensionTransport implements WalletTransport {
       if (verifySignature) { /* verification handled by orchestrator */ }
 
       return {
-        data: dataBase64,
+        data: payload.data,
         signer: algosdk.decodeAddress(String(payload.signer)).publicKey,
         domain: payload.domain,
         authenticatorData: payload.authenticatorData,

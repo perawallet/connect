@@ -176,6 +176,8 @@ export class MobileTransport implements WalletTransport {
       const responseArray = Array.isArray(response) ? response : [response];
       const first = responseArray.filter(Boolean)[0];
 
+      const effectiveSigner = algosdk.encodeAddress(payload.signer);
+
       if (!first) {
         throw new Error("No signature returned from wallet.");
       }
@@ -186,8 +188,8 @@ export class MobileTransport implements WalletTransport {
           : Uint8Array.from(first as number[]);
 
       return {
-        data: dataBase64,
-        signer: algosdk.decodeAddress(payload.signer).publicKey,
+        data: payload.data,
+        signer: algosdk.decodeAddress(effectiveSigner).publicKey,
         domain: payload.domain,
         authenticatorData: payload.authenticatorData,
         ...(payload.requestId !== undefined && {requestId: payload.requestId}),
