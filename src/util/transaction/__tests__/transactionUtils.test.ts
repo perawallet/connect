@@ -68,31 +68,37 @@ describe("transactionUtils", () => {
       expect(result.txn).toBe(ENCODED_TXN);
     });
 
-    it("adds an empty signers array when a signer address is not already listed", () => {
+    it("passes through an explicit empty signers array (external signer slot)", () => {
+      const result = composeTransaction(makeSignerTransaction({signers: []}));
+
+      expect(result.signers).toEqual([]);
+    });
+
+    it("passes through an explicit signers list unchanged", () => {
       const result = composeTransaction(
         makeSignerTransaction({signers: ["OTHER_ADDRESS"]}),
         "SIGNER_ADDRESS"
       );
 
-      expect(result.signers).toEqual([]);
+      expect(result.signers).toEqual(["OTHER_ADDRESS"]);
     });
 
-    it("adds an empty signers array when the transaction has no signers field", () => {
-      const result = composeTransaction(makeSignerTransaction(), "SIGNER_ADDRESS");
-
-      expect(result.signers).toEqual([]);
-    });
-
-    it("omits signers when the signer address is already in the list", () => {
+    it("passes through the signers list even when it includes the signer address", () => {
       const result = composeTransaction(
         makeSignerTransaction({signers: ["SIGNER_ADDRESS"]}),
         "SIGNER_ADDRESS"
       );
 
-      expect(result.signers).toBeUndefined();
+      expect(result.signers).toEqual(["SIGNER_ADDRESS"]);
     });
 
-    it("omits signers entirely when no signer address is provided", () => {
+    it("adds an empty signers array when there is no explicit list and a signer address is given", () => {
+      const result = composeTransaction(makeSignerTransaction(), "SIGNER_ADDRESS");
+
+      expect(result.signers).toEqual([]);
+    });
+
+    it("omits signers entirely when there is no explicit list and no signer address", () => {
       const result = composeTransaction(makeSignerTransaction());
 
       expect(result.signers).toBeUndefined();

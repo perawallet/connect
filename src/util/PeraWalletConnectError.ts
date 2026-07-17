@@ -2,6 +2,8 @@ interface PeraWalletConnectErrorData {
   type:
     | "MESSAGE_NOT_RECEIVED"
     | "OPERATION_CANCELLED"
+    | "EXTENSION_NOT_AVAILABLE"
+    | "EXTENSION_UNSUPPORTED_OPERATION"
 
     // Connect
     | "CONNECT_MODAL_CLOSED"
@@ -20,6 +22,7 @@ interface PeraWalletConnectErrorData {
     | "SIGN_TXN_NETWORK_MISMATCH"
     | "SIGN_DATA_CANCELLED"
     | "SIGN_DATA_NETWORK_MISMATCH"
+    | "SIGN_DATA_DOMAIN_MISMATCH"
     | "SIGN_DATA_VERIFICATION_FAILED";
   detail?: any;
 }

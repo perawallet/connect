@@ -14,7 +14,13 @@ function base64ToUint8Array(data: string) {
 function composeTransaction(transaction: SignerTransaction, signerAddress?: string) {
   let signers: PeraWalletTransaction["signers"];
 
-  if (signerAddress && !(transaction.signers || []).includes(signerAddress)) {
+  if (Array.isArray(transaction.signers)) {
+    // The dApp's explicit signers list is authoritative (ARC-0001); an empty
+    // array marks the txn as not-to-be-signed by this wallet.
+    signers = transaction.signers;
+  } else if (signerAddress) {
+    // Legacy single-signer mode: when a specific signer is requested, txns
+    // without an explicit signers list are marked external (not to be signed).
     signers = [];
   }
 

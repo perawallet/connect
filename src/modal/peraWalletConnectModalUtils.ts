@@ -13,6 +13,9 @@ export interface PeraWalletModalConfig {
   singleAccount?: boolean;
   selectedAccount?: string;
   isInWebview?: boolean;
+  isExtensionSupportEnabled?: boolean;
+  isExtensionAvailable?: boolean;
+  extensionName?: string;
 }
 
 // The ID of the wrapper element for PeraWalletConnectModal
@@ -69,7 +72,10 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
       promoteMobile,
       singleAccount,
       selectedAccount,
-      isInWebview
+      isInWebview,
+      isExtensionSupportEnabled,
+      isExtensionAvailable,
+      extensionName
     } = modalConfig;
 
     if (isInWebview) {
@@ -85,7 +91,7 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
 
       root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${
         selectedAccount || ""
-      }" is-in-webview="${isInWebview || false}"></pera-wallet-connect-modal>`;
+      }" is-in-webview="${isInWebview || false}" is-extension-enabled="${isExtensionSupportEnabled || false}" is-extension-available="${isExtensionAvailable || false}" extension-name="${extensionName || ""}"></pera-wallet-connect-modal>`;
     }
   };
 }

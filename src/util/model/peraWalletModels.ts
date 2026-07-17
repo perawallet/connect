@@ -134,9 +134,11 @@ export interface Siwa {
 
 /**
  * ARC-60 `signData` payload as consumed by `PeraWalletConnect.signArc60Data`.
- * Sent to the wallet as a single object (not an array) so the mobile app
- * routes it to the ARC-60 auth flow rather than the generic arbitrary-data
- * flow.
+ * Mirrors the spec's `StdSigData` shape: signing metadata is NOT part of this
+ * object — it is passed to `signArc60Data` as a separate argument, per
+ * `signData(signingData, metadata)` in ARC-60. On the wire the two are still
+ * unified into a single object (not an array) so the mobile app routes the
+ * request to the ARC-60 auth flow rather than the generic arbitrary-data flow.
  */
 export interface PeraWalletArc60SignData {
   /**
@@ -148,7 +150,7 @@ export interface PeraWalletArc60SignData {
   /**
    * Algorand address that should sign the payload.
    */
-  signer: string;
+  signer: Uint8Array;
 
   /**
    * Origin/domain requesting the signature.
@@ -170,8 +172,6 @@ export interface PeraWalletArc60SignData {
    * Optional BIP44 derivation path.
    */
   hdPath?: string;
-
-  metadata: SignMetadata;
 }
 
 /**
@@ -179,41 +179,7 @@ export interface PeraWalletArc60SignData {
  * Mirrors the `SignDataResponse` shape used by use-wallet and lute-connect so
  * dApps can verify Pera and Lute signatures with the same code path.
  */
-export interface PeraWalletArc60SignDataResponse {
-  /**
-   * Base64 encoding of the signed payload bytes, exactly as sent to the
-   * wallet on the wire.
-   */
-  data: string;
-
-  /**
-   * 32-byte ed25519 public key of the signing account. ARC-60 signatures are
-   * always produced by the requested account's own key (rekeys are not
-   * followed), so this is derived from the request's signer address.
-   */
-  signer: Uint8Array;
-
-  /**
-   * Origin/domain the signature is bound to.
-   */
-  domain: string;
-
-  /**
-   * FIDO-style authenticator data covered by the signature. First 32 bytes
-   * equal sha256(domain).
-   */
-  authenticatorData: Uint8Array;
-
-  /**
-   * Optional request ID for replay protection.
-   */
-  requestId?: string;
-
-  /**
-   * Optional BIP44 derivation path.
-   */
-  hdPath?: string;
-
+export interface PeraWalletArc60SignDataResponse extends PeraWalletArc60SignData {
   /**
    * `ed25519(sha256(data) || sha256(authenticatorData))` per ARC-60.
    */

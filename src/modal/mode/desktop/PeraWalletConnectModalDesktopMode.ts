@@ -7,6 +7,7 @@ import PlayStoreIcon from "../../../asset/icon/PlayStoreIcon.svg";
 import DownloadIcon from "../../../asset/icon/Download.svg";
 import PeraWalletLogoWithBlackBackground from "../../../asset/icon/PeraWalletWithBlackBackground.svg";
 import PeraWebIcon from "../../../asset/icon/PeraWeb.svg";
+import PeraWalletIcon from "../../../asset/icon/PeraWallet.svg";
 import ChevronRightIcon from "../../../asset/icon/ChevronRight.svg";
 
 import QRCodeStyling from "qr-code-styling";
@@ -21,26 +22,28 @@ const accordionStyleSheet = document.createElement("style");
 styleSheet.textContent = styles;
 accordionStyleSheet.textContent = accordionStyles;
 
-function getConnectOptions(shouldPromoteMobile: boolean) {
+// TODO: replace with the real Chrome Web Store listing once published
+const PERA_EXTENSION_INSTALL_URL =
+  "https://chromewebstore.google.com/detail/pera-wallet-extension/placeholder";
+
+function getConnectOptions(shouldPromoteMobile: boolean, isExtensionAvailable: boolean) {
   const webWalletOption = `
   <div id="web-wallet-option" class="pera-wallet-accordion-item ${
-    shouldPromoteMobile ? "" : "pera-wallet-accordion-item--active"
+    !isExtensionAvailable && !shouldPromoteMobile
+      ? "pera-wallet-accordion-item--active"
+      : ""
   }  pera-wallet-accordion-item--web-wallet">
             <a class="pera-wallet-accordion-toggle">
               <button class="pera-wallet-accordion-toggle__button"></button>
-  
+
               <img src="${ArrowRight}" class="pera-wallet-accordion-icon" />
-  
-              <div class="pera-wallet-accordion-toggle__content-with-label">
-                <div class="pera-wallet-accordion-toggle__content-with-label__text">
-                  Connect With
-  
-                  <span class="pera-wallet-accordion-toggle__bold-color">
-                    Pera Web
-                  </span>
-                </div>
-  
-                <span id="pera-web-new-label" class="pera-wallet-accordion-toggle__label">NEW</span>
+
+              <div class="pera-wallet-accordion-toggle__text">
+                Connect With
+
+                <span class="pera-wallet-accordion-toggle__bold-color">
+                  Pera Web
+                </span>
               </div>
             </a>
   
@@ -69,7 +72,9 @@ function getConnectOptions(shouldPromoteMobile: boolean) {
 
   const mobileWalletOption = `
   <div id="mobile-wallet-option" class="pera-wallet-accordion-item ${
-    shouldPromoteMobile ? "pera-wallet-accordion-item--active" : ""
+    !isExtensionAvailable && shouldPromoteMobile
+      ? "pera-wallet-accordion-item--active"
+      : ""
   }">
             <a class="pera-wallet-accordion-toggle">
             <button class="pera-wallet-accordion-toggle__button"></button>
@@ -105,11 +110,76 @@ function getConnectOptions(shouldPromoteMobile: boolean) {
             </div>
           </div>`;
 
+  const extensionWalletAction = isExtensionAvailable
+    ? `<button
+              id="pera-wallet-connect-extension-launch-button"
+              class="pera-wallet-connect-modal-desktop-mode__web-wallet__launch-button">
+              Connect with Extension
+
+              <img src="${ChevronRightIcon}" />
+            </button>`
+    : `<a
+              id="pera-wallet-connect-extension-install-link"
+              class="pera-wallet-connect-modal-desktop-mode__web-wallet__launch-button"
+              href="${PERA_EXTENSION_INSTALL_URL}"
+              target="_blank"
+              rel="noopener noreferrer">
+              Install Pera Extension
+
+              <img src="${ChevronRightIcon}" />
+            </a>`;
+
+  const extensionWalletOption = `
+  <div id="extension-wallet-option" class="pera-wallet-accordion-item ${
+    isExtensionAvailable ? "pera-wallet-accordion-item--active" : ""
+  }">
+            <a class="pera-wallet-accordion-toggle">
+              <button class="pera-wallet-accordion-toggle__button"></button>
+
+              <img src="${ArrowRight}" class="pera-wallet-accordion-icon" />
+
+              <div class="pera-wallet-accordion-toggle__content-with-label">
+                <div class="pera-wallet-accordion-toggle__content-with-label__text">
+                  Connect With
+
+                  <span class="pera-wallet-accordion-toggle__bold-color">
+                    Pera Extension
+                  </span>
+                </div>
+
+                <span id="pera-extension-new-label" class="pera-wallet-accordion-toggle__label">NEW</span>
+              </div>
+            </a>
+
+            <div class="pera-wallet-accordion-item__content">
+              <div class="pera-wallet-connect-modal-desktop-mode__web-wallet"><div>
+
+              <div
+                class="pera-wallet-connect-modal-desktop-mode__web-wallet__logo-wrapper">
+                <img src="${PeraWalletIcon}" />
+              </div>
+
+              <p
+                class="pera-wallet-connect-modal-desktop-mode__web-wallet__description">
+                ${
+                  isExtensionAvailable
+                    ? "Pera Extension detected in your browser"
+                    : "Install the Pera Extension to connect directly from your browser"
+                }
+              </p>
+            </div>
+
+            ${extensionWalletAction}
+          </div>`;
+
   return {
     mobileWalletOption: document
       .createRange()
       .createContextualFragment(mobileWalletOption),
-    webWalletOption: document.createRange().createContextualFragment(webWalletOption)
+    webWalletOption: document.createRange().createContextualFragment(webWalletOption),
+    extensionWalletOption: document
+      .createRange()
+      .createContextualFragment(extensionWalletOption)
   };
 }
 
@@ -200,32 +270,49 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
         );
       }
 
-      const desktopModeDefaultView = this.shadowRoot?.querySelector(
-        ".pera-wallet-connect-modal-desktop-mode__default-view"
-      );
-      const shouldPromoteMobile = this.getAttribute("promote-mobile") === "true";
-      const {webWalletOption, mobileWalletOption} =
-        getConnectOptions(shouldPromoteMobile);
-
-      if (shouldPromoteMobile) {
-        desktopModeDefaultView?.appendChild(mobileWalletOption);
-        desktopModeDefaultView?.appendChild(webWalletOption);
-      } else {
-        desktopModeDefaultView?.appendChild(webWalletOption);
-        desktopModeDefaultView?.appendChild(mobileWalletOption);
-      }
     }
   }
 
   connectedCallback() {
+    this.renderConnectOptions();
+
     const shouldDisplayNewBadge = this.getAttribute("should-display-new-badge");
-    const peraWalletNewLabel = this.shadowRoot?.getElementById("pera-web-new-label");
+    const peraWalletNewLabel = this.shadowRoot?.getElementById(
+      "pera-extension-new-label"
+    );
 
     if (shouldDisplayNewBadge === "false") {
       peraWalletNewLabel?.setAttribute("style", "display:none");
     }
 
     this.handleChangeView();
+  }
+
+  renderConnectOptions() {
+    const desktopModeDefaultView = this.shadowRoot?.querySelector(
+      ".pera-wallet-connect-modal-desktop-mode__default-view"
+    );
+    const shouldPromoteMobile = this.getAttribute("promote-mobile") === "true";
+    const isExtensionAvailable =
+      this.getAttribute("is-extension-available") === "true";
+    const {webWalletOption, mobileWalletOption, extensionWalletOption} =
+      getConnectOptions(shouldPromoteMobile, isExtensionAvailable);
+
+    // The extension option is listed first while extension support is enabled
+    // (experimental). It is pre-selected when the extension is detected;
+    // otherwise it renders collapsed with an install CTA and the usual default
+    // option stays expanded.
+    if (this.getAttribute("is-extension-enabled") === "true") {
+      desktopModeDefaultView?.appendChild(extensionWalletOption);
+    }
+
+    if (shouldPromoteMobile) {
+      desktopModeDefaultView?.appendChild(mobileWalletOption);
+      desktopModeDefaultView?.appendChild(webWalletOption);
+    } else {
+      desktopModeDefaultView?.appendChild(webWalletOption);
+      desktopModeDefaultView?.appendChild(mobileWalletOption);
+    }
   }
 
   handleChangeView() {
@@ -254,6 +341,20 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
     if (webWalletLaunchButton) {
       webWalletLaunchButton.addEventListener("click", () => {
         this.webWalletConnect();
+      });
+    }
+
+    const extensionLaunchButton = this.shadowRoot?.getElementById(
+      "pera-wallet-connect-extension-launch-button"
+    );
+
+    if (extensionLaunchButton) {
+      extensionLaunchButton.addEventListener("click", () => {
+        // @ts-ignore ts-2339 — set by PeraWalletConnect.connect()
+        if (typeof window.onExtensionConnect === "function") {
+          // @ts-ignore
+          window.onExtensionConnect();
+        }
       });
     }
 

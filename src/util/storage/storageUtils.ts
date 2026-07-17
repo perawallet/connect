@@ -10,7 +10,7 @@ function getLocalStorage() {
 
 function saveWalletDetailsToStorage(
   accounts: string[],
-  type?: "pera-wallet" | "pera-wallet-web"
+  type?: "pera-wallet" | "pera-wallet-web" | "pera-wallet-extension"
 ) {
   getLocalStorage()?.setItem(
     PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET,
@@ -66,6 +66,8 @@ function getWalletPlatformFromStorage() {
     walletType = "mobile";
   } else if (walletDetails?.type === "pera-wallet-web") {
     walletType = "web";
+  } else if (walletDetails?.type === "pera-wallet-extension") {
+    walletType = "extension";
   }
 
   return walletType;
