@@ -683,7 +683,7 @@ class PeraWalletConnect {
 
     const wireParams: Record<string, unknown> = {
       data: dataBase64,
-      signer: payload.signer,
+      signer: algosdk.encodeAddress(payload.signer),
       domain: payload.domain,
       authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
       metadata
