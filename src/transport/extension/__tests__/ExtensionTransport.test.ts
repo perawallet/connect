@@ -56,13 +56,15 @@ describe("ExtensionTransport", () => {
     // domain must match window.location.origin (jsdom default: http://localhost)
     const domain = window.location.origin;
 
-    await transport.signArc60Data({
-      data: new Uint8Array([1, 2]),
-      signer: account.addr,
-      domain,
-      authenticatorData: new Uint8Array(37),
-      metadata: {scope: ScopeType.AUTH, encoding: "base64"}
-    });
+    await transport.signArc60Data(
+      {
+        data: new Uint8Array([1, 2]),
+        signer: account.addr,
+        domain,
+        authenticatorData: new Uint8Array(37)
+      },
+      {scope: ScopeType.AUTH, encoding: "base64"}
+    );
 
     const [method, params] = requestFn.mock.calls[0];
 
@@ -80,14 +82,16 @@ describe("ExtensionTransport", () => {
     const transport = new ExtensionTransport(makeClient(requestFn));
 
     await expect(
-      transport.signArc60Data({
-        data: new Uint8Array([1]),
-        signer: account.addr,
-        domain: "https://evil.example",
-        authenticatorData: new Uint8Array(37),
-        metadata: {scope: ScopeType.AUTH, encoding: "base64"}
-      })
-    ).rejects.toBeTruthy();
+      transport.signArc60Data(
+        {
+          data: new Uint8Array([1]),
+          signer: account.addr,
+          domain: "https://evil.example",
+          authenticatorData: new Uint8Array(37)
+        },
+        {scope: ScopeType.AUTH, encoding: "base64"}
+      )
+    ).rejects.toMatchObject({data: {type: "SIGN_DATA_DOMAIN_MISMATCH"}});
     expect(requestFn).not.toHaveBeenCalled();
   });
 });

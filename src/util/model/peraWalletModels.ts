@@ -134,9 +134,11 @@ export interface Siwa {
 
 /**
  * ARC-60 `signData` payload as consumed by `PeraWalletConnect.signArc60Data`.
- * Sent to the wallet as a single object (not an array) so the mobile app
- * routes it to the ARC-60 auth flow rather than the generic arbitrary-data
- * flow.
+ * Mirrors the spec's `StdSigData` shape: signing metadata is NOT part of this
+ * object — it is passed to `signArc60Data` as a separate argument, per
+ * `signData(signingData, metadata)` in ARC-60. On the wire the two are still
+ * unified into a single object (not an array) so the mobile app routes the
+ * request to the ARC-60 auth flow rather than the generic arbitrary-data flow.
  */
 export interface PeraWalletArc60SignData {
   /**
@@ -170,8 +172,6 @@ export interface PeraWalletArc60SignData {
    * Optional BIP44 derivation path.
    */
   hdPath?: string;
-
-  metadata: SignMetadata;
 }
 
 /**

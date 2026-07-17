@@ -9,6 +9,7 @@ import {
   PeraWalletArbitraryData,
   PeraWalletArc60SignData,
   PeraWalletArc60SignDataResponse,
+  SignMetadata,
   PeraWalletTransaction
 } from "../../util/model/peraWalletModels";
 import {AlgorandChainIDs} from "../../util/peraWalletTypes";
@@ -124,12 +125,13 @@ export class ExtensionTransport implements WalletTransport {
 
   async signArc60Data(
     payload: PeraWalletArc60SignData,
+    metadata: SignMetadata,
     verifySignature?: boolean
   ): Promise<PeraWalletArc60SignDataResponse> {
     // Fast client-side pre-check mirroring the extension's SIWA origin binding.
     if (isArc60OriginMismatch(payload.domain, window.location.origin)) {
       throw new PeraWalletConnectError(
-        {type: "SIGN_DATA_NETWORK_MISMATCH"},
+        {type: "SIGN_DATA_DOMAIN_MISMATCH"},
         `ARC-60 domain "${payload.domain}" does not match the page origin "${window.location.origin}"`
       );
     }
@@ -140,7 +142,7 @@ export class ExtensionTransport implements WalletTransport {
       signer: payload.signer,
       domain: payload.domain,
       authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
-      metadata: payload.metadata
+      metadata
     };
 
     if (payload.requestId !== undefined) wireParams.requestId = payload.requestId;

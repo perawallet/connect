@@ -28,7 +28,8 @@ import {
   PeraWalletArc60SignData,
   PeraWalletArc60SignDataResponse,
   PeraWalletTransaction,
-  SignerTransaction
+  SignerTransaction,
+  SignMetadata
 } from "./util/model/peraWalletModels";
 import {
   base64ToUint8Array,
@@ -46,6 +47,7 @@ import {getNetworkFromChainId} from "./util/algod/algodUtils";
 import {PERA_WALLET_SIGNATURE_PREFIX} from "./util/peraWalletConstants";
 import {getPublicSettings} from "./util/webview-api/webviewApi";
 import {ExtensionTransport} from "./transport/extension/ExtensionTransport";
+import {isArc60OriginMismatch} from "./transport/extension/originBinding";
 import {MobileTransport} from "./transport/MobileTransport";
 import {WebTransport} from "./transport/WebTransport";
 import {Arc0027Client} from "./transport/extension/arc0027Client";
@@ -606,14 +608,32 @@ class PeraWalletConnect {
    * signer public key, domain, authenticatorData and signature) so responses
    * are interchangeable with use-wallet / lute-connect.
    *
-   * On the Pera **extension** transport, `payload.domain` MUST match the
-   * dApp's page origin (SIWA origin binding). Connect pre-validates this and
-   * throws `SIGN_DATA_NETWORK_MISMATCH` before contacting the extension; the
-   * extension independently enforces the same rule. The mobile wallet does not
-   * enforce origin binding (the peer URL is self-asserted).
+   * Mirrors ARC-60's `signData(signingData, metadata)` signature: `payload`
+   * is the spec's `StdSigData` and `metadata` (scope + encoding) is passed
+   * separately; the two are unified into one object on the wire.
+   *
+   * `payload.domain` MUST match the dApp's page origin (SIWA origin binding)
+   * on every transport. Connect pre-validates this and throws
+   * `SIGN_DATA_DOMAIN_MISMATCH` before contacting the wallet; the extension
+   * additionally enforces the same rule independently.
    */
+  /**
+   * SIWA origin binding: reject early on every transport when the requested
+   * domain does not match the page origin. This is a client-side guard for
+   * honest integrations — the extension enforces the rule independently.
+   */
+  private assertArc60DomainMatchesOrigin(domain: string) {
+    if (isArc60OriginMismatch(domain, window.location.origin)) {
+      throw new PeraWalletConnectError(
+        {type: "SIGN_DATA_DOMAIN_MISMATCH"},
+        `ARC-60 domain "${domain}" does not match the page origin "${window.location.origin}"`
+      );
+    }
+  }
+
   async signArc60Data(
     payload: PeraWalletArc60SignData,
+    metadata: SignMetadata,
     verifySignature?: boolean
   ): Promise<PeraWalletArc60SignDataResponse> {
     if (this.platform !== "mobile" && this.platform !== "extension") {
@@ -622,8 +642,14 @@ class PeraWalletConnect {
       );
     }
 
+    this.assertArc60DomainMatchesOrigin(payload.domain);
+
     if (this.platform === "extension") {
-      const response = await this.extensionTransport.signArc60Data(payload, verifySignature);
+      const response = await this.extensionTransport.signArc60Data(
+        payload,
+        metadata,
+        verifySignature
+      );
 
       if (verifySignature) {
         const ok = await this.verifyArc60Signature(
@@ -660,7 +686,7 @@ class PeraWalletConnect {
       signer: payload.signer,
       domain: payload.domain,
       authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
-      metadata: payload.metadata
+      metadata
     };
 
     if (payload.requestId !== undefined) wireParams.requestId = payload.requestId;

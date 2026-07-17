@@ -3,6 +3,7 @@ import {
   PeraWalletArbitraryData,
   PeraWalletArc60SignData,
   PeraWalletArc60SignDataResponse,
+  SignMetadata,
   PeraWalletTransaction
 } from "../util/model/peraWalletModels";
 import {AlgorandChainIDs} from "../util/peraWalletTypes";
@@ -79,7 +80,10 @@ export class WebTransport implements WalletTransport {
     );
   }
 
-  signArc60Data(_payload: PeraWalletArc60SignData): Promise<PeraWalletArc60SignDataResponse> {
+  signArc60Data(
+    _payload: PeraWalletArc60SignData,
+    _metadata: SignMetadata
+  ): Promise<PeraWalletArc60SignDataResponse> {
     return Promise.reject(
       new Error("ARC-60 signing is currently only supported via the Pera mobile wallet or the Pera extension.")
     );

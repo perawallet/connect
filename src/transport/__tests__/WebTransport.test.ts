@@ -32,7 +32,7 @@ describe("WebTransport", () => {
     });
 
     await expect(
-      transport.signArc60Data({} as any)
+      transport.signArc60Data({} as any, {} as any)
     ).rejects.toBeTruthy();
   });
 });

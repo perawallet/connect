@@ -6,6 +6,7 @@ import {
   PeraWalletArbitraryData,
   PeraWalletArc60SignData,
   PeraWalletArc60SignDataResponse,
+  SignMetadata,
   PeraWalletTransaction
 } from "../util/model/peraWalletModels";
 import {AlgorandChainIDs} from "../util/peraWalletTypes";
@@ -146,7 +147,8 @@ export class MobileTransport implements WalletTransport {
   }
 
   async signArc60Data(
-    payload: PeraWalletArc60SignData
+    payload: PeraWalletArc60SignData,
+    metadata: SignMetadata
   ): Promise<PeraWalletArc60SignDataResponse> {
     if (!this.connector) {
       throw new Error("PeraWalletConnect was not initialized correctly.");
@@ -158,7 +160,7 @@ export class MobileTransport implements WalletTransport {
       signer: payload.signer,
       domain: payload.domain,
       authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
-      metadata: payload.metadata
+      metadata
     };
 
     if (payload.requestId !== undefined) wireParams.requestId = payload.requestId;

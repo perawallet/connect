@@ -3,7 +3,8 @@ import {
   PeraWalletArbitraryData,
   PeraWalletArc60SignData,
   PeraWalletArc60SignDataResponse,
-  PeraWalletTransaction
+  PeraWalletTransaction,
+  SignMetadata
 } from "../util/model/peraWalletModels";
 
 export type ConnectOptions = {selectedAccount?: string};
@@ -24,6 +25,7 @@ export interface WalletTransport {
   ): Promise<Uint8Array[]>;
   signArc60Data(
     payload: PeraWalletArc60SignData,
+    metadata: SignMetadata,
     verifySignature?: boolean
   ): Promise<PeraWalletArc60SignDataResponse>;
 }
