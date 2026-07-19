@@ -55,11 +55,15 @@ describe("ExtensionTransport", () => {
 
     // domain must match window.location.origin (jsdom default: http://localhost)
     const domain = window.location.origin;
+    // signer is the raw Ed25519 public key, per PeraWalletArc60SignData —
+    // the same shape every caller (e.g. the demo dapp's buildArc60Payload)
+    // constructs via algosdk.decodeAddress(address).publicKey.
+    const signerPublicKey = algosdk.decodeAddress(account.addr.toString()).publicKey;
 
     await transport.signArc60Data(
       {
         data: new Uint8Array([1, 2]),
-        signer: account.addr,
+        signer: signerPublicKey,
         domain,
         authenticatorData: new Uint8Array(37)
       },
@@ -73,8 +77,32 @@ describe("ExtensionTransport", () => {
     expect(typeof params.data).toBe("string");
     // base64
     expect(typeof params.authenticatorData).toBe("string");
-    expect(params.signer).toBe(account.addr);
+    // signer must go over the wire as a base32 Algorand address string (what
+    // the extension's arc60WireSchema validates), not the raw public key
+    // bytes — see MobileTransport/PeraWalletConnect.ts, which both encode.
+    expect(typeof params.signer).toBe("string");
+    expect(params.signer).toBe(account.addr.toString());
     expect(params.metadata).toEqual({scope: ScopeType.AUTH, encoding: "base64"});
+  });
+
+  it("signArc60Data() resolves with the original raw signer public key bytes", async () => {
+    const sigB64 = Buffer.from([9, 9]).toString("base64");
+    const requestFn = vi.fn().mockResolvedValue({signature: sigB64});
+    const transport = new ExtensionTransport(makeClient(requestFn));
+    const domain = window.location.origin;
+    const signerPublicKey = algosdk.decodeAddress(account.addr.toString()).publicKey;
+
+    const response = await transport.signArc60Data(
+      {
+        data: new Uint8Array([1, 2]),
+        signer: signerPublicKey,
+        domain,
+        authenticatorData: new Uint8Array(37)
+      },
+      {scope: ScopeType.AUTH, encoding: "base64"}
+    );
+
+    expect(response.signer).toEqual(signerPublicKey);
   });
 
   it("signArc60Data() rejects on origin mismatch before calling the extension", async () => {
