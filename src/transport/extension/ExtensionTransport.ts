@@ -139,7 +139,7 @@ export class ExtensionTransport implements WalletTransport {
     const dataBase64 = Buffer.from(payload.data).toString("base64");
     const wireParams: Record<string, unknown> = {
       data: dataBase64,
-      signer: payload.signer,
+      signer: algosdk.encodeAddress(payload.signer),
       domain: payload.domain,
       authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
       metadata
@@ -159,7 +159,7 @@ export class ExtensionTransport implements WalletTransport {
 
       return {
         data: payload.data,
-        signer: algosdk.decodeAddress(String(payload.signer)).publicKey,
+        signer: payload.signer,
         domain: payload.domain,
         authenticatorData: payload.authenticatorData,
         ...(payload.requestId !== undefined && {requestId: payload.requestId}),
