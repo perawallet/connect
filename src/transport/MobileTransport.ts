@@ -157,10 +157,10 @@ export class MobileTransport implements WalletTransport {
       throw new Error("PeraWalletConnect was not initialized correctly.");
     }
 
-    const dataBase64 =
-      metadata.encoding === "base64"
-        ? Buffer.from(payload.data, metadata.encoding).toString("base64")
-        : payload.data;
+    const dataBase64 = Buffer.isEncoding(metadata.encoding)
+      ? Buffer.from(payload.data, metadata.encoding).toString("base64")
+      : payload.data;
+
     const wireParams: Record<string, unknown> = {
       data: dataBase64,
       signer: algosdk.encodeAddress(payload.signer),

@@ -135,10 +135,9 @@ export class ExtensionTransport implements WalletTransport {
       );
     }
 
-    const dataBase64 =
-      metadata.encoding === "base64"
-        ? Buffer.from(payload.data, metadata.encoding).toString("base64")
-        : payload.data;
+    const dataBase64 = Buffer.isEncoding(metadata.encoding)
+      ? Buffer.from(payload.data, metadata.encoding).toString("base64")
+      : payload.data;
 
     const wireParams: Record<string, unknown> = {
       data: dataBase64,

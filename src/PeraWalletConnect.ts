@@ -675,7 +675,9 @@ class PeraWalletConnect {
       throw new Error("PeraWalletConnect was not initialized correctly.");
     }
 
-    const dataBase64 = Buffer.from(payload.data).toString("base64");
+    const dataBase64 = Buffer.isEncoding(metadata.encoding)
+      ? Buffer.from(payload.data, metadata.encoding).toString("base64")
+      : payload.data;
 
     const wireParams: Record<string, unknown> = {
       data: dataBase64,
