@@ -68,8 +68,8 @@ describe("PeraWalletConnect orchestration", () => {
 
     function makeArc60Payload(domain: string) {
       return {
-        data: new Uint8Array([1, 2]),
-        signer: "SIGNER_ADDRESS",
+        data: Buffer.from(new Uint8Array([1, 2])).toString("base64"),
+        signer: Buffer.from("SIGNER_ADDRESS"),
         domain,
         authenticatorData: new Uint8Array(37)
       };
@@ -108,7 +108,7 @@ describe("PeraWalletConnect orchestration", () => {
         .mockResolvedValue(response);
 
       await expect(pera.signArc60Data(payload, AUTH_METADATA)).resolves.toBe(response);
-      expect(spy).toHaveBeenCalledWith(payload, AUTH_METADATA, undefined);
+      expect(spy).toHaveBeenCalledWith(payload, AUTH_METADATA);
     });
   });
 

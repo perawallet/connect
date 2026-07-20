@@ -120,8 +120,7 @@ export interface Siwa {
   account_address: string;
   uri: string;
   version: string;
-  /** SLIP-0044 coin type for Algorand. */
-  chain_id: "283";
+  chain_id: string;
   type: "ed25519";
   statement?: string;
   nonce?: string;
@@ -143,9 +142,9 @@ export interface Siwa {
 export interface PeraWalletArc60SignData {
   /**
    * Payload bytes to be signed (typically the UTF-8 bytes of canonical SIWA
-   * JSON). Will be base64-encoded on the wire.
+   * JSON). Will be encoded on the wire bsaed on encoding specified in metadata.
    */
-  data: Uint8Array;
+  data: string;
 
   /**
    * Algorand address that should sign the payload.

@@ -513,9 +513,9 @@ class PeraWalletConnect {
     if (this.platform === "web") {
       const {webWalletURL} = await getPeraConnectConfig();
 
-      return new WebTransport({getWebWalletURL: () => Promise.resolve(webWalletURL)}).signTransaction(
-        signTxnRequestParams
-      );
+      return new WebTransport({
+        getWebWalletURL: () => Promise.resolve(webWalletURL)
+      }).signTransaction(signTxnRequestParams);
     }
 
     if (this.platform === "extension") {
@@ -645,15 +645,11 @@ class PeraWalletConnect {
     this.assertArc60DomainMatchesOrigin(payload.domain);
 
     if (this.platform === "extension") {
-      const response = await this.extensionTransport.signArc60Data(
-        payload,
-        metadata,
-        verifySignature
-      );
+      const response = await this.extensionTransport.signArc60Data(payload, metadata);
 
       if (verifySignature) {
         const ok = await this.verifyArc60Signature(
-          payload.data,
+          Buffer.from(payload.data, "base64"),
           payload.authenticatorData,
           response.signature,
           algosdk.encodeAddress(payload.signer)
@@ -724,7 +720,7 @@ class PeraWalletConnect {
         // own key — the wallet does not follow rekeys for off-chain data —
         // so verify against the signer address's pubkey, not its auth addr.
         const ok = await this.verifyArc60Signature(
-          payload.data,
+          Buffer.from(payload.data, "base64"),
           payload.authenticatorData,
           signature,
           effectiveSigner
@@ -739,7 +735,7 @@ class PeraWalletConnect {
       }
 
       return {
-        data: Buffer.from(dataBase64, "base64"),
+        data: dataBase64,
         signer: algosdk.decodeAddress(effectiveSigner).publicKey,
         domain: payload.domain,
         authenticatorData: payload.authenticatorData,

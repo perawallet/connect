@@ -1,6 +1,12 @@
 import {describe, it, expect, afterEach, vi} from "vitest";
 
-import {isAndroid, isIOS, isMobile, detectBrowser, peraWalletFlowType} from "../deviceUtils";
+import {
+  isAndroid,
+  isIOS,
+  isMobile,
+  detectBrowser,
+  peraWalletFlowType
+} from "../deviceUtils";
 
 const USER_AGENTS = {
   iphone:

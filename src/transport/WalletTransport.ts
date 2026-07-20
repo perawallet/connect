@@ -25,7 +25,6 @@ export interface WalletTransport {
   ): Promise<Uint8Array[]>;
   signArc60Data(
     payload: PeraWalletArc60SignData,
-    metadata: SignMetadata,
-    verifySignature?: boolean
+    metadata: SignMetadata
   ): Promise<PeraWalletArc60SignDataResponse>;
 }

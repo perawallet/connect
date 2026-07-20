@@ -107,7 +107,9 @@ describe("webviewBridge", () => {
 
     it("decodes a base64-encoded JSON result", async () => {
       const handleRequest = setAndroidInterface();
-      const promise = callMobileMethodWithResponse<{network: string}>("getPublicSettings");
+      const promise = callMobileMethodWithResponse<{network: string}>(
+        "getPublicSettings"
+      );
       const {id} = JSON.parse(handleRequest.mock.calls[0][0]);
 
       const encoded = window.btoa(JSON.stringify({network: "mainnet"}));
