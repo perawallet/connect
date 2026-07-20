@@ -269,7 +269,6 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
           "pera-wallet-connect-modal-desktop-mode--compact"
         );
       }
-
     }
   }
 
@@ -293,8 +292,7 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
       ".pera-wallet-connect-modal-desktop-mode__default-view"
     );
     const shouldPromoteMobile = this.getAttribute("promote-mobile") === "true";
-    const isExtensionAvailable =
-      this.getAttribute("is-extension-available") === "true";
+    const isExtensionAvailable = this.getAttribute("is-extension-available") === "true";
     const {webWalletOption, mobileWalletOption, extensionWalletOption} =
       getConnectOptions(shouldPromoteMobile, isExtensionAvailable);
 

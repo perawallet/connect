@@ -125,8 +125,7 @@ export class ExtensionTransport implements WalletTransport {
 
   async signArc60Data(
     payload: PeraWalletArc60SignData,
-    metadata: SignMetadata,
-    verifySignature?: boolean
+    metadata: SignMetadata
   ): Promise<PeraWalletArc60SignDataResponse> {
     // Fast client-side pre-check mirroring the extension's SIWA origin binding.
     if (isArc60OriginMismatch(payload.domain, window.location.origin)) {
@@ -151,11 +150,6 @@ export class ExtensionTransport implements WalletTransport {
     try {
       const result = await this.client.request("sign_message", wireParams);
       const signature = base64ToUint8Array(result.signature as string);
-
-      // Signature verification is delegated to the orchestrator
-      // (PeraWalletConnect.verifyArc60Signature) so all transports share one
-      // path; `verifySignature` is accepted here for interface parity.
-      if (verifySignature) { /* verification handled by orchestrator */ }
 
       return {
         data: payload.data,

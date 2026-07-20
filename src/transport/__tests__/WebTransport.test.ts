@@ -22,7 +22,10 @@ describe("WebTransport", () => {
 
     expect(signed).toHaveLength(1);
     expect(runWebSignTransactionFlow).toHaveBeenCalledWith(
-      expect.objectContaining({method: "SIGN_TXN", webWalletURL: "https://web.perawallet.app"})
+      expect.objectContaining({
+        method: "SIGN_TXN",
+        webWalletURL: "https://web.perawallet.app"
+      })
     );
   });
 
@@ -31,8 +34,6 @@ describe("WebTransport", () => {
       getWebWalletURL: () => Promise.resolve("https://web.perawallet.app")
     });
 
-    await expect(
-      transport.signArc60Data({} as any, {} as any)
-    ).rejects.toBeTruthy();
+    await expect(transport.signArc60Data({} as any, {} as any)).rejects.toBeTruthy();
   });
 });

@@ -10,7 +10,10 @@ import {
   PeraWalletTransaction
 } from "../util/model/peraWalletModels";
 import {AlgorandChainIDs} from "../util/peraWalletTypes";
-import {base64ToUint8Array, formatJsonRpcRequest} from "../util/transaction/transactionUtils";
+import {
+  base64ToUint8Array,
+  formatJsonRpcRequest
+} from "../util/transaction/transactionUtils";
 import {
   removeModalWrapperFromDOM,
   PERA_WALLET_REDIRECT_MODAL_ID,

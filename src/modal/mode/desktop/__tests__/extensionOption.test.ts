@@ -94,9 +94,7 @@ describe("desktop modal extension option", () => {
     ) as HTMLAnchorElement;
 
     expect(option).toBeTruthy();
-    expect(option?.classList.contains("pera-wallet-accordion-item--active")).toBe(
-      false
-    );
+    expect(option?.classList.contains("pera-wallet-accordion-item--active")).toBe(false);
     expect(installLink).toBeTruthy();
     expect(installLink.href).toContain("chromewebstore.google.com");
     expect(

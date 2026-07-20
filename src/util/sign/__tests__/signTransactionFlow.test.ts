@@ -17,7 +17,9 @@ const waitForTabOpeningMock = vi.mocked(waitForTabOpening);
 const sendMessageMock = vi.mocked(appTellerManager.sendMessage);
 const setupListenerMock = vi.mocked(appTellerManager.setupListener);
 
-const TXN_PARAMS = [{txn: "encoded-txn"}] as unknown as RunSignTransactionFlowParams["signTxnRequestParams"];
+const TXN_PARAMS = [
+  {txn: "encoded-txn"}
+] as unknown as RunSignTransactionFlowParams["signTxnRequestParams"];
 
 function invoke(overrides: Partial<RunSignTransactionFlowParams> = {}) {
   const resolve = vi.fn();

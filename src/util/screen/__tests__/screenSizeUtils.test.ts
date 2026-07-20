@@ -70,9 +70,9 @@ describe("screenSizeUtils", () => {
 
       setVhVariable();
 
-      expect(
-        document.documentElement.style.getPropertyValue("--pera-wallet-vh")
-      ).toBe("8px");
+      expect(document.documentElement.style.getPropertyValue("--pera-wallet-vh")).toBe(
+        "8px"
+      );
     });
   });
 });

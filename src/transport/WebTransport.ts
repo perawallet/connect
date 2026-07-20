@@ -85,7 +85,9 @@ export class WebTransport implements WalletTransport {
     _metadata: SignMetadata
   ): Promise<PeraWalletArc60SignDataResponse> {
     return Promise.reject(
-      new Error("ARC-60 signing is currently only supported via the Pera mobile wallet or the Pera extension.")
+      new Error(
+        "ARC-60 signing is currently only supported via the Pera mobile wallet or the Pera extension."
+      )
     );
   }
 }

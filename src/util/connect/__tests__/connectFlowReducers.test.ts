@@ -8,8 +8,7 @@ const saveWalletDetailsToStorage = vi.fn();
 const removeModalWrapperFromDOM = vi.fn();
 
 vi.mock("../../storage/storageUtils", () => ({
-  saveWalletDetailsToStorage: (...args: unknown[]) =>
-    saveWalletDetailsToStorage(...args)
+  saveWalletDetailsToStorage: (...args: unknown[]) => saveWalletDetailsToStorage(...args)
 }));
 
 vi.mock("../../../modal/peraWalletConnectModalUtils", () => ({
