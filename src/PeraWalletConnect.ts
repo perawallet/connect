@@ -6,12 +6,8 @@ import {sign_detached_verify} from "tweetnacl-ts";
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
   openPeraWalletConnectModal,
-  openPeraWalletRedirectModal,
   removeModalWrapperFromDOM,
   PERA_WALLET_CONNECT_MODAL_ID,
-  PERA_WALLET_REDIRECT_MODAL_ID,
-  openPeraWalletSignTxnToast,
-  PERA_WALLET_SIGN_TXN_TOAST_ID,
   PeraWalletModalConfig,
   setupPeraWalletConnectModalCloseListener
 } from "./modal/peraWalletConnectModalUtils";
@@ -31,11 +27,7 @@ import {
   SignerTransaction,
   SignMetadata
 } from "./util/model/peraWalletModels";
-import {
-  base64ToUint8Array,
-  composeTransaction,
-  formatJsonRpcRequest
-} from "./util/transaction/transactionUtils";
+import {composeTransaction} from "./util/transaction/transactionUtils";
 import {isMobile} from "./util/device/deviceUtils";
 import {AlgorandChainIDs} from "./util/peraWalletTypes";
 import {runWebConnectFlow} from "./util/connect/connectFlow";
@@ -437,9 +429,11 @@ class PeraWalletConnect {
   ): Promise<boolean> {
     try {
       const {publicKey} = algosdk.decodeAddress(signerAddress);
-      const dataHash = new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+      const dataHash = new Uint8Array(
+        await crypto.subtle.digest("SHA-256", Buffer.from(data))
+      );
       const authHash = new Uint8Array(
-        await crypto.subtle.digest("SHA-256", authenticatorData)
+        await crypto.subtle.digest("SHA-256", Buffer.from(authenticatorData))
       );
       const toBeVerified = concatArrays(dataHash, authHash);
 
@@ -485,23 +479,42 @@ class PeraWalletConnect {
     }
   }
 
+  private getTransport() {
+    if (this.platform === "extension") {
+      return this.extensionTransport;
+    }
+
+    if (this.platform === "web") {
+      return new WebTransport({
+        getWebWalletURL: async () => {
+          const config = await getPeraConnectConfig();
+
+          return config.webWalletURL;
+        }
+      });
+    }
+
+    if (!this.connector || !this.connector.sendCustomRequest) {
+      throw new Error("PeraWalletConnect was not initialized correctly.");
+    }
+
+    return new MobileTransport({
+      connector: this.connector as any,
+      shouldShowSignTxnToast: this.shouldShowSignTxnToast,
+      isInWebview: this.isInWebview,
+      getSilent: async () => {
+        const {silent} = await getPeraConnectConfig();
+
+        return silent;
+      }
+    });
+  }
+
   async signTransaction(
     txGroups: SignerTransaction[][],
     signerAddress?: string
   ): Promise<Uint8Array[]> {
-    if (this.platform === "mobile") {
-      if (isMobile() && !this.isInWebview) {
-        // This is to automatically open the wallet app when trying to sign with it.
-        openPeraWalletRedirectModal();
-      } else if (!isMobile() && this.shouldShowSignTxnToast) {
-        // This is to inform user go the wallet app when trying to sign with it.
-        openPeraWalletSignTxnToast();
-      }
-
-      if (!this.connector) {
-        throw new Error("PeraWalletConnect was not initialized correctly.");
-      }
-    }
+    const transport = this.getTransport();
 
     // Prepare transactions to be sent to wallet
     const signTxnRequestParams = txGroups.flatMap((txGroup) =>
@@ -510,24 +523,9 @@ class PeraWalletConnect {
       )
     );
 
-    if (this.platform === "web") {
-      const {webWalletURL} = await getPeraConnectConfig();
+    const result = await transport.signTransaction(signTxnRequestParams);
 
-      return new WebTransport({
-        getWebWalletURL: () => Promise.resolve(webWalletURL)
-      }).signTransaction(signTxnRequestParams);
-    }
-
-    if (this.platform === "extension") {
-      return this.extensionTransport.signTransaction(signTxnRequestParams);
-    }
-
-    return new MobileTransport({
-      connector: this.connector as any,
-      shouldShowSignTxnToast: this.shouldShowSignTxnToast,
-      isInWebview: this.isInWebview,
-      getSilent: async () => (await getPeraConnectConfig()).silent
-    }).signTransaction(signTxnRequestParams);
+    return result;
   }
 
   async signData(
@@ -538,39 +536,9 @@ class PeraWalletConnect {
     // eslint-disable-next-line no-magic-numbers
     const chainId = this.chainId || 4160;
 
-    if (this.platform === "mobile") {
-      if (isMobile() && !this.isInWebview) {
-        // This is to automatically open the wallet app when trying to sign with it.
-        openPeraWalletRedirectModal();
-      } else if (!isMobile() && this.shouldShowSignTxnToast) {
-        // This is to inform user go the wallet app when trying to sign with it.
-        openPeraWalletSignTxnToast();
-      }
+    const transport = this.getTransport();
 
-      if (!this.connector) {
-        throw new Error("PeraWalletConnect was not initialized correctly.");
-      }
-    }
-
-    let signatures: Uint8Array[];
-
-    if (this.platform === "extension") {
-      signatures = await this.extensionTransport.signData(data, signer, chainId);
-    } else if (this.platform === "web") {
-      const {webWalletURL} = await getPeraConnectConfig();
-
-      signatures = await new WebTransport({
-        getWebWalletURL: () => Promise.resolve(webWalletURL)
-      }).signData(data, signer, chainId);
-    } else {
-      // Pera Mobile Wallet flow
-      signatures = await new MobileTransport({
-        connector: this.connector as any,
-        shouldShowSignTxnToast: this.shouldShowSignTxnToast,
-        isInWebview: this.isInWebview,
-        getSilent: async () => (await getPeraConnectConfig()).silent
-      }).signData(data, signer, chainId);
-    }
+    const signatures: Uint8Array[] = await transport.signData(data, signer, chainId);
 
     // Verify signatures if validateSignature is true
     if (verifySignature) {
@@ -644,119 +612,35 @@ class PeraWalletConnect {
 
     this.assertArc60DomainMatchesOrigin(payload.domain);
 
-    if (this.platform === "extension") {
-      const response = await this.extensionTransport.signArc60Data(payload, metadata);
+    const transport = this.getTransport();
+    const response = await transport.signArc60Data(payload, metadata);
+    const effectiveSigner = algosdk.encodeAddress(payload.signer);
 
-      if (verifySignature) {
-        const ok = await this.verifyArc60Signature(
-          Buffer.from(payload.data, "base64"),
-          payload.authenticatorData,
-          response.signature,
-          algosdk.encodeAddress(payload.signer)
-        );
-
-        if (!ok) {
-          throw new PeraWalletConnectError(
-            {type: "SIGN_DATA_VERIFICATION_FAILED"},
-            "ARC-60 signature verification failed"
-          );
-        }
-      }
-
-      return response;
-    }
-
-    if (isMobile() && !this.isInWebview) {
-      // This is to automatically open the wallet app when trying to sign with it.
-      openPeraWalletRedirectModal();
-    }
-
-    if (!this.connector) {
-      throw new Error("PeraWalletConnect was not initialized correctly.");
-    }
-
-    const dataBase64 = Buffer.from(payload.data).toString("base64");
-
-    const wireParams: Record<string, unknown> = {
-      data: dataBase64,
-      signer: algosdk.encodeAddress(payload.signer),
-      domain: payload.domain,
-      authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
-      metadata
-    };
-
-    if (payload.requestId !== undefined) wireParams.requestId = payload.requestId;
-    if (payload.hdPath !== undefined) wireParams.hdPath = payload.hdPath;
-
-    const request = formatJsonRpcRequest("algo_signData", wireParams);
-
-    try {
-      const {silent} = await getPeraConnectConfig();
-
-      // ARC-60 requires `params` to be a single object (not an array) — that
-      // is how the mobile wallet differentiates ARC-60 from legacy
-      // arbitrary-data requests. WalletConnect v1's request type insists on
-      // `params: any[]`, so we cast to bypass that constraint.
-      const response = await this.connector.sendCustomRequest(request as any, {
-        forcePushNotification: !silent
-      });
-
-      // Mobile returns the signature wrapped in an array.
-      const responseArray = Array.isArray(response) ? response : [response];
-      const first = responseArray.filter(Boolean)[0];
-
-      if (!first) {
-        throw new Error("No signature returned from wallet.");
-      }
-
-      const signature =
-        typeof first === "string"
-          ? base64ToUint8Array(first)
-          : Uint8Array.from(first as number[]);
-      const effectiveSigner = algosdk.encodeAddress(payload.signer);
-
-      if (verifySignature) {
-        // ARC-60 signatures are always produced by the requested account's
-        // own key — the wallet does not follow rekeys for off-chain data —
-        // so verify against the signer address's pubkey, not its auth addr.
-        const ok = await this.verifyArc60Signature(
-          Buffer.from(payload.data, "base64"),
-          payload.authenticatorData,
-          signature,
-          effectiveSigner
-        );
-
-        if (!ok) {
-          throw new PeraWalletConnectError(
-            {type: "SIGN_DATA_VERIFICATION_FAILED"},
-            "ARC-60 signature verification failed"
-          );
-        }
-      }
-
-      return {
-        data: dataBase64,
-        signer: algosdk.decodeAddress(effectiveSigner).publicKey,
-        domain: payload.domain,
-        authenticatorData: payload.authenticatorData,
-        ...(payload.requestId !== undefined && {requestId: payload.requestId}),
-        ...(payload.hdPath !== undefined && {hdPath: payload.hdPath}),
-        signature
-      };
-    } catch (error) {
-      return Promise.reject(
-        new PeraWalletConnectError(
-          {
-            type: "SIGN_TRANSACTIONS",
-            detail: error
-          },
-          (error as Error)?.message || "Failed to sign ARC-60 data"
-        )
+    if (verifySignature) {
+      const ok = await this.verifyArc60Signature(
+        Buffer.from(payload.data, "base64"),
+        payload.authenticatorData,
+        response.signature,
+        effectiveSigner
       );
-    } finally {
-      removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
-      removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
+
+      if (!ok) {
+        throw new PeraWalletConnectError(
+          {type: "SIGN_DATA_VERIFICATION_FAILED"},
+          "ARC-60 signature verification failed"
+        );
+      }
     }
+
+    return {
+      data: payload.data,
+      signer: algosdk.decodeAddress(effectiveSigner).publicKey,
+      domain: payload.domain,
+      authenticatorData: payload.authenticatorData,
+      ...(payload.requestId !== undefined && {requestId: payload.requestId}),
+      ...(payload.hdPath !== undefined && {hdPath: payload.hdPath}),
+      signature: response.signature
+    };
   }
 }
 

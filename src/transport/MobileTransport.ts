@@ -17,13 +17,16 @@ import {
 import {
   removeModalWrapperFromDOM,
   PERA_WALLET_REDIRECT_MODAL_ID,
-  PERA_WALLET_SIGN_TXN_TOAST_ID
+  PERA_WALLET_SIGN_TXN_TOAST_ID,
+  openPeraWalletRedirectModal,
+  openPeraWalletSignTxnToast
 } from "../modal/peraWalletConnectModalUtils";
+import {isMobile} from "../util/device/deviceUtils";
 
 // WalletConnect type is intentionally loose to avoid coupling the transport to
 // the connector's full type surface.
 type Connector = {
-  sendCustomRequest: (request: unknown, options?: unknown) => Promise<any>;
+  sendCustomRequest: (request: any, options?: any) => Promise<any>;
   accounts?: string[];
 } | null;
 
@@ -45,6 +48,14 @@ export class MobileTransport implements WalletTransport {
 
   constructor(deps: MobileTransportDeps) {
     this.deps = deps;
+
+    if (isMobile() && !deps.isInWebview) {
+      // This is to automatically open the wallet app when trying to sign with it.
+      openPeraWalletRedirectModal();
+    } else if (!isMobile() && deps.shouldShowSignTxnToast) {
+      // This is to inform user go the wallet app when trying to sign with it.
+      openPeraWalletSignTxnToast();
+    }
   }
 
   private get connector(): Connector {
@@ -88,9 +99,12 @@ export class MobileTransport implements WalletTransport {
 
     try {
       const silent = await this.deps.getSilent();
+
       const response = await this.connector.sendCustomRequest(formattedSignTxnRequest, {
         forcePushNotification: !silent
       });
+
+      console.log("sent request");
       const nonNullResponse = response.filter(Boolean) as (string | number[])[];
 
       return typeof nonNullResponse[0] === "string"
@@ -157,16 +171,21 @@ export class MobileTransport implements WalletTransport {
       throw new Error("PeraWalletConnect was not initialized correctly.");
     }
 
+    // force encoding to base64 for future proofing
     const dataBase64 =
-      metadata.encoding === "base64"
+      Buffer.isEncoding(metadata.encoding) && metadata.encoding !== "base64"
         ? Buffer.from(payload.data, metadata.encoding).toString("base64")
         : payload.data;
+
     const wireParams: Record<string, unknown> = {
       data: dataBase64,
       signer: algosdk.encodeAddress(payload.signer),
       domain: payload.domain,
       authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
-      metadata
+      metadata: {
+        scope: metadata.scope,
+        encoding: "base64"
+      }
     };
 
     if (payload.requestId !== undefined) wireParams.requestId = payload.requestId;
@@ -182,11 +201,11 @@ export class MobileTransport implements WalletTransport {
       const responseArray = Array.isArray(response) ? response : [response];
       const first = responseArray.filter(Boolean)[0];
 
-      const effectiveSigner = algosdk.encodeAddress(payload.signer);
-
       if (!first) {
         throw new Error("No signature returned from wallet.");
       }
+
+      const effectiveSigner = algosdk.encodeAddress(payload.signer);
 
       const signature =
         typeof first === "string"

@@ -62,7 +62,7 @@ describe("ExtensionTransport", () => {
 
     await transport.signArc60Data(
       {
-        data: new Uint8Array([1, 2]),
+        data: Buffer.from(new Uint8Array([1, 2])).toString("base64"),
         signer: signerPublicKey,
         domain,
         authenticatorData: new Uint8Array(37)
