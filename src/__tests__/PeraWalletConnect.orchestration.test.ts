@@ -1,4 +1,5 @@
 import {describe, it, expect, vi, afterEach} from "vitest";
+import algosdk from "algosdk";
 
 import PeraWalletConnect from "../PeraWalletConnect";
 import {ScopeType, SignMetadata} from "../util/model/peraWalletModels";
@@ -69,7 +70,9 @@ describe("PeraWalletConnect orchestration", () => {
     function makeArc60Payload(domain: string) {
       return {
         data: Buffer.from(new Uint8Array([1, 2])).toString("base64"),
-        signer: Buffer.from("SIGNER_ADDRESS"),
+        signer: algosdk.decodeAddress(
+          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        ).publicKey,
         domain,
         authenticatorData: new Uint8Array(37)
       };
@@ -107,7 +110,10 @@ describe("PeraWalletConnect orchestration", () => {
         .spyOn((pera as any).extensionTransport, "signArc60Data")
         .mockResolvedValue(response);
 
-      await expect(pera.signArc60Data(payload, AUTH_METADATA)).resolves.toBe(response);
+      await expect(pera.signArc60Data(payload, AUTH_METADATA)).resolves.toEqual({
+        ...payload,
+        signature: response.signature
+      });
       expect(spy).toHaveBeenCalledWith(payload, AUTH_METADATA);
     });
   });
