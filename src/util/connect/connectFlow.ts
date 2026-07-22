@@ -1,17 +1,9 @@
 import {
-  // PERA_WALLET_IFRAME_ID,
   PERA_WALLET_CONNECT_MODAL_ID,
   removeModalWrapperFromDOM
-  // getHeaderCloseButton
 } from "../../modal/peraWalletConnectModalUtils";
 import PeraWalletConnectError from "../PeraWalletConnectError";
-// import {peraWalletFlowType} from "../device/deviceUtils";
-import {
-  // WAIT_FOR_TAB_MAX_TRY_COUNT,
-  // WAIT_FOR_TAB_TRY_INTERVAL,
-  getMetaInfo,
-  waitForTabOpening
-} from "../dom/domUtils";
+import {getMetaInfo, waitForTabOpening} from "../dom/domUtils";
 import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "../peraWalletConstants";
 import {RunWebConnectFlowTypes} from "./connectFlowModels";

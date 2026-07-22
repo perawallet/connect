@@ -1,6 +1,5 @@
-import algosdk from "algosdk";
-
 import {WalletTransport, ConnectOptions} from "../WalletTransport";
+import {buildArc60WireParams, buildArc60SignDataResponse} from "../arc60Wire";
 import {Arc0027Client, Arc0027RequestError} from "./arc0027Client";
 import {DiscoverResult, ARC0027_ERROR_CODES} from "./arc0027Types";
 import {isArc60OriginMismatch} from "./originBinding";
@@ -135,37 +134,13 @@ export class ExtensionTransport implements WalletTransport {
       );
     }
 
-    const dataBase64 =
-      Buffer.isEncoding(metadata.encoding) && metadata.encoding !== "base64"
-        ? Buffer.from(payload.data, metadata.encoding).toString("base64")
-        : payload.data;
-    const wireParams: Record<string, unknown> = {
-      data: dataBase64,
-      signer: algosdk.encodeAddress(payload.signer),
-      domain: payload.domain,
-      authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
-      metadata: {
-        scope: metadata.scope,
-        encoding: "base64"
-      }
-    };
-
-    if (payload.requestId !== undefined) wireParams.requestId = payload.requestId;
-    if (payload.hdPath !== undefined) wireParams.hdPath = payload.hdPath;
+    const wireParams = buildArc60WireParams(payload, metadata);
 
     try {
       const result = await this.client.request("sign_message", wireParams);
       const signature = base64ToUint8Array(result.signature as string);
 
-      return {
-        data: payload.data,
-        signer: payload.signer,
-        domain: payload.domain,
-        authenticatorData: payload.authenticatorData,
-        ...(payload.requestId !== undefined && {requestId: payload.requestId}),
-        ...(payload.hdPath !== undefined && {hdPath: payload.hdPath}),
-        signature
-      };
+      return buildArc60SignDataResponse(payload, signature);
     } catch (error) {
       throw mapError(error, "sign");
     }

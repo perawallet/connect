@@ -104,6 +104,39 @@ describe("newTabSignTransactionFlowTellerReducer", () => {
     expect(error.data.type).toBe("SIGN_TXN_CANCELLED");
   });
 
+  // Regression: these two case labels used to be written as
+  // `case "SIGN_TXN_X" || "SIGN_DATA_X":`, which only ever matches
+  // "SIGN_TXN_X" (the `||` is evaluated once, at switch-build time). The
+  // SIGN_DATA_* variant silently fell through to `default: break`, leaving
+  // the signData() promise pending forever instead of rejecting.
+  it("rejects SIGN_DATA_NETWORK_MISMATCH with a method-scoped error", () => {
+    const {reject} = callReducer(
+      {data: {message: {type: "SIGN_DATA_NETWORK_MISMATCH", error: "bad network"}}},
+      "SIGN_DATA"
+    );
+
+    expect(reject).toHaveBeenCalledTimes(1);
+
+    const error = reject.mock.calls[0][0] as PeraWalletConnectError;
+
+    expect(error.data.type).toBe("SIGN_DATA_NETWORK_MISMATCH");
+    expect(error.message).toBe("bad network");
+  });
+
+  it("rejects SIGN_DATA_CALLBACK_ERROR as a cancellation and closes the tab", () => {
+    const {reject, close} = callReducer(
+      {data: {message: {type: "SIGN_DATA_CALLBACK_ERROR", error: "user cancelled"}}},
+      "SIGN_DATA"
+    );
+
+    expect(close).toHaveBeenCalled();
+    expect(reject).toHaveBeenCalledTimes(1);
+
+    const error = reject.mock.calls[0][0] as PeraWalletConnectError;
+
+    expect(error.data.type).toBe("SIGN_DATA_CANCELLED");
+  });
+
   it("resets storage and rejects on SESSION_DISCONNECTED", () => {
     const {reject, close} = callReducer({
       data: {message: {type: "SESSION_DISCONNECTED", error: "disconnected"}}

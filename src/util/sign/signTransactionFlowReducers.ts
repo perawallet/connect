@@ -28,7 +28,8 @@ function newTabSignTransactionFlowTellerReducer({
       );
       break;
 
-    case "SIGN_TXN_NETWORK_MISMATCH" || "SIGN_DATA_NETWORK_MISMATCH":
+    case "SIGN_TXN_NETWORK_MISMATCH":
+    case "SIGN_DATA_NETWORK_MISMATCH":
       reject(
         new PeraWalletConnectError(
           {
@@ -40,7 +41,8 @@ function newTabSignTransactionFlowTellerReducer({
       );
       break;
 
-    case "SIGN_TXN_CALLBACK_ERROR" || "SIGN_DATA_CALLBACK_ERROR":
+    case "SIGN_TXN_CALLBACK_ERROR":
+    case "SIGN_DATA_CALLBACK_ERROR":
       newPeraWalletTab?.close();
 
       reject(

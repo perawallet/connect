@@ -6,7 +6,7 @@ export default defineConfig({
     include: ["src/**/__tests__/**/*.test.ts"],
     coverage: {
       provider: "v8",
-      include: ["src/util/**/*.ts"],
+      include: ["src/util/**/*.ts", "src/transport/**/*.ts", "src/PeraWalletConnect.ts"],
       exclude: ["src/**/__tests__/**", "src/**/*.d.ts", "src/**/*Types.ts"]
     }
   }

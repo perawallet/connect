@@ -1,12 +1,6 @@
 import {describe, it, expect, afterEach, vi} from "vitest";
 
-import {
-  isAndroid,
-  isIOS,
-  isMobile,
-  detectBrowser,
-  peraWalletFlowType
-} from "../deviceUtils";
+import {isAndroid, isIOS, isMobile, detectBrowser} from "../deviceUtils";
 
 const USER_AGENTS = {
   iphone:
@@ -95,20 +89,6 @@ describe("deviceUtils", () => {
       } finally {
         delete (window.navigator as {brave?: unknown}).brave;
       }
-    });
-  });
-
-  describe("peraWalletFlowType", () => {
-    it("uses the EMBEDDED flow on Chrome", () => {
-      stubUserAgent(USER_AGENTS.chromeDesktop);
-
-      expect(peraWalletFlowType()).toBe("EMBEDDED");
-    });
-
-    it("uses the NEW_TAB flow on non-Chrome browsers", () => {
-      stubUserAgent(USER_AGENTS.firefoxDesktop);
-
-      expect(peraWalletFlowType()).toBe("NEW_TAB");
     });
   });
 });
