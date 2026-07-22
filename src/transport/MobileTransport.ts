@@ -1,6 +1,5 @@
-import algosdk from "algosdk";
-
-import {WalletTransport, ConnectOptions} from "./WalletTransport";
+import {WalletTransport} from "./WalletTransport";
+import {buildArc60WireParams, buildArc60SignDataResponse} from "./arc60Wire";
 import PeraWalletConnectError from "../util/PeraWalletConnectError";
 import {
   PeraWalletArbitraryData,
@@ -35,11 +34,6 @@ export interface MobileTransportDeps {
   shouldShowSignTxnToast: boolean;
   isInWebview: boolean;
   getSilent: () => Promise<boolean>;
-  // connect/reconnect are owned by the orchestrator (WalletConnect session +
-  // modal lifecycle); injected so MobileTransport satisfies WalletTransport.
-  connectImpl?: (opts?: ConnectOptions) => Promise<string[]>;
-  reconnectImpl?: () => Promise<string[]>;
-  disconnectImpl?: () => Promise<void>;
 }
 
 export class MobileTransport implements WalletTransport {
@@ -66,24 +60,9 @@ export class MobileTransport implements WalletTransport {
     this.deps.connector = connector;
   }
 
-  connect(opts?: ConnectOptions): Promise<string[]> {
-    if (!this.deps.connectImpl) {
-      return Promise.reject(new Error("MobileTransport.connect not wired"));
-    }
-
-    return this.deps.connectImpl(opts);
-  }
-
-  reconnect(): Promise<string[]> {
-    if (!this.deps.reconnectImpl) {
-      return Promise.reject(new Error("MobileTransport.reconnect not wired"));
-    }
-
-    return this.deps.reconnectImpl();
-  }
-
-  disconnect(): Promise<void> {
-    return this.deps.disconnectImpl ? this.deps.disconnectImpl() : Promise.resolve();
+  private cleanupModals() {
+    removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
+    removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
   }
 
   async signTransaction(
@@ -104,7 +83,6 @@ export class MobileTransport implements WalletTransport {
         forcePushNotification: !silent
       });
 
-      console.log("sent request");
       const nonNullResponse = response.filter(Boolean) as (string | number[])[];
 
       return typeof nonNullResponse[0] === "string"
@@ -118,8 +96,7 @@ export class MobileTransport implements WalletTransport {
         )
       );
     } finally {
-      removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
-      removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
+      this.cleanupModals();
     }
   }
 
@@ -158,8 +135,7 @@ export class MobileTransport implements WalletTransport {
         )
       );
     } finally {
-      removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
-      removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
+      this.cleanupModals();
     }
   }
 
@@ -171,26 +147,7 @@ export class MobileTransport implements WalletTransport {
       throw new Error("PeraWalletConnect was not initialized correctly.");
     }
 
-    // force encoding to base64 for future proofing
-    const dataBase64 =
-      Buffer.isEncoding(metadata.encoding) && metadata.encoding !== "base64"
-        ? Buffer.from(payload.data, metadata.encoding).toString("base64")
-        : payload.data;
-
-    const wireParams: Record<string, unknown> = {
-      data: dataBase64,
-      signer: algosdk.encodeAddress(payload.signer),
-      domain: payload.domain,
-      authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
-      metadata: {
-        scope: metadata.scope,
-        encoding: "base64"
-      }
-    };
-
-    if (payload.requestId !== undefined) wireParams.requestId = payload.requestId;
-    if (payload.hdPath !== undefined) wireParams.hdPath = payload.hdPath;
-
+    const wireParams = buildArc60WireParams(payload, metadata);
     const request = formatJsonRpcRequest("algo_signData", wireParams);
 
     try {
@@ -205,22 +162,12 @@ export class MobileTransport implements WalletTransport {
         throw new Error("No signature returned from wallet.");
       }
 
-      const effectiveSigner = algosdk.encodeAddress(payload.signer);
-
       const signature =
         typeof first === "string"
           ? base64ToUint8Array(first)
           : Uint8Array.from(first as number[]);
 
-      return {
-        data: payload.data,
-        signer: algosdk.decodeAddress(effectiveSigner).publicKey,
-        domain: payload.domain,
-        authenticatorData: payload.authenticatorData,
-        ...(payload.requestId !== undefined && {requestId: payload.requestId}),
-        ...(payload.hdPath !== undefined && {hdPath: payload.hdPath}),
-        signature
-      };
+      return buildArc60SignDataResponse(payload, signature);
     } catch (error) {
       return Promise.reject(
         new PeraWalletConnectError(
@@ -229,8 +176,7 @@ export class MobileTransport implements WalletTransport {
         )
       );
     } finally {
-      removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
-      removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
+      this.cleanupModals();
     }
   }
 }

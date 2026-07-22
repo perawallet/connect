@@ -1,4 +1,4 @@
-import {describe, it, expect, vi, afterEach, beforeEach} from "vitest";
+import {describe, it, expect, vi, afterEach} from "vitest";
 
 import {getPeraConnectConfig, fetchPeraConnectConfig} from "../peraWalletConnectApi";
 
@@ -13,11 +13,6 @@ function stubFetchResolving(body: unknown) {
 }
 
 describe("peraWalletConnectApi", () => {
-  beforeEach(() => {
-    // Keep the intentional console.log in the catch path from cluttering output.
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
-  });
-
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
@@ -94,7 +89,6 @@ describe("peraWalletConnectApi", () => {
 
       expect(config.bridgeURL).toBe("");
       expect(config.isWebWalletAvailable).toBe(false);
-      expect(console.log).toHaveBeenCalled();
     });
   });
 });

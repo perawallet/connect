@@ -2,8 +2,6 @@ import PeraWalletConnectError from "../util/PeraWalletConnectError";
 import {waitForElementCreatedAtShadowDOM} from "../util/dom/domUtils";
 import {generatePeraWalletConnectDeepLink} from "../util/peraWalletUtils";
 
-export type PERA_CONNECT_MODAL_VIEWS = "default" | "download-pera";
-
 export interface PeraWalletModalConfig {
   isWebWalletAvailable: boolean;
   shouldDisplayNewBadge: boolean;
@@ -30,15 +28,8 @@ const PERA_WALLET_SIGN_TXN_TOAST_ID = "pera-wallet-sign-txn-toast-wrapper";
 // The ID of the wrapper element for PeraWalletSignTxnModal
 const PERA_WALLET_SIGN_TXN_MODAL_ID = "pera-wallet-sign-txn-modal-wrapper";
 
-// The ID of the Pera wallet iframe
-const PERA_WALLET_IFRAME_ID = "pera-wallet-iframe";
-
 // The classname of Pera wallet modal
 const PERA_WALLET_MODAL_CLASSNAME = "pera-wallet-modal";
-
-// The classname of Web Wallet IFrame
-const PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME =
-  "pera-wallet-connect-modal-desktop-mode__web-wallet-iframe";
 
 /**
  * Creates a Div element with the given ID and appends it to the DOM.
@@ -221,28 +212,12 @@ function removeModalWrapperFromDOM(modalId: string) {
  *
  * @returns HTMLElement | null | undefined
  */
-function getHeaderCloseButton(type: "connect" | "sign-txn") {
-  const modalId =
-    type === "connect" ? PERA_WALLET_CONNECT_MODAL_ID : PERA_WALLET_SIGN_TXN_MODAL_ID;
-  const peraWalletConnectModal = document
-    .getElementById(modalId)
-    ?.querySelector(modalId.replace("-wrapper", ""))
-    ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
-  const closeButton = peraWalletConnectModal
-    ?.querySelector("pera-wallet-modal-header")
-    ?.shadowRoot?.getElementById("pera-wallet-modal-header-close-button");
-
-  return closeButton;
-}
-
 export {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_REDIRECT_MODAL_ID,
   PERA_WALLET_SIGN_TXN_TOAST_ID,
   PERA_WALLET_SIGN_TXN_MODAL_ID,
   PERA_WALLET_MODAL_CLASSNAME,
-  PERA_WALLET_WEB_WALLET_IFRAME_CLASSNAME,
-  PERA_WALLET_IFRAME_ID,
   openPeraWalletConnectModal,
   setupPeraWalletConnectModalCloseListener,
   openPeraWalletRedirectModal,
@@ -250,6 +225,5 @@ export {
   closePeraWalletSignTxnToast,
   removeModalWrapperFromDOM,
   openPeraWalletSignTxnModal,
-  closePeraWalletSignTxnModal,
-  getHeaderCloseButton
+  closePeraWalletSignTxnModal
 };

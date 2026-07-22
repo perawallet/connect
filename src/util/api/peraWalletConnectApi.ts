@@ -63,8 +63,8 @@ async function getPeraConnectConfig() {
       bridgeURL: shuffleArray(response.servers || [])[0] || "",
       webWalletURL: response.web_wallet_url || ""
     };
-  } catch (error) {
-    console.log(error);
+  } catch {
+    // Fall back to the default config on any fetch/parse failure.
   }
 
   return peraWalletConfig;

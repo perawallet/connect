@@ -2,8 +2,7 @@ import {describe, it, expect, vi, beforeEach} from "vitest";
 
 import {
   generatePeraWalletAppDeepLink,
-  generatePeraWalletConnectDeepLink,
-  generateEmbeddedWalletURL
+  generatePeraWalletConnectDeepLink
 } from "../peraWalletUtils";
 
 const deviceMock = {
@@ -74,22 +73,6 @@ describe("peraWalletUtils", () => {
       });
 
       expect(link).not.toContain("selectedAccount");
-    });
-  });
-
-  describe("generateEmbeddedWalletURL", () => {
-    it("appends the embedded flag", () => {
-      const url = generateEmbeddedWalletURL("https://web.perawallet.app/connect");
-
-      expect(url).toContain("embedded=true");
-      expect(url).not.toContain("compactMode");
-    });
-
-    it("appends the compactMode flag when requested", () => {
-      const url = generateEmbeddedWalletURL("https://web.perawallet.app/connect", true);
-
-      expect(url).toContain("embedded=true");
-      expect(url).toContain("compactMode=true");
     });
   });
 });

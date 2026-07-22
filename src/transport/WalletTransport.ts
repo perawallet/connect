@@ -9,11 +9,12 @@ import {
 
 export type ConnectOptions = {selectedAccount?: string};
 
+// Session lifecycle (connect/reconnect/disconnect) is intentionally not part of
+// this interface: only ExtensionTransport owns a real, persistent session with
+// its counterparty. Mobile's WalletConnect session and Web's inline connect
+// flow are both owned and driven directly by PeraWalletConnect.
 export interface WalletTransport {
   readonly platform: PeraWalletPlatformType;
-  connect(opts?: ConnectOptions): Promise<string[]>;
-  reconnect(): Promise<string[]>;
-  disconnect(): Promise<void>;
   signTransaction(
     txns: PeraWalletTransaction[],
     signerAddress?: string

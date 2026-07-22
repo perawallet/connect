@@ -42,6 +42,8 @@ import {ExtensionTransport} from "./transport/extension/ExtensionTransport";
 import {isArc60OriginMismatch} from "./transport/extension/originBinding";
 import {MobileTransport} from "./transport/MobileTransport";
 import {WebTransport} from "./transport/WebTransport";
+import {ConnectOptions} from "./transport/WalletTransport";
+import {buildArc60SignDataResponse} from "./transport/arc60Wire";
 import {Arc0027Client} from "./transport/extension/arc0027Client";
 
 interface PeraWalletConnectOptions {
@@ -180,7 +182,7 @@ class PeraWalletConnect {
   }
 
   // `selectedAccount` option is only applicable for Pera Wallet products
-  connect(options?: {selectedAccount?: string}) {
+  connect(options?: ConnectOptions) {
     return new Promise<string[]>(async (resolve, reject) => {
       try {
         // check if already connected and kill session first before creating a new one.
@@ -285,8 +287,6 @@ class PeraWalletConnect {
           saveWalletDetailsToStorage(this.connector?.accounts || []);
         });
       } catch (error: any) {
-        console.log(error);
-
         reject(
           new PeraWalletConnectError(
             {
@@ -632,15 +632,7 @@ class PeraWalletConnect {
       }
     }
 
-    return {
-      data: payload.data,
-      signer: algosdk.decodeAddress(effectiveSigner).publicKey,
-      domain: payload.domain,
-      authenticatorData: payload.authenticatorData,
-      ...(payload.requestId !== undefined && {requestId: payload.requestId}),
-      ...(payload.hdPath !== undefined && {hdPath: payload.hdPath}),
-      signature: response.signature
-    };
+    return buildArc60SignDataResponse(payload, response.signature);
   }
 }
 
