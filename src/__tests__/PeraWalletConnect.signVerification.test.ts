@@ -1,5 +1,6 @@
 import {describe, it, expect, vi, afterEach} from "vitest";
 import algosdk from "algosdk";
+import {sign_detached} from "tweetnacl-ts";
 
 import PeraWalletConnect from "../PeraWalletConnect";
 import {ScopeType} from "../util/model/peraWalletModels";
@@ -215,4 +216,44 @@ describe("PeraWalletConnect.signArc60Data", () => {
     expect(withOptional.requestId).toBe("req-1");
     expect(withOptional.hdPath).toBe("m/44'/283'/0'/0/0");
   });
+
+  // Verification must decode `data` the same way the wire encoder does, using
+  // real crypto rather than a mocked verifier — mocking it is what let the
+  // encoding mismatch ship in the 1.6.0 betas.
+  describe.each(["base64", "hex", "utf8"])(
+    "verifies a genuine signature when encoding is %s",
+    (encoding) => {
+      it("accepts the wallet's signature over the decoded bytes", async () => {
+        saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet");
+
+        const authenticatorData = new Uint8Array(37).fill(3);
+        const rawData = Buffer.from(`{"domain":"${window.location.origin}"}`, "utf8");
+        const payload = {
+          data: rawData.toString(encoding as BufferEncoding),
+          signer: algosdk.decodeAddress(account.addr.toString()).publicKey,
+          domain: window.location.origin,
+          authenticatorData
+        };
+
+        // Sign exactly what ARC-60 says the wallet signs.
+        const digest = async (bytes: Uint8Array) =>
+          new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+        const toBeSigned = new Uint8Array([
+          ...(await digest(new Uint8Array(rawData))),
+          ...(await digest(authenticatorData))
+        ]);
+        const signature = sign_detached(toBeSigned, account.sk);
+
+        const pera = new PeraWalletConnect();
+
+        vi.spyOn(pera as any, "getTransport").mockReturnValue({
+          signArc60Data: vi.fn().mockResolvedValue({signature})
+        });
+
+        await expect(
+          pera.signArc60Data(payload, {scope: ScopeType.AUTH, encoding}, true)
+        ).resolves.toMatchObject({signature});
+      });
+    }
+  );
 });

@@ -43,7 +43,7 @@ import {isArc60OriginMismatch} from "./transport/extension/originBinding";
 import {MobileTransport} from "./transport/MobileTransport";
 import {WebTransport} from "./transport/WebTransport";
 import {ConnectOptions} from "./transport/WalletTransport";
-import {buildArc60SignDataResponse} from "./transport/arc60Wire";
+import {buildArc60SignDataResponse, decodeArc60SignedData} from "./transport/arc60Wire";
 import {Arc0027Client} from "./transport/extension/arc0027Client";
 
 interface PeraWalletConnectOptions {
@@ -618,7 +618,7 @@ class PeraWalletConnect {
 
     if (verifySignature) {
       const ok = await this.verifyArc60Signature(
-        Buffer.from(payload.data, "base64"),
+        decodeArc60SignedData(payload.data, metadata.encoding),
         payload.authenticatorData,
         response.signature,
         effectiveSigner

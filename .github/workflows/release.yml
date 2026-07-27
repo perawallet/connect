@@ -33,8 +33,14 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: pnpm
 
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint & test
+        run: pnpm run eslint && pnpm test
+
       - name: Build app
-        run: pnpm install --frozen-lockfile && pnpm run build:release
+        run: pnpm run build:release
 
       - name: Audit dependencies
         run: pnpm audit --prod --audit-level=moderate
