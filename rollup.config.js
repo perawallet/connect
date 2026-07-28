@@ -51,7 +51,7 @@ export default [
       json(),
       sizes(),
       replace({
-        PERA_CONNECT_VERSION: `v${PeraConnectVersion} - BETA`,
+        PERA_CONNECT_VERSION: `v${PeraConnectVersion}`,
         preventAssignment: true
       }),
       nodePolyfills()
