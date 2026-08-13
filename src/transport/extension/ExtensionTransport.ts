@@ -18,13 +18,18 @@ import {
   resetWalletDetailsFromStorage
 } from "../../util/storage/storageUtils";
 
-function mapError(error: unknown, context: "connect" | "sign"): PeraWalletConnectError {
+type MapErrorContext = "connect" | "sign-txn" | "sign-data";
+
+const CANCEL_ERROR_TYPES = {
+  "connect": "CONNECT_MODAL_CLOSED",
+  "sign-txn": "SIGN_TXN_CANCELLED",
+  "sign-data": "SIGN_DATA_CANCELLED"
+} as const;
+
+function mapError(error: unknown, context: MapErrorContext): PeraWalletConnectError {
   if (error instanceof Arc0027RequestError) {
     if (error.code === ARC0027_ERROR_CODES.MethodCanceledError) {
-      return new PeraWalletConnectError(
-        {type: context === "connect" ? "CONNECT_MODAL_CLOSED" : "SIGN_TXN_CANCELLED"},
-        error.message
-      );
+      return new PeraWalletConnectError({type: CANCEL_ERROR_TYPES[context]}, error.message);
     }
 
     if (error.code === ARC0027_ERROR_CODES.UnauthorizedSignerError) {
@@ -33,7 +38,7 @@ function mapError(error: unknown, context: "connect" | "sign"): PeraWalletConnec
   }
 
   return new PeraWalletConnectError(
-    {type: "SIGN_TRANSACTIONS", detail: error},
+    {type: context === "sign-data" ? "SIGN_DATA" : "SIGN_TRANSACTIONS", detail: error},
     (error as Error)?.message || "ARC-0027 request failed"
   );
 }
@@ -105,7 +110,7 @@ export class ExtensionTransport implements WalletTransport {
         .filter((value): value is string => typeof value === "string")
         .map(base64ToUint8Array);
     } catch (error) {
-      throw mapError(error, "sign");
+      throw mapError(error, "sign-txn");
     }
   }
 
@@ -142,7 +147,7 @@ export class ExtensionTransport implements WalletTransport {
 
       return buildArc60SignDataResponse(payload, signature);
     } catch (error) {
-      throw mapError(error, "sign");
+      throw mapError(error, "sign-data");
     }
   }
 }

@@ -133,7 +133,7 @@ describe("ExtensionTransport", () => {
     expect(params.data).toBe(Buffer.from(raw).toString("base64"));
   });
 
-  it("signArc60Data() maps a request failure through mapError", async () => {
+  it("signArc60Data() maps a canceled request to SIGN_DATA_CANCELLED", async () => {
     const requestFn = vi
       .fn()
       .mockRejectedValue(
@@ -151,7 +151,24 @@ describe("ExtensionTransport", () => {
         },
         {scope: ScopeType.AUTH, encoding: "base64"}
       )
-    ).rejects.toMatchObject({data: {type: "SIGN_TXN_CANCELLED"}});
+    ).rejects.toMatchObject({data: {type: "SIGN_DATA_CANCELLED"}});
+  });
+
+  it("signArc60Data() maps an unrecognized error to a SIGN_DATA fallback", async () => {
+    const requestFn = vi.fn().mockRejectedValue(new Error("boom"));
+    const transport = new ExtensionTransport(makeClient(requestFn));
+
+    await expect(
+      transport.signArc60Data(
+        {
+          data: Buffer.from(new Uint8Array([1])).toString("base64"),
+          signer: algosdk.decodeAddress(account.addr.toString()).publicKey,
+          domain: window.location.origin,
+          authenticatorData: new Uint8Array(37)
+        },
+        {scope: ScopeType.AUTH, encoding: "base64"}
+      )
+    ).rejects.toMatchObject({data: {type: "SIGN_DATA"}, message: "boom"});
   });
 
   it("signArc60Data() rejects on origin mismatch before calling the extension", async () => {
