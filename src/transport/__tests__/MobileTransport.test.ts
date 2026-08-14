@@ -187,7 +187,7 @@ describe("MobileTransport", () => {
       ).rejects.toBeTruthy();
     });
 
-    it("wraps a connector rejection in a PeraWalletConnectError", async () => {
+    it("wraps a connector rejection in a SIGN_DATA PeraWalletConnectError", async () => {
       const connector = {
         sendCustomRequest: vi.fn().mockRejectedValue(new Error("denied"))
       };
@@ -200,7 +200,26 @@ describe("MobileTransport", () => {
           account.addr.toString(),
           4160
         )
-      ).rejects.toMatchObject({data: {type: "SIGN_TRANSACTIONS"}, message: "denied"});
+      ).rejects.toMatchObject({data: {type: "SIGN_DATA"}, message: "denied"});
+    });
+
+    it("falls back to a data-signing message when the rejection has none", async () => {
+      const connector = {
+        sendCustomRequest: vi.fn().mockRejectedValue(new Error())
+      };
+      const transport = makeTransport(connector);
+
+      await expect(
+        // eslint-disable-next-line no-magic-numbers
+        transport.signData(
+          [{data: new Uint8Array([1]), message: "m"}],
+          account.addr.toString(),
+          4160
+        )
+      ).rejects.toMatchObject({
+        data: {type: "SIGN_DATA"},
+        message: "Failed to sign data"
+      });
     });
   });
 
@@ -272,7 +291,7 @@ describe("MobileTransport", () => {
       expect(Array.from(response.signature)).toEqual([9, 9]);
     });
 
-    it("rejects when the wallet returns no signature", async () => {
+    it("rejects with SIGN_DATA when the wallet returns no signature", async () => {
       const connector = makeConnector([null]);
       const transport = makeTransport(connector);
 
@@ -281,7 +300,7 @@ describe("MobileTransport", () => {
           scope: ScopeType.AUTH,
           encoding: "base64"
         })
-      ).rejects.toMatchObject({data: {type: "SIGN_TRANSACTIONS"}});
+      ).rejects.toMatchObject({data: {type: "SIGN_DATA"}});
     });
   });
 });

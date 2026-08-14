@@ -130,8 +130,8 @@ export class MobileTransport implements WalletTransport {
     } catch (error: any) {
       return Promise.reject(
         new PeraWalletConnectError(
-          {type: "SIGN_TRANSACTIONS", detail: error},
-          error.message || "Failed to sign transaction"
+          {type: "SIGN_DATA", detail: error},
+          error.message || "Failed to sign data"
         )
       );
     } finally {
@@ -171,7 +171,7 @@ export class MobileTransport implements WalletTransport {
     } catch (error) {
       return Promise.reject(
         new PeraWalletConnectError(
-          {type: "SIGN_TRANSACTIONS", detail: error},
+          {type: "SIGN_DATA", detail: error},
           (error as Error)?.message || "Failed to sign ARC-60 data"
         )
       );
