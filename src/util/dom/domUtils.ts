@@ -100,6 +100,16 @@ function waitForElementCreatedAtShadowDOM(
   });
 }
 
+/**
+ * Navigates the current tab to the given URL. For custom-scheme deep links this
+ * launches the app without unloading the page, unlike window.open(url, "_blank"),
+ * which spawns an extra browsing context (iOS Safari leaves the dApp on a blank
+ * or reloaded tab after returning from the wallet).
+ */
+function openDeepLinkInCurrentTab(url: string) {
+  window.location.href = url;
+}
+
 function waitForTabOpening(url: string): Promise<Window | null> {
   return new Promise((resolve, reject) => {
     try {
@@ -163,4 +173,10 @@ function waitForTabOpening(url: string): Promise<Window | null> {
   });
 }
 
-export {getMetaInfo, getFavicons, waitForElementCreatedAtShadowDOM, waitForTabOpening};
+export {
+  getMetaInfo,
+  getFavicons,
+  waitForElementCreatedAtShadowDOM,
+  openDeepLinkInCurrentTab,
+  waitForTabOpening
+};

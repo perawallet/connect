@@ -1,5 +1,6 @@
 import PeraRedirectIcon from "../../asset/icon/PeraRedirectIcon.svg";
 
+import {openDeepLinkInCurrentTab} from "../../util/dom/domUtils";
 import {generatePeraWalletAppDeepLink} from "../../util/peraWalletUtils";
 import {
   PERA_WALLET_REDIRECT_MODAL_ID,
@@ -43,9 +44,7 @@ peraWalletRedirectModalTemplate.innerHTML = `
 
         <a
           id="pera-wallet-redirect-modal-launch-pera-link"
-          class="pera-wallet-redirect-modal__launch-pera-wallet-button"
-          rel="noopener noreferrer"
-          target="_blank">
+          class="pera-wallet-redirect-modal__launch-pera-wallet-button">
           Launch Pera Wallet
         </a>
       </div>
@@ -81,21 +80,32 @@ export class PeraWalletRedirectModal extends HTMLElement {
       );
 
       launchPeraLink?.addEventListener("click", () => {
-        this.onClose();
-        window.open(generatePeraWalletAppDeepLink(), "_blank");
+        openDeepLinkInCurrentTab(generatePeraWalletAppDeepLink());
       });
     }
   }
 
   connectedCallback() {
-    const peraWalletDeepLink = window.open(generatePeraWalletAppDeepLink(), "_blank");
+    // Same-tab scheme navigation launches the wallet without unloading the
+    // page, so there is no synchronous success signal. The page going hidden
+    // is the launch confirmation; until then the modal stays as the
+    // "Can't Launch Pera" fallback.
+    document.addEventListener("visibilitychange", this.handleVisibilityChange);
 
-    if (peraWalletDeepLink && !peraWalletDeepLink.closed) {
-      this.onClose();
-    }
+    openDeepLinkInCurrentTab(generatePeraWalletAppDeepLink());
+  }
+
+  disconnectedCallback() {
+    document.removeEventListener("visibilitychange", this.handleVisibilityChange);
   }
 
   onClose() {
     removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
   }
+
+  private handleVisibilityChange = () => {
+    if (document.visibilityState === "hidden") {
+      this.onClose();
+    }
+  };
 }
