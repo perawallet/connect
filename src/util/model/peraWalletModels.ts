@@ -1,5 +1,7 @@
 import {Transaction} from "algosdk";
 
+import {NetworkToggle} from "../algod/algodTypes";
+
 export interface SignerTransaction {
   txn: Transaction;
 
@@ -183,4 +185,30 @@ export interface PeraWalletArc60SignDataResponse extends PeraWalletArc60SignData
    * `ed25519(sha256(data) || sha256(authenticatorData))` per ARC-60.
    */
   signature: Uint8Array;
+}
+
+/** Networks connect can read accounts on; the auth address of a rekey is per network. */
+export type PeraWalletNetwork = NetworkToggle;
+
+/**
+ * Who has to sign an ARC-60 (SIWA) request for an account, see
+ * `PeraWalletConnect.resolveArc60Signer`.
+ */
+export interface PeraWalletArc60SignerResolution {
+  /** The account being authenticated; goes into the SIWA `account_address`. */
+  accountAddress: string;
+
+  /**
+   * The account whose key produces the signature: the on-chain auth address
+   * when `accountAddress` is rekeyed, otherwise `accountAddress` itself.
+   */
+  signerAddress: string;
+
+  /** `signerAddress` as a public key, ready for `PeraWalletArc60SignData.signer`. */
+  signer: Uint8Array;
+
+  isRekeyed: boolean;
+
+  /** The network the auth address was read from. */
+  network: PeraWalletNetwork;
 }

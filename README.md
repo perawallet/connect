@@ -227,6 +227,66 @@ if (isValid) {
 ```
 </details>
 
+#### `PeraWalletConnect.signArc60Data(payload: PeraWalletArc60SignData, metadata: SignMetadata, verifySignature?: boolean): Promise<PeraWalletArc60SignDataResponse>`
+
+Signs an ARC-60 payload (for example a Sign-In With Algorand request) with the Pera mobile wallet or the Pera extension. `payload.signer` is the public key that must sign, `payload.domain` must match your page origin, and `metadata` is `{scope: ScopeType.AUTH, encoding: "base64"}`. With `verifySignature: true` the returned signature is checked against `payload.signer` before resolving. For rekeyed accounts see `resolveArc60Signer` below.
+
+#### `PeraWalletConnect.resolveArc60Signer(accountAddress: string, network?: PeraWalletNetwork): Promise<PeraWalletArc60SignerResolution>`
+
+Resolves who has to sign an ARC-60 request for `accountAddress`. An ARC-60 signature is verified against the `signer` public key, and Pera never substitutes another key. If the account is rekeyed, its own key no longer controls it, so the request must name the on-chain **auth address** as `signer` while the SIWA payload keeps the account as `account_address`. Pera refuses a rekeyed account that names itself as `signer`, and it can only sign when the user's wallet holds the auth address as a key-bearing or Ledger account (a watch-only or multisig auth address cannot sign ARC-60).
+
+Rekeys are per network, and the wallet checks them on the network it is currently connected to, which connect cannot observe:
+
+- With `chainId: 416001` or `416002` the wallet only serves the session while it is on that network, so `network` can be omitted; passing a different one throws `SIGN_DATA_NETWORK_MISMATCH`. This is the recommended setup.
+- With an all-networks session (`4160`, the default) `network` is required (`SIGN_DATA_NETWORK_REQUIRED` otherwise) and must be the network the user's wallet is on; if it is not, the wallet rejects the sign-in.
+- Betanet sessions (`416003`) and values other than `"mainnet"` / `"testnet"` throw `SIGN_DATA_NETWORK_UNSUPPORTED`.
+
+**Returns:** `{accountAddress, signerAddress, signer, isRekeyed, network}`. `signer` is `signerAddress` as a public key, ready for `PeraWalletArc60SignData.signer`.
+
+**Throws:** `SIGN_DATA_INVALID_ADDRESS` for a malformed address, the network errors above, and `SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED` when the account lookup fails (the cause is in `error.data.detail`), instead of assuming the account is not rekeyed.
+
+<details>
+  <summary>See example</summary>
+
+```typescript
+import {PeraWalletConnect, ScopeType} from "@perawallet/connect";
+
+// Pin the session to one network so the wallet and this lookup agree.
+const peraWallet = new PeraWalletConnect({chainId: 416002});
+const [accountAddress] = await peraWallet.connect();
+
+const {signer, signerAddress} = await peraWallet.resolveArc60Signer(accountAddress);
+
+const siwa = {
+  account_address: accountAddress, // the account being authenticated
+  chain_id: "283",
+  domain: window.location.host,
+  nonce: crypto.randomUUID(),
+  type: "ed25519",
+  uri: window.location.origin,
+  version: "1"
+};
+
+const response = await peraWallet.signArc60Data(
+  {
+    data: Buffer.from(JSON.stringify(siwa, Object.keys(siwa).sort())).toString("base64"),
+    signer, // the auth address when rekeyed, the account itself otherwise
+    domain: siwa.domain,
+    authenticatorData: new Uint8Array(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(siwa.domain))
+    )
+  },
+  {scope: ScopeType.AUTH, encoding: "base64"},
+  true
+);
+
+// Send `response` and `signerAddress` to your backend. A verifier checks the
+// signature against `signerAddress`, then checks on chain that `signerAddress`
+// is the current auth address of `account_address`, or, when the two are equal,
+// that `account_address` has no auth address (it is not rekeyed).
+```
+</details>
+
 ## Customizing Style
 
 You can override the z-index using the `.pera-wallet-modal` class so that the modal does not conflict with another component on your application.

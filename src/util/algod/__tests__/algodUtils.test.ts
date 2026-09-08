@@ -46,16 +46,20 @@ describe("algodUtils", () => {
       expect(getNetworkFromChainId(MAINNET_NODE_CHAIN_ID)).toBe("mainnet");
     });
 
-    it("maps the generic algorand chain id to mainnet", () => {
-      expect(getNetworkFromChainId(ALGORAND_NODE_CHAIN_ID)).toBe("mainnet");
-    });
-
     it("maps the testnet chain id to testnet", () => {
       expect(getNetworkFromChainId(TESTNET_NODE_CHAIN_ID)).toBe("testnet");
     });
 
-    it("falls back to mainnet for unrecognized chain ids (e.g. betanet)", () => {
-      expect(getNetworkFromChainId(BETANET_NODE_CHAIN_ID)).toBe("mainnet");
+    it("returns null for the all-networks chain id, which pins no network", () => {
+      expect(getNetworkFromChainId(ALGORAND_NODE_CHAIN_ID)).toBeNull();
+    });
+
+    it("returns null for an unset chain id", () => {
+      expect(getNetworkFromChainId(undefined)).toBeNull();
+    });
+
+    it("returns null for a network this client has no algod for (betanet)", () => {
+      expect(getNetworkFromChainId(BETANET_NODE_CHAIN_ID)).toBeNull();
     });
   });
 });
