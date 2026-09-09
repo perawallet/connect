@@ -6,7 +6,10 @@ import {
   getWalletDetailsFromStorage,
   resetWalletDetailsFromStorage
 } from "../util/storage/storageUtils";
-import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "../util/storage/storageConstants";
+import {
+  PERA_WALLET_LOCAL_STORAGE_KEYS,
+  LEGACY_WALLETCONNECT_STORAGE_KEY
+} from "../util/storage/storageConstants";
 
 const {configState} = vi.hoisted(() => ({
   configState: {
@@ -180,5 +183,62 @@ describe("PeraWalletConnect.disconnect()", () => {
 
     await expect(pera.disconnect()).resolves.toBeUndefined();
     expect(extensionDisconnectSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("PeraWalletConnect legacy walletconnect session migration", () => {
+  // A session as persisted by the WalletConnect v1 fork. `key: ""` and
+  // `handshakeId: 0` keep the real connector off the crypto/subscription paths.
+  const legacySession = {
+    connected: true,
+    accounts: ["ADDR"],
+    chainId: 4160,
+    bridge: "https://stored-bridge.test",
+    key: "",
+    clientId: "client-id",
+    clientMeta: null,
+    peerId: "peer-id",
+    peerMeta: null,
+    handshakeId: 0,
+    handshakeTopic: ""
+  };
+
+  // resetWalletDetailsFromStorage() deliberately no longer touches the shared
+  // "walletconnect" key, so this suite must clear storage itself.
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it("moves a Pera-owned session to the namespaced key on init and reconnects from it", async () => {
+    saveWalletDetailsToStorage(["ADDR"], "pera-wallet");
+    const raw = JSON.stringify(legacySession);
+
+    localStorage.setItem(LEGACY_WALLETCONNECT_STORAGE_KEY, raw);
+
+    const pera = new PeraWalletConnect();
+
+    expect(localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT)).toBe(raw);
+    expect(localStorage.getItem(LEGACY_WALLETCONNECT_STORAGE_KEY)).toBeNull();
+
+    // The legacy key is already gone, so resolving the accounts proves the
+    // connector restored its session from the namespaced key.
+    await expect(pera.reconnectSession()).resolves.toEqual(["ADDR"]);
+    expect(pera.bridge).toBe("https://stored-bridge.test");
+  });
+
+  it("leaves a foreign session under the shared key untouched through init and disconnect", async () => {
+    saveWalletDetailsToStorage(["ADDR"], "pera-wallet");
+    const raw = JSON.stringify({...legacySession, accounts: ["OTHER"]});
+
+    localStorage.setItem(LEGACY_WALLETCONNECT_STORAGE_KEY, raw);
+
+    const pera = new PeraWalletConnect();
+
+    await pera.disconnect();
+
+    expect(localStorage.getItem(LEGACY_WALLETCONNECT_STORAGE_KEY)).toBe(raw);
+    expect(localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT)).toBeNull();
+    expect(getWalletDetailsFromStorage()).toBeNull();
   });
 });
