@@ -135,7 +135,7 @@ Reconnects to the wallet if there is any active connection and returns the array
 
 #### `PeraWalletConnect.disconnect(): Promise<void | undefined>`
 
-Disconnects from the wallet and resets the related storage items.
+Disconnects from the wallet and resets the related storage items. Pera's session state lives only under its own `localStorage` keys (`PeraWallet.Wallet` and `PeraWallet.WalletConnect`), so disconnecting never removes another wallet's WalletConnect session. A session stored under the shared `walletconnect` key by earlier versions is migrated to `PeraWallet.WalletConnect` automatically the first time `PeraWalletConnect` is instantiated.
 
 
 #### `PeraWalletConnect.platform: PeraWalletPlatformType`

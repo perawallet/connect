@@ -2,8 +2,10 @@ import {describe, it, expect, vi, afterEach} from "vitest";
 
 import {
   getWalletDetailsFromStorage,
-  resetWalletDetailsFromStorage
+  resetWalletDetailsFromStorage,
+  saveWalletDetailsToStorage
 } from "../util/storage/storageUtils";
+import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "../util/storage/storageConstants";
 
 const {FakeConnector, createSessionBehavior} = vi.hoisted(() => {
   const innerCreateSessionBehavior = {impl: () => Promise.resolve(undefined as void)};
@@ -105,6 +107,20 @@ describe("PeraWalletConnect.connect()", () => {
 
     await expect(connectPromise).resolves.toEqual(["ADDR1"]);
     expect(getWalletDetailsFromStorage()?.accounts).toEqual(["ADDR1"]);
+  });
+
+  it("namespaces the connector's session storage under Pera's own key", async () => {
+    const pera = new PeraWalletConnect();
+    const connectPromise = pera.connect();
+
+    await flush();
+
+    expect(FakeConnector.instances[0].opts.storageId).toBe(
+      PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
+    );
+
+    FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+    await connectPromise;
   });
 
   it("kills an existing connected session before creating a new one", async () => {
@@ -216,5 +232,30 @@ describe("PeraWalletConnect.connect()", () => {
 
     FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
     await connectPromise;
+  });
+});
+
+describe("PeraWalletConnect.reconnectSession() connector options", () => {
+  afterEach(() => {
+    FakeConnector.instances.length = 0;
+    resetWalletDetailsFromStorage();
+  });
+
+  it("rebuilds the mobile connector with the stored bridge and Pera's storage id", async () => {
+    saveWalletDetailsToStorage(["ADDR"], "pera-wallet");
+    localStorage.setItem(
+      PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
+      JSON.stringify({bridge: "https://stored-bridge.test"})
+    );
+
+    const pera = new PeraWalletConnect();
+
+    await pera.reconnectSession();
+
+    expect(FakeConnector.instances).toHaveLength(1);
+    expect(FakeConnector.instances[0].opts).toEqual({
+      bridge: "https://stored-bridge.test",
+      storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
+    });
   });
 });

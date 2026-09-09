@@ -16,8 +16,10 @@ import {
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage,
   getWalletConnectObjectFromStorage,
-  getWalletPlatformFromStorage
+  getWalletPlatformFromStorage,
+  migrateLegacyWalletConnectSession
 } from "./util/storage/storageUtils";
+import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
 import {
   PeraWalletArbitraryData,
@@ -131,6 +133,11 @@ class PeraWalletConnect {
     this.arc0027Client = new Arc0027Client();
     this.extensionTransport = new ExtensionTransport(this.arc0027Client);
 
+    // Earlier versions persisted the WalletConnect session under the shared
+    // WC v1 default key; move it to Pera's namespaced key before any connector
+    // is built so reconnect keeps working across the upgrade.
+    migrateLegacyWalletConnectSession();
+
     // Eagerly start the two blocking operations so they resolve
     // before the user taps Connect — avoids delay on iOS Safari.
     this._configPromise = getPeraConnectConfig();
@@ -243,9 +250,12 @@ class PeraWalletConnect {
           };
         }
 
-        // Create Connector instance
+        // Create Connector instance.
+        // `storageId` namespaces the persisted session so Pera never shares the
+        // WalletConnect v1 default key with other wallets on the same origin.
         this.connector = new WalletConnect({
           bridge: this.bridge || bridgeURL || "https://bridge.walletconnect.org",
+          storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
           qrcodeModal: generatePeraWalletConnectModalActions({
             isWebWalletAvailable,
             shouldDisplayNewBadge,
@@ -361,7 +371,8 @@ class PeraWalletConnect {
 
         if (this.bridge) {
           this.connector = new WalletConnect({
-            bridge: this.bridge
+            bridge: this.bridge,
+            storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
           });
 
           resolve(this.connector?.accounts || []);
