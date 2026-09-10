@@ -154,6 +154,37 @@ Checks if it is on Pera Discover Browser. Possible responses: _`true | false`_
 
 Starts the sign process and returns the signed transaction in `Uint8Array`
 
+#### `PeraWalletConnect.transactionSigner: TransactionSigner`
+
+An algosdk [`TransactionSigner`](https://github.com/algorand/js-algorand-sdk/blob/develop/src/signer.ts) backed by the current wallet connection, so Pera can be plugged straight into `AtomicTransactionComposer` (or anything else that accepts a signer). The whole group is sent to the wallet in a single request; transactions not assigned to Pera are shown to the user but not signed. The same function instance is returned on every access, which is what lets the composer batch every Pera-signed transaction into one prompt. The signer carries only the transactions themselves; if you need `authAddr`, `msig` or a per-transaction `message`, call `signTransaction` directly.
+
+<details>
+  <summary>See example</summary>
+
+```typescript
+import algosdk from "algosdk";
+
+const peraWallet = new PeraWalletConnect();
+const [sender] = await peraWallet.reconnectSession();
+
+const algod = new algosdk.Algodv2("", "https://testnet-api.algonode.cloud", "");
+const suggestedParams = await algod.getTransactionParams().do();
+const atc = new algosdk.AtomicTransactionComposer();
+
+atc.addTransaction({
+  signer: peraWallet.transactionSigner,
+  txn: algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender,
+    receiver: sender,
+    amount: 0,
+    suggestedParams
+  })
+});
+
+const result = await atc.execute(algod, 4);
+```
+</details>
+
 #### `PeraWalletConnect.signData(data: PeraWalletArbitraryData[], signer: string, verifySignature?: boolean): Promise<Uint8Array[]>`
 
 Starts the signing process for arbitrary data signing and returns the signed data in `Uint8Array`. Uses `signBytes` method of `algosdk` behind the scenes. `signer` should be a valid Algorand address that exists in the user's wallet.
