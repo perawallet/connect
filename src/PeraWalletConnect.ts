@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import WalletConnect from "@perawallet/walletconnect";
-import algosdk from "algosdk";
+import algosdk, {type TransactionSigner} from "algosdk";
 import {sign_detached_verify} from "tweetnacl-ts";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
@@ -110,6 +110,7 @@ class PeraWalletConnect {
   private algodClients: Map<NetworkToggle, AlgodManager>;
   private _configPromise: ReturnType<typeof getPeraConnectConfig> | null = null;
   private _webviewCheckPromise: Promise<boolean> | null = null;
+  private _transactionSigner: TransactionSigner | null = null;
 
   constructor(options?: PeraWalletConnectOptions) {
     this.bridge = options?.bridge || "";
@@ -537,6 +538,81 @@ class PeraWalletConnect {
     const result = await transport.signTransaction(signTxnRequestParams);
 
     return result;
+  }
+
+  /**
+   * An algosdk `TransactionSigner` backed by this wallet connection, for use
+   * with `AtomicTransactionComposer` and any API that accepts a signer:
+   *
+   *   atc.addTransaction({txn, signer: peraWallet.transactionSigner});
+   *
+   * The whole group is sent to the wallet in one request; slots not listed in
+   * `indexesToSign` are marked `signers: []` (ARC-0001) so the wallet shows
+   * but does not sign them. The same function instance is returned on every
+   * access: `AtomicTransactionComposer` batches transactions by signer
+   * identity, so a fresh function per access would mean one wallet prompt per
+   * transaction instead of one per group.
+   */
+  get transactionSigner(): TransactionSigner {
+    if (!this._transactionSigner) {
+      this._transactionSigner = (txnGroup, indexesToSign) =>
+        this.signTransactionGroupForIndexes(txnGroup, indexesToSign);
+    }
+
+    return this._transactionSigner;
+  }
+
+  private async signTransactionGroupForIndexes(
+    txnGroup: algosdk.Transaction[],
+    indexesToSign: number[]
+  ): Promise<Uint8Array[]> {
+    if (indexesToSign.length === 0) {
+      return [];
+    }
+
+    // Validate before the round-trip so a bad caller never triggers a wallet
+    // prompt for the wrong slots and then fails on the count check.
+    const hasInvalidIndex = indexesToSign.some(
+      (index, position) =>
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= txnGroup.length ||
+        indexesToSign.indexOf(index) !== position
+    );
+
+    if (hasInvalidIndex) {
+      const received = JSON.stringify(indexesToSign);
+
+      throw new PeraWalletConnectError(
+        {
+          type: "SIGN_TRANSACTIONS",
+          detail: {indexesToSign, groupLength: txnGroup.length}
+        },
+        `Invalid indexesToSign ${received}: expected unique integers below ${txnGroup.length}`
+      );
+    }
+
+    const txGroup: SignerTransaction[] = txnGroup.map((txn, index) =>
+      indexesToSign.includes(index) ? {txn} : {txn, signers: []}
+    );
+
+    const signed = await this.signTransaction([txGroup]);
+
+    if (signed.length !== indexesToSign.length) {
+      throw new PeraWalletConnectError(
+        {
+          type: "SIGN_TRANSACTIONS",
+          detail: {expected: indexesToSign.length, received: signed.length}
+        },
+        `Expected ${indexesToSign.length} signed transaction(s) from the wallet but received ${signed.length}`
+      );
+    }
+
+    // The wallet returns signed transactions in group order; TransactionSigner
+    // requires result[i] to correspond to txnGroup[indexesToSign[i]].
+    const ascending = [...indexesToSign].sort((a, b) => a - b);
+
+    return indexesToSign.map((index) => signed[ascending.indexOf(index)]);
   }
 
   async signData(
