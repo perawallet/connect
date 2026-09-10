@@ -1,7 +1,6 @@
 import ALGOD_CREDENTIALS, {
   MAINNET_NODE_CHAIN_ID,
-  TESTNET_NODE_CHAIN_ID,
-  ALGORAND_NODE_CHAIN_ID
+  TESTNET_NODE_CHAIN_ID
 } from "./algodConstants";
 import {AlgorandNodeProviderType, NetworkToggle} from "./algodTypes";
 import {AlgorandChainIDs} from "../peraWalletTypes";
@@ -35,8 +34,13 @@ function getChainIdForNetwork(network: NetworkToggle): number {
   return TESTNET_NODE_CHAIN_ID;
 }
 
-function getNetworkFromChainId(chainId: AlgorandChainIDs): NetworkToggle {
-  if (chainId === MAINNET_NODE_CHAIN_ID || chainId === ALGORAND_NODE_CHAIN_ID) {
+/**
+ * The network a chain id pins the session to, or `null` when it does not pin
+ * one: all-networks `4160`, unset, or a network this client has no algod for.
+ * Callers that can tolerate a guess apply their own fallback.
+ */
+function getNetworkFromChainId(chainId?: AlgorandChainIDs): NetworkToggle | null {
+  if (chainId === MAINNET_NODE_CHAIN_ID) {
     return "mainnet";
   }
 
@@ -44,7 +48,7 @@ function getNetworkFromChainId(chainId: AlgorandChainIDs): NetworkToggle {
     return "testnet";
   }
 
-  return "mainnet";
+  return null;
 }
 
 export {getAlgosdkCredentialsForNetwork, getChainIdForNetwork, getNetworkFromChainId};

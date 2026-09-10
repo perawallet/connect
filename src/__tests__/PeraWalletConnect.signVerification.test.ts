@@ -114,6 +114,42 @@ describe("PeraWalletConnect.signData", () => {
   });
 });
 
+describe("PeraWalletConnect.getAccountAuthAddr (legacy signData verification)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function mockAlgod(pera: PeraWalletConnect) {
+    return vi.spyOn(pera as any, "getAlgodClient").mockReturnValue({
+      client: {
+        accountInformation: () => ({do: () => Promise.resolve({authAddr: undefined})})
+      }
+    });
+  }
+
+  it("keeps reading mainnet for all-networks, unset and betanet chain ids", async () => {
+    // The legacy path predates per-network sessions; its mainnet fallback is a
+    // compatibility guarantee that getNetworkFromChainId no longer provides.
+    for (const chainId of [4160, 416003, undefined]) {
+      const pera = new PeraWalletConnect();
+      const spy = mockAlgod(pera);
+
+      await (pera as any).getAccountAuthAddr(account.addr.toString(), chainId);
+
+      expect(spy).toHaveBeenCalledWith("mainnet");
+    }
+  });
+
+  it("reads testnet for the testnet chain id", async () => {
+    const pera = new PeraWalletConnect();
+    const spy = mockAlgod(pera);
+
+    await (pera as any).getAccountAuthAddr(account.addr.toString(), 416002);
+
+    expect(spy).toHaveBeenCalledWith("testnet");
+  });
+});
+
 describe("PeraWalletConnect.signArc60Data", () => {
   afterEach(() => {
     resetWalletDetailsFromStorage();

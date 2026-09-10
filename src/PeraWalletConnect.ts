@@ -25,6 +25,8 @@ import {
   PeraWalletArbitraryData,
   PeraWalletArc60SignData,
   PeraWalletArc60SignDataResponse,
+  PeraWalletArc60SignerResolution,
+  PeraWalletNetwork,
   PeraWalletTransaction,
   SignerTransaction,
   SignMetadata
@@ -35,7 +37,10 @@ import {AlgorandChainIDs} from "./util/peraWalletTypes";
 import {runWebConnectFlow} from "./util/connect/connectFlow";
 import {concatArrays} from "./util/array/arrayUtils";
 import {AlgodManager} from "./util/algod/algod";
-import {DEFAULT_ALGORAND_NODE_PROVIDER_TYPE} from "./util/algod/algodConstants";
+import {
+  ALGORAND_NODE_CHAIN_ID,
+  DEFAULT_ALGORAND_NODE_PROVIDER_TYPE
+} from "./util/algod/algodConstants";
 import {NetworkToggle} from "./util/algod/algodTypes";
 import {getNetworkFromChainId} from "./util/algod/algodUtils";
 import {PERA_WALLET_SIGNATURE_PREFIX} from "./util/peraWalletConstants";
@@ -479,7 +484,9 @@ class PeraWalletConnect {
     chainId: AlgorandChainIDs
   ): Promise<string | null> {
     try {
-      const network = getNetworkFromChainId(chainId);
+      // Legacy signData verification predates per-network sessions and has
+      // always read mainnet for an all-networks session; kept for compatibility.
+      const network = getNetworkFromChainId(chainId) ?? "mainnet";
       const algodClient = this.getAlgodClient(network);
       const accountInfo = await algodClient.client.accountInformation(signer).do();
 
@@ -648,6 +655,104 @@ class PeraWalletConnect {
     }
 
     return signatures;
+  }
+
+  /**
+   * Resolves who has to sign an ARC-60 (SIWA) request for `accountAddress`.
+   *
+   * An ARC-60 signature verifies against `signer`'s own key and the wallet
+   * never substitutes another key, so a rekeyed account must be signed for by
+   * its on-chain auth address: put the returned `signer` into
+   * `PeraWalletArc60SignData` and keep `accountAddress` as the SIWA
+   * `account_address`. The wallet refuses a rekeyed account signing for itself,
+   * and it can only sign when it holds the auth address as a key-bearing or
+   * Ledger account.
+   *
+   * Rekeys are per network and the wallet checks them on the network it is
+   * connected to, which connect cannot observe. A session pinned to `416001`
+   * or `416002` is only served while the wallet is on that network, so the
+   * lookup uses it and an explicit `network` may only agree with it
+   * (`SIGN_DATA_NETWORK_MISMATCH` otherwise). An all-networks session (`4160`,
+   * the default) needs `network` (`SIGN_DATA_NETWORK_REQUIRED`) and the caller
+   * has to know the wallet's network by other means. Betanet has no algod here
+   * (`SIGN_DATA_NETWORK_UNSUPPORTED`). A failed lookup throws
+   * `SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED` rather than assuming "not rekeyed".
+   */
+  async resolveArc60Signer(
+    accountAddress: string,
+    network?: PeraWalletNetwork
+  ): Promise<PeraWalletArc60SignerResolution> {
+    if (!algosdk.isValidAddress(accountAddress)) {
+      throw new PeraWalletConnectError(
+        {type: "SIGN_DATA_INVALID_ADDRESS"},
+        `"${accountAddress}" is not a valid Algorand address.`
+      );
+    }
+
+    // Plain-JS callers bypass the type, and the credential picker treats
+    // anything but "mainnet" as testnet, so the value is checked here.
+    if (network !== undefined && network !== "mainnet" && network !== "testnet") {
+      throw new PeraWalletConnectError(
+        {type: "SIGN_DATA_NETWORK_UNSUPPORTED", detail: network},
+        `Unsupported network "${String(network)}": use "mainnet" or "testnet".`
+      );
+    }
+
+    const isAllNetworksSession =
+      this.chainId === undefined || this.chainId === ALGORAND_NODE_CHAIN_ID;
+    const sessionNetwork = getNetworkFromChainId(this.chainId);
+
+    if (!isAllNetworksSession && !sessionNetwork) {
+      throw new PeraWalletConnectError(
+        {type: "SIGN_DATA_NETWORK_UNSUPPORTED", detail: this.chainId},
+        `This session is pinned to chainId ${this.chainId}, but connect can only read accounts on mainnet and testnet.`
+      );
+    }
+
+    if (network && sessionNetwork && network !== sessionNetwork) {
+      throw new PeraWalletConnectError(
+        {type: "SIGN_DATA_NETWORK_MISMATCH", detail: {network, chainId: this.chainId}},
+        `This session is pinned to ${sessionNetwork} (chainId ${this.chainId}); the wallet only serves it there, so the signer cannot be resolved on ${network}.`
+      );
+    }
+
+    const resolvedNetwork = network ?? sessionNetwork;
+
+    if (!resolvedNetwork) {
+      throw new PeraWalletConnectError(
+        {type: "SIGN_DATA_NETWORK_REQUIRED"},
+        "resolveArc60Signer needs a network: this session accepts all networks, so pass the network the user's wallet is on."
+      );
+    }
+
+    let authAddr: string | null;
+
+    try {
+      // Header only: the full record fails with "Result limit exceeded" for
+      // accounts holding more resources than algod's per-account cap, and
+      // auth-addr is part of the header.
+      const accountInfo = await this.getAlgodClient(resolvedNetwork)
+        .client.accountInformation(accountAddress)
+        .exclude("all")
+        .do();
+
+      authAddr = accountInfo.authAddr ? String(accountInfo.authAddr) : null;
+    } catch (error) {
+      throw new PeraWalletConnectError(
+        {type: "SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED", detail: error},
+        `Could not read the auth address of ${accountAddress} on ${resolvedNetwork}.`
+      );
+    }
+
+    const signerAddress = authAddr ?? accountAddress;
+
+    return {
+      accountAddress,
+      signerAddress,
+      signer: algosdk.decodeAddress(signerAddress).publicKey,
+      isRekeyed: authAddr !== null,
+      network: resolvedNetwork
+    };
   }
 
   /**
