@@ -6,6 +6,7 @@ import {
   saveWalletDetailsToStorage
 } from "../util/storage/storageUtils";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "../util/storage/storageConstants";
+import {PERA_WALLET_CONNECT_FALLBACK_BRIDGES} from "../util/peraWalletConstants";
 
 const {FakeConnector, createSessionBehavior} = vi.hoisted(() => {
   const innerCreateSessionBehavior = {impl: () => Promise.resolve(undefined as void)};
@@ -89,6 +90,7 @@ describe("PeraWalletConnect.connect()", () => {
     FakeConnector.instances.length = 0;
     createSessionBehavior.impl = () => Promise.resolve(undefined);
     configState.isWebWalletAvailable = false;
+    configState.bridgeURL = "https://bridge.test";
     delete (window as any).onWebWalletConnect;
     delete (window as any).onExtensionConnect;
     resetWalletDetailsFromStorage();
@@ -118,6 +120,52 @@ describe("PeraWalletConnect.connect()", () => {
     expect(FakeConnector.instances[0].opts.storageId).toBe(
       PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
     );
+
+    FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+    await connectPromise;
+  });
+
+  it("uses the config bridge when one is provided", async () => {
+    const pera = new PeraWalletConnect();
+    const connectPromise = pera.connect();
+
+    await flush();
+
+    expect(FakeConnector.instances[0].opts.bridge).toBe("https://bridge.test");
+
+    FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+    await connectPromise;
+  });
+
+  it("falls back to a Pera bridge, never the retired public bridge, when the config has none", async () => {
+    // getPeraConnectConfig() yields bridgeURL "" whenever config.json is
+    // unreachable or lists no servers; https://bridge.walletconnect.org no
+    // longer resolves, so landing there guarantees a hang.
+    configState.bridgeURL = "";
+
+    const pera = new PeraWalletConnect();
+    const connectPromise = pera.connect();
+
+    await flush();
+
+    const {bridge} = FakeConnector.instances[0].opts;
+
+    expect(bridge).not.toBe("https://bridge.walletconnect.org");
+    expect(PERA_WALLET_CONNECT_FALLBACK_BRIDGES).toContain(bridge);
+
+    FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+    await connectPromise;
+  });
+
+  it("prefers a dApp-supplied bridge over both the config and the fallback", async () => {
+    configState.bridgeURL = "";
+
+    const pera = new PeraWalletConnect({bridge: "https://dapp-bridge.test"});
+    const connectPromise = pera.connect();
+
+    await flush();
+
+    expect(FakeConnector.instances[0].opts.bridge).toBe("https://dapp-bridge.test");
 
     FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
     await connectPromise;
