@@ -26,3 +26,16 @@ export {
   type SignMetadata,
   type Siwa
 } from "./util/model/peraWalletModels";
+export {
+  PERA_PROVIDER_ERROR_CODES,
+  getPeraProvider,
+  isPeraProviderError,
+  type PeraAccount,
+  type PeraNetwork,
+  type PeraProvider,
+  type PeraProviderConnectOptions,
+  type PeraProviderConnectResult,
+  type PeraProviderError,
+  type PeraProviderEvent,
+  type PeraProviderWalletTransaction
+} from "./transport/extension/peraProviderTypes";

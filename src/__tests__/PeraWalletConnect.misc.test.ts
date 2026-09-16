@@ -54,6 +54,7 @@ describe("PeraWalletConnect constructor", () => {
     expect(pera.compactMode).toBe(false);
     expect(pera.singleAccount).toBe(false);
     expect(pera.shouldPreferExtension).toBe(true);
+    expect(pera.experimental).toBe(false);
   });
 
   it("honors every overridable option", () => {
@@ -75,6 +76,7 @@ describe("PeraWalletConnect constructor", () => {
     expect(pera.compactMode).toBe(true);
     expect(pera.singleAccount).toBe(true);
     expect(pera.shouldPreferExtension).toBe(false);
+    expect(pera.experimental).toBe(true);
   });
 });
 

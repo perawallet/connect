@@ -9,6 +9,7 @@ import {
   saveWalletDetailsToStorage,
   resetWalletDetailsFromStorage
 } from "../util/storage/storageUtils";
+import {installPeraProvider, uninstallPeraProvider} from "./helpers/peraProviderStub";
 
 vi.mock("../util/api/peraWalletConnectApi", () => ({
   getPeraConnectConfig: () =>
@@ -31,18 +32,30 @@ vi.mock("../util/sign/signTransactionFlow", () => ({
 
 describe("PeraWalletConnect.getTransport()", () => {
   afterEach(() => {
+    uninstallPeraProvider();
     resetWalletDetailsFromStorage();
     vi.restoreAllMocks();
   });
 
   it("returns the shared extensionTransport instance when platform is extension", () => {
     saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
+    installPeraProvider();
 
     const pera = new PeraWalletConnect();
     const transport = (pera as any).getTransport();
 
     expect(transport).toBeInstanceOf(ExtensionTransport);
     expect(transport).toBe((pera as any).extensionTransport);
+  });
+
+  it("throws EXTENSION_NOT_AVAILABLE when platform is extension but window.pera is absent", () => {
+    saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
+
+    const pera = new PeraWalletConnect();
+
+    expect(() => (pera as any).getTransport()).toThrow(
+      expect.objectContaining({data: {type: "EXTENSION_NOT_AVAILABLE"}})
+    );
   });
 
   it("returns a WebTransport when platform is web", () => {

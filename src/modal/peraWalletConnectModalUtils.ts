@@ -11,9 +11,12 @@ export interface PeraWalletModalConfig {
   singleAccount?: boolean;
   selectedAccount?: string;
   isInWebview?: boolean;
-  isExtensionSupportEnabled?: boolean;
-  isExtensionAvailable?: boolean;
-  extensionName?: string;
+  /**
+   * Render the "Connect with Pera Extension" option. Only set when
+   * `window.pera` is present; it also sets `is-extension-enabled="true"` on
+   * the modal wrapper, which tells the extension not to inject its own row.
+   */
+  isExtensionEnabled?: boolean;
 }
 
 // The ID of the wrapper element for PeraWalletConnectModal
@@ -30,6 +33,10 @@ const PERA_WALLET_SIGN_TXN_MODAL_ID = "pera-wallet-sign-txn-modal-wrapper";
 
 // The classname of Pera wallet modal
 const PERA_WALLET_MODAL_CLASSNAME = "pera-wallet-modal";
+
+// Dispatched (bubbling, composed) by the connect modal's extension button so
+// PeraWalletConnect can call `window.pera.connect()` inside the same click.
+const PERA_WALLET_EXTENSION_CONNECT_EVENT = "pera-wallet-extension-connect";
 
 /**
  * Creates a Div element with the given ID and appends it to the DOM.
@@ -64,9 +71,7 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
       singleAccount,
       selectedAccount,
       isInWebview,
-      isExtensionSupportEnabled,
-      isExtensionAvailable,
-      extensionName
+      isExtensionEnabled
     } = modalConfig;
 
     if (isInWebview) {
@@ -79,14 +84,17 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
     } else if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
       const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
       const newURI = `${uri}&algorand=true`;
+      const extensionEnabled = String(isExtensionEnabled || false);
+
+      // The extension reads this attribute on the wrapper: "true" means the
+      // SDK renders its own extension option and the extension stays out.
+      root.setAttribute("is-extension-enabled", extensionEnabled);
 
       root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${
         selectedAccount || ""
-      }" is-in-webview="${isInWebview || false}" is-extension-enabled="${
-        isExtensionSupportEnabled || false
-      }" is-extension-available="${isExtensionAvailable || false}" extension-name="${
-        extensionName || ""
-      }"></pera-wallet-connect-modal>`;
+      }" is-in-webview="${
+        isInWebview || false
+      }" is-extension-enabled="${extensionEnabled}"></pera-wallet-connect-modal>`;
     }
   };
 }
@@ -218,6 +226,7 @@ export {
   PERA_WALLET_SIGN_TXN_TOAST_ID,
   PERA_WALLET_SIGN_TXN_MODAL_ID,
   PERA_WALLET_MODAL_CLASSNAME,
+  PERA_WALLET_EXTENSION_CONNECT_EVENT,
   openPeraWalletConnectModal,
   setupPeraWalletConnectModalCloseListener,
   openPeraWalletRedirectModal,

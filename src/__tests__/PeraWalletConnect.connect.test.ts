@@ -6,6 +6,13 @@ import {
   saveWalletDetailsToStorage
 } from "../util/storage/storageUtils";
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "../util/storage/storageConstants";
+import {PERA_WALLET_EXTENSION_CONNECT_EVENT} from "../modal/peraWalletConnectModalUtils";
+import {PERA_PROVIDER_ERROR_CODES} from "../transport/extension/peraProviderTypes";
+import {
+  installPeraProvider,
+  makePeraProviderError,
+  uninstallPeraProvider
+} from "./helpers/peraProviderStub";
 
 const {FakeConnector, createSessionBehavior} = vi.hoisted(() => {
   const innerCreateSessionBehavior = {impl: () => Promise.resolve(undefined as void)};
@@ -90,7 +97,7 @@ describe("PeraWalletConnect.connect()", () => {
     createSessionBehavior.impl = () => Promise.resolve(undefined);
     configState.isWebWalletAvailable = false;
     delete (window as any).onWebWalletConnect;
-    delete (window as any).onExtensionConnect;
+    uninstallPeraProvider();
     resetWalletDetailsFromStorage();
     vi.restoreAllMocks();
     vi.clearAllMocks();
@@ -181,55 +188,184 @@ describe("PeraWalletConnect.connect()", () => {
     expect((window as any).onWebWalletConnect).toBeUndefined();
   });
 
-  it("auto-connects via the extension when discovered and preferred", async () => {
-    const pera = new PeraWalletConnect({experimental: true});
+  describe("with window.pera present", () => {
+    function clickExtensionButton() {
+      // What the modal's extension button does on click: a bubbling, composed
+      // event that reaches the SDK's document-level listener synchronously.
+      document.dispatchEvent(
+        new CustomEvent(PERA_WALLET_EXTENSION_CONNECT_EVENT, {bubbles: true})
+      );
+    }
 
-    vi.spyOn((pera as any).arc0027Client, "discover").mockResolvedValue({
-      providerId: "pera",
-      name: "Pera Extension",
-      networks: []
+    it("calls window.pera.connect() synchronously from the button click and resolves with its accounts", async () => {
+      const provider = installPeraProvider(["EXT_ADDR"]);
+      const pera = new PeraWalletConnect({chainId: 416002});
+
+      const connectPromise = pera.connect();
+
+      await flush();
+      expect(FakeConnector.instances[0].opts.qrcodeModal).toBeDefined();
+      expect(provider.connect).not.toHaveBeenCalled();
+
+      clickExtensionButton();
+
+      // Synchronous: no awaits between the gesture and the provider call.
+      expect(provider.connect).toHaveBeenCalledTimes(1);
+      expect(provider.connect.mock.calls[0][0]).toMatchObject({network: "testnet"});
+
+      await expect(connectPromise).resolves.toEqual(["EXT_ADDR"]);
+      expect(getWalletDetailsFromStorage()).toMatchObject({
+        type: "pera-wallet-extension",
+        accounts: ["EXT_ADDR"]
+      });
+      expect(pera.platform).toBe("extension");
     });
-    const extensionConnectSpy = vi
-      .spyOn((pera as any).extensionTransport, "connect")
-      .mockResolvedValue(["EXT_ADDR"]);
 
-    const connectPromise = pera.connect({selectedAccount: "EXT_ADDR"});
+    it("renders the modal with the extension option enabled", async () => {
+      installPeraProvider();
+      const pera = new PeraWalletConnect();
 
-    await flush();
-    expect(typeof (window as any).onExtensionConnect).toBe("function");
+      const connectPromise = pera.connect();
 
-    (window as any).onExtensionConnect();
+      await flush();
 
-    await expect(connectPromise).resolves.toEqual(["EXT_ADDR"]);
-    expect(extensionConnectSpy).toHaveBeenCalledWith({selectedAccount: "EXT_ADDR"});
+      FakeConnector.instances[0].opts.qrcodeModal.open("wc:uri");
+
+      const wrapper = document.getElementById("pera-wallet-connect-modal-wrapper");
+
+      expect(wrapper?.getAttribute("is-extension-enabled")).toBe("true");
+      expect(
+        wrapper
+          ?.querySelector("pera-wallet-connect-modal")
+          ?.getAttribute("is-extension-enabled")
+      ).toBe("true");
+
+      FakeConnector.instances[0].opts.qrcodeModal.close();
+      FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+      await connectPromise;
+    });
+
+    it("removes the extension listener once WalletConnect pairing settles the call", async () => {
+      const provider = installPeraProvider();
+      const pera = new PeraWalletConnect();
+
+      const connectPromise = pera.connect();
+
+      await flush();
+      FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+      await connectPromise;
+
+      clickExtensionButton();
+
+      expect(provider.connect).not.toHaveBeenCalled();
+    });
+
+    it("rejects with CONNECT_CANCELLED when the user rejects in the extension", async () => {
+      const provider = installPeraProvider();
+
+      provider.connect.mockRejectedValue(
+        makePeraProviderError(PERA_PROVIDER_ERROR_CODES.USER_REJECTED)
+      );
+      const pera = new PeraWalletConnect();
+
+      const connectPromise = pera.connect();
+
+      await flush();
+      clickExtensionButton();
+
+      await expect(connectPromise).rejects.toMatchObject({
+        data: {type: "CONNECT_CANCELLED"}
+      });
+      expect(getWalletDetailsFromStorage()).toBeNull();
+    });
+
+    it("rejects with CONNECT_NETWORK_MISMATCH when the wallet is on another network", async () => {
+      const provider = installPeraProvider();
+
+      provider.connect.mockRejectedValue(
+        makePeraProviderError(PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED)
+      );
+      const pera = new PeraWalletConnect({chainId: 416001});
+
+      const connectPromise = pera.connect();
+
+      await flush();
+      clickExtensionButton();
+
+      await expect(connectPromise).rejects.toMatchObject({
+        data: {type: "CONNECT_NETWORK_MISMATCH"}
+      });
+    });
+
+    it("only answers one extension click per connect() call", async () => {
+      const provider = installPeraProvider();
+      const pera = new PeraWalletConnect();
+
+      const connectPromise = pera.connect();
+
+      await flush();
+      clickExtensionButton();
+      clickExtensionButton();
+
+      expect(provider.connect).toHaveBeenCalledTimes(1);
+      await connectPromise;
+    });
+
+    it("leaves the extension out when shouldPreferExtension is false", async () => {
+      const provider = installPeraProvider();
+      const pera = new PeraWalletConnect({shouldPreferExtension: false});
+
+      const connectPromise = pera.connect();
+
+      await flush();
+      FakeConnector.instances[0].opts.qrcodeModal.open("wc:uri");
+
+      expect(
+        document
+          .getElementById("pera-wallet-connect-modal-wrapper")
+          ?.getAttribute("is-extension-enabled")
+      ).toBe("false");
+
+      clickExtensionButton();
+      expect(provider.connect).not.toHaveBeenCalled();
+
+      FakeConnector.instances[0].opts.qrcodeModal.close();
+      FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+      await connectPromise;
+    });
+
+    it("still connects over WalletConnect when the user picks the QR option", async () => {
+      const provider = installPeraProvider();
+      const pera = new PeraWalletConnect();
+
+      const connectPromise = pera.connect();
+
+      await flush();
+      FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+
+      await expect(connectPromise).resolves.toEqual(["ADDR1"]);
+      expect(provider.connect).not.toHaveBeenCalled();
+      expect(pera.platform).toBe("mobile");
+    });
   });
 
-  it("does not probe for the extension when experimental support is off", async () => {
+  it("does not offer the extension when window.pera is absent", async () => {
     const pera = new PeraWalletConnect();
-    const discoverSpy = vi.spyOn((pera as any).arc0027Client, "discover");
+
+    await expect(pera.isExtensionAvailable()).resolves.toBe(false);
 
     const connectPromise = pera.connect();
 
     await flush();
-    expect(discoverSpy).not.toHaveBeenCalled();
-    expect((window as any).onExtensionConnect).toBeUndefined();
+    FakeConnector.instances[0].opts.qrcodeModal.open("wc:uri");
 
-    FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
-    await connectPromise;
-  });
+    expect(
+      document
+        .getElementById("pera-wallet-connect-modal-wrapper")
+        ?.getAttribute("is-extension-enabled")
+    ).toBe("false");
 
-  it("does not probe for the extension when shouldPreferExtension is false", async () => {
-    const pera = new PeraWalletConnect({
-      experimental: true,
-      shouldPreferExtension: false
-    });
-    const discoverSpy = vi.spyOn((pera as any).arc0027Client, "discover");
-
-    const connectPromise = pera.connect();
-
-    await flush();
-    expect(discoverSpy).not.toHaveBeenCalled();
-
+    FakeConnector.instances[0].opts.qrcodeModal.close();
     FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
     await connectPromise;
   });

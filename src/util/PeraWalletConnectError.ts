@@ -3,6 +3,8 @@ interface PeraWalletConnectErrorData {
     | "MESSAGE_NOT_RECEIVED"
     | "OPERATION_CANCELLED"
     | "EXTENSION_NOT_AVAILABLE"
+    // No longer thrown: the extension signs arbitrary data through
+    // `window.pera`. Kept so existing consumer checks still compile.
     | "EXTENSION_UNSUPPORTED_OPERATION"
 
     // Connect
