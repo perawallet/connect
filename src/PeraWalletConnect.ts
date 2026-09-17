@@ -42,8 +42,8 @@ import {
   ALGORAND_NODE_CHAIN_ID,
   DEFAULT_ALGORAND_NODE_PROVIDER_TYPE
 } from "./util/algod/algodConstants";
-import {NetworkToggle} from "./util/algod/algodTypes";
-import {getNetworkFromChainId} from "./util/algod/algodUtils";
+import {AlgodClients, NetworkToggle} from "./util/algod/algodTypes";
+import {assertValidAlgodClients, getNetworkFromChainId} from "./util/algod/algodUtils";
 import {PERA_WALLET_SIGNATURE_PREFIX} from "./util/peraWalletConstants";
 import {getPublicSettings} from "./util/webview-api/webviewApi";
 import {ExtensionTransport} from "./transport/extension/ExtensionTransport";
@@ -74,6 +74,21 @@ interface PeraWalletConnectOptions {
    * experimental next.
    */
   experimental?: boolean;
+  /**
+   * Algod clients connect reads account state with — the auth-address lookups
+   * behind `resolveArc60Signer` and `signData` verification. Supply your own to
+   * keep those reads on your infrastructure and off Pera's rate limits; a
+   * network left out keeps Pera's node.
+   *
+   * ```ts
+   * new PeraWalletConnect({
+   *   algod: {
+   *     mainnet: new algosdk.Algodv2(MY_TOKEN, "https://my-node.example.com", "")
+   *   }
+   * })
+   * ```
+   */
+  algod?: AlgodClients;
 }
 
 type PeraWalletConnectEventMap = {
@@ -135,6 +150,7 @@ class PeraWalletConnect {
     networkChanged: new Set()
   };
   private algodClients: Map<NetworkToggle, AlgodManager>;
+  private suppliedAlgodClients?: AlgodClients;
   private _configPromise: ReturnType<typeof getPeraConnectConfig> | null = null;
   private _webviewCheckPromise: Promise<boolean> | null = null;
   private _transactionSigner: TransactionSigner | null = null;
@@ -153,6 +169,12 @@ class PeraWalletConnect {
     this.compactMode = options?.compactMode || false;
     this.singleAccount = options?.singleAccount || false;
     this.algodClients = new Map();
+
+    if (options?.algod) {
+      assertValidAlgodClients(options.algod);
+      this.suppliedAlgodClients = options.algod;
+    }
+
     this.shouldPreferExtension =
       typeof options?.shouldPreferExtension === "undefined"
         ? true
@@ -675,7 +697,8 @@ class PeraWalletConnect {
     if (!this.algodClients.has(network)) {
       const algodClient = new AlgodManager({
         network,
-        providerType: DEFAULT_ALGORAND_NODE_PROVIDER_TYPE
+        providerType: DEFAULT_ALGORAND_NODE_PROVIDER_TYPE,
+        client: this.suppliedAlgodClients?.[network]
       });
 
       this.algodClients.set(network, algodClient);

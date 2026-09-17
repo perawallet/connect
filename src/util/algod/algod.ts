@@ -5,47 +5,46 @@ import {getAlgosdkCredentialsForNetwork} from "./algodUtils";
 
 class AlgodManager {
   client: algosdk.Algodv2;
-  indexer: algosdk.Indexer;
   providerType: AlgorandNodeProviderType;
 
   constructor({
     network,
-    providerType
+    providerType,
+    client
   }: {
     network: NetworkToggle;
     providerType: AlgorandNodeProviderType;
     shouldCheckTransactionFee?: boolean;
+    /** Supplied by the integrator; used as-is in place of Pera's node. */
+    client?: algosdk.Algodv2;
   }) {
     const algosdkCredentials = getAlgosdkCredentialsForNetwork(network, providerType);
 
     this.providerType = providerType;
-    this.client = new algosdk.Algodv2(
-      algosdkCredentials.tokens.client,
-      algosdkCredentials.server.client,
-      algosdkCredentials.port
-    );
-    this.indexer = new algosdk.Indexer(
-      algosdkCredentials.tokens.indexer,
-      algosdkCredentials.server.indexer,
-      algosdkCredentials.port
-    );
+    this.client =
+      client ??
+      new algosdk.Algodv2(
+        algosdkCredentials.tokens.client,
+        algosdkCredentials.server.client,
+        algosdkCredentials.port
+      );
   }
 
-  updateClient(network: NetworkToggle, providerType: AlgorandNodeProviderType) {
+  updateClient(
+    network: NetworkToggle,
+    providerType: AlgorandNodeProviderType,
+    client?: algosdk.Algodv2
+  ) {
     const algosdkCredentials = getAlgosdkCredentialsForNetwork(network, providerType);
 
     this.providerType = providerType;
-    this.client = new algosdk.Algodv2(
-      algosdkCredentials.tokens.client,
-      algosdkCredentials.server.client,
-      algosdkCredentials.port
-    );
-
-    this.indexer = new algosdk.Indexer(
-      algosdkCredentials.tokens.indexer,
-      algosdkCredentials.server.indexer,
-      algosdkCredentials.port
-    );
+    this.client =
+      client ??
+      new algosdk.Algodv2(
+        algosdkCredentials.tokens.client,
+        algosdkCredentials.server.client,
+        algosdkCredentials.port
+      );
   }
 }
 

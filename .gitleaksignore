@@ -1,0 +1,15 @@
+# Findings gitleaks is told to skip, by fingerprint (commit:file:rule:line).
+#
+# Rules for this file: an entry is only ever for a secret that is ALREADY
+# public and has been revoked. Never add one to silence a live credential —
+# rotate it instead. Every entry says what it was and that it is dead.
+
+# Pera's algod and indexer API tokens, hardcoded in src and shipped in every
+# published bundle from v1.5.0 until they were removed in favour of public,
+# tokenless nodes. They are in git history and in npm tarballs permanently, so
+# the scan would flag them on every run. Rewriting history would not un-publish
+# them; revoking them at the node provider is the fix.
+e0196c5b387b1f9f1ad2cca2c29beb379df212dc:src/util/algod/algodConstants.ts:generic-api-key:21
+e0196c5b387b1f9f1ad2cca2c29beb379df212dc:src/util/algod/algodConstants.ts:generic-api-key:22
+7a705546c5ccb21f70404d841161f6962cc7c396:src/util/algod/algodConstants.ts:generic-api-key:21
+7a705546c5ccb21f70404d841161f6962cc7c396:src/util/algod/algodConstants.ts:generic-api-key:22

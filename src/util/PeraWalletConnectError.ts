@@ -30,7 +30,10 @@ interface PeraWalletConnectErrorData {
     | "SIGN_DATA_NETWORK_REQUIRED"
     | "SIGN_DATA_NETWORK_UNSUPPORTED"
     | "SIGN_DATA_INVALID_ADDRESS"
-    | "SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED";
+    | "SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED"
+
+    // Configuration
+    | "INVALID_ALGOD_CLIENT";
   detail?: any;
 }
 

@@ -19,6 +19,7 @@ export {
   type PeraWalletArc60SignData,
   type PeraWalletArc60SignDataResponse,
   type PeraWalletArc60SignerResolution,
+  type PeraWalletAlgodClients,
   type PeraWalletNetwork,
   type PeraWalletMultisigMetadata,
   type PeraWalletTransaction,

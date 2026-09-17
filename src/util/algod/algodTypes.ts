@@ -1,3 +1,5 @@
+import type algosdk from "algosdk";
+
 export type AlgorandNodeProviderType = "algodev";
 
 export type AlgodCredentialShape = Record<
@@ -5,8 +7,6 @@ export type AlgodCredentialShape = Record<
   Readonly<{
     clientToken: string;
     clientServer: string;
-    indexerToken: string;
-    indexerServer: string;
     port: number;
     chainId?: number;
   }>
@@ -18,3 +18,9 @@ export interface AlgodCredentials {
 }
 
 export type NetworkToggle = "testnet" | "mainnet";
+
+/**
+ * Algod clients supplied by the integrator, keyed by network. A network left
+ * out falls back to Pera's own node.
+ */
+export type AlgodClients = Partial<Record<NetworkToggle, algosdk.Algodv2>>;
