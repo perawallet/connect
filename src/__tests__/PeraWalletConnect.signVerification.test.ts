@@ -227,6 +227,73 @@ describe("PeraWalletConnect.signArc60Data", () => {
     ).rejects.toMatchObject({data: {type: "SIGN_DATA_VERIFICATION_FAILED"}});
   });
 
+  it("verifies against the on-chain auth address when the signer is rekeyed", async () => {
+    saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet");
+
+    const pera = new PeraWalletConnect();
+    const signature = new Uint8Array([9, 9]);
+    const authAddr = algosdk.generateAccount().addr.toString();
+
+    vi.spyOn(pera as any, "getTransport").mockReturnValue({
+      signArc60Data: vi.fn().mockResolvedValue({signature})
+    });
+    vi.spyOn(pera as any, "getAccountAuthAddr").mockResolvedValue(authAddr);
+    const verifySpy = vi.spyOn(pera, "verifyArc60Signature").mockResolvedValue(true);
+
+    await pera.signArc60Data(
+      makePayload(),
+      {scope: ScopeType.AUTH, encoding: "base64"},
+      true
+    );
+
+    expect(verifySpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      signature,
+      authAddr
+    );
+  });
+
+  it("verifies against the requested signer when it has no auth address", async () => {
+    saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet");
+
+    const pera = new PeraWalletConnect();
+
+    vi.spyOn(pera as any, "getTransport").mockReturnValue({
+      signArc60Data: vi.fn().mockResolvedValue({signature: new Uint8Array([9])})
+    });
+    vi.spyOn(pera as any, "getAccountAuthAddr").mockResolvedValue(null);
+    const verifySpy = vi.spyOn(pera, "verifyArc60Signature").mockResolvedValue(true);
+
+    await pera.signArc60Data(
+      makePayload(),
+      {scope: ScopeType.AUTH, encoding: "base64"},
+      true
+    );
+
+    expect(verifySpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      account.addr.toString()
+    );
+  });
+
+  it("does not look up the auth address when verification is skipped", async () => {
+    saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet");
+
+    const pera = new PeraWalletConnect();
+
+    vi.spyOn(pera as any, "getTransport").mockReturnValue({
+      signArc60Data: vi.fn().mockResolvedValue({signature: new Uint8Array([1])})
+    });
+    const authAddrSpy = vi.spyOn(pera as any, "getAccountAuthAddr");
+
+    await pera.signArc60Data(makePayload(), {scope: ScopeType.AUTH, encoding: "base64"});
+
+    expect(authAddrSpy).not.toHaveBeenCalled();
+  });
+
   it("passes requestId and hdPath through when present, and omits them otherwise", async () => {
     saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet");
 

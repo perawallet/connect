@@ -1018,9 +1018,18 @@ class PeraWalletConnect {
 
     const transport = this.getTransport();
     const response = await transport.signArc60Data(payload, metadata);
-    const effectiveSigner = algosdk.encodeAddress(payload.signer);
 
     if (verifySignature) {
+      // A rekeyed signer's signature is produced by its auth account's key
+      // (the wallet resolves the rekey), so verify against that key — the same
+      // fallback signData applies.
+      const signer = algosdk.encodeAddress(payload.signer);
+      const authAddr = await this.getAccountAuthAddr(
+        signer,
+        this.chainId || ALGORAND_NODE_CHAIN_ID
+      );
+      const effectiveSigner = authAddr || signer;
+
       const ok = await this.verifyArc60Signature(
         decodeArc60SignedData(payload.data, metadata.encoding),
         payload.authenticatorData,
