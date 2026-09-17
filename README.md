@@ -49,14 +49,31 @@ npm install @perawallet/connect
 yarn add @perawallet/connect
 ```
 
+Subscribe to `disconnect` once, next to the instance rather than inside a connect
+callback: `on()` keeps every handler you pass it until you unsubscribe, so
+registering a fresh one per connect leaves the old ones running too.
+
+```jsx
+// Once, alongside the peraWallet instance — not inside connect()/reconnectSession()
+useEffect(() => {
+  // Fires for every transport (mobile, extension) when the wallet ends the
+  // session on its side. Returns the unsubscribe function.
+  const unsubscribe = peraWallet.on("disconnect", handleDisconnectWalletClick);
+
+  // Releases the `window.pera` subscriptions this instance holds; the wallet
+  // session itself is untouched.
+  return () => {
+    unsubscribe();
+    peraWallet.dispose();
+  };
+}, []);
+```
+
 ```jsx
 // Connect handler
 peraWallet
   .connect()
   .then((newAccounts) => {
-    // Setup the disconnect event listener (fires for every transport: mobile, extension)
-    peraWallet.on("disconnect", handleDisconnectWalletClick);
-
     setAccountAddress(newAccounts[0]);
   })
   .catch((error) => {
@@ -73,9 +90,6 @@ If you don't want the user's account information to be lost by the dApp when the
 ```jsx
 // On the every page refresh
 peraWallet.reconnectSession().then((accounts) => {
-  // Setup the disconnect event listener
-  peraWallet.on("disconnect", handleDisconnectWalletClick);
-
   if (accounts.length) {
     setAccountAddress(accounts[0]);
   }
@@ -155,12 +169,18 @@ Resolves with whether the Pera browser extension's provider (`window.pera`) is p
 
 Subscribes to session events and returns the unsubscribe function.
 
-- `"disconnect"`: the wallet ended the session on its side. With the extension this happens when the user revokes your site from the extension's Connections screen; with Pera mobile when the WalletConnect session is killed from the app. The SDK has already cleared its session state when the handler runs.
-- `"networkChanged"`: the extension wallet switched network. The handler receives `{network: "mainnet" | "testnet" | "betanet"}`.
+- `"disconnect"`: the wallet ended the session on its side. With the extension this happens when the user revokes your site from the extension's Connections screen; with Pera mobile when the WalletConnect session is killed from the app. The SDK has already cleared its session state when the handler runs. It does not fire for teardown the SDK itself starts — your own `disconnect()` call, or the session `connect()` replaces.
+- `"networkChanged"`: the extension wallet switched network, on a session owned by the extension. The handler receives `{network: "mainnet" | "testnet" | "betanet"}`.
+
+Handlers stay subscribed until you call the returned function, so register them once per instance rather than on every connect.
 
 ```typescript
 const unsubscribe = peraWallet.on("disconnect", () => setAccountAddress(null));
 ```
+
+#### `PeraWalletConnect.dispose(): void`
+
+Releases everything the instance holds — the `window.pera` subscriptions and any WalletConnect connector — without touching the wallet session. Call it when the component owning the instance unmounts; under React StrictMode or hot reload, an undisposed instance keeps listening and swallows events the live one should handle. Use `disconnect()` to end the session itself.
 
 #### `PeraWalletConnect.isConnected: boolean`
 
@@ -369,7 +389,7 @@ The SDK detects the provider synchronously when it is constructed, so no probe o
 
 The extension only opens its approval window for a first-time connection while the page has transient user activation (a click or key press within the last few seconds). The SDK's extension button calls `window.pera.connect()` synchronously from its click handler, so the normal flow works out of the box. If you build your own UI on top of `window.pera`, call `connect()` directly inside your click handler, before any `await`; a connect without activation fails with code `-32001` and no approval window.
 
-Once your origin is approved, `reconnectSession()` resolves silently with the wallet's current accounts on every page load. If the user has revoked the site, it resolves with `[]` just like any other missing session.
+Once your origin is approved, `reconnectSession()` resolves silently with the wallet's current accounts on every page load. If the user has revoked the site, it resolves with `[]` just like any other missing session. Any other failure — a wallet on a network your `chainId` does not allow, or the extension's service worker restarting mid page-load — rejects with the cause at `error.data.type` and leaves the approval in place, so a later reload picks the session back up.
 
 #### Networks
 

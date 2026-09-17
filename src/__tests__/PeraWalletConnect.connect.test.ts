@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import {describe, it, expect, vi, afterEach} from "vitest";
 
 import {
@@ -23,7 +24,11 @@ const {FakeConnector, createSessionBehavior} = vi.hoisted(() => {
     connected = false;
     accounts: string[] = [];
     handlers: Record<string, (error: any, payload: any) => void> = {};
-    killSession = vi.fn().mockResolvedValue(undefined);
+    killSession = vi.fn(() => {
+      this.emitDisconnect();
+
+      return Promise.resolve(undefined);
+    });
     sendCustomRequest = vi.fn();
 
     constructor(opts: any) {
@@ -43,6 +48,13 @@ const {FakeConnector, createSessionBehavior} = vi.hoisted(() => {
       this.connected = true;
       this.accounts = accounts;
       this.handlers.connect?.(error, {params: [{accounts}]});
+    }
+
+    // WalletConnect v1 raises `disconnect` both for a wallet-side session end
+    // and for its own killSession(), which is what the SDK has to tell apart.
+    emitDisconnect() {
+      this.connected = false;
+      this.handlers.disconnect?.(null, {params: [{message: "Session Disconnected"}]});
     }
   }
 
@@ -188,6 +200,103 @@ describe("PeraWalletConnect.connect()", () => {
     expect((window as any).onWebWalletConnect).toBeUndefined();
   });
 
+  describe("disconnect event", () => {
+    it("clears the session before the handler runs when the wallet ends it", async () => {
+      const pera = new PeraWalletConnect();
+      const connectPromise = pera.connect();
+
+      await flush();
+      FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+      await connectPromise;
+
+      const seen: {isConnected: boolean; platform: unknown}[] = [];
+
+      pera.on("disconnect", () => {
+        seen.push({isConnected: pera.isConnected, platform: pera.platform});
+      });
+
+      FakeConnector.instances[0].emitDisconnect();
+
+      expect(seen).toEqual([{isConnected: false, platform: null}]);
+      expect(getWalletDetailsFromStorage()).toBeNull();
+    });
+
+    it("stays quiet for the SDK's own teardown in connect()", async () => {
+      const pera = new PeraWalletConnect();
+      const first = pera.connect();
+
+      await flush();
+      FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+      await first;
+
+      const onDisconnect = vi.fn();
+
+      pera.on("disconnect", onDisconnect);
+
+      // connect() kills the live session before pairing again; that is the
+      // SDK tearing down, not the wallet ending the session.
+      const second = pera.connect();
+
+      await flush();
+      expect(FakeConnector.instances[0].killSession).toHaveBeenCalledTimes(1);
+      expect(onDisconnect).not.toHaveBeenCalled();
+
+      FakeConnector.instances[1].emitConnect(null, ["ADDR2"]);
+      await expect(second).resolves.toEqual(["ADDR2"]);
+    });
+
+    it("stays quiet for disconnect()", async () => {
+      const pera = new PeraWalletConnect();
+      const connectPromise = pera.connect();
+
+      await flush();
+      FakeConnector.instances[0].emitConnect(null, ["ADDR1"]);
+      await connectPromise;
+
+      const onDisconnect = vi.fn();
+
+      pera.on("disconnect", onDisconnect);
+      await pera.disconnect();
+
+      expect(FakeConnector.instances[0].killSession).toHaveBeenCalledTimes(1);
+      expect(onDisconnect).not.toHaveBeenCalled();
+      expect((pera as any).connector).toBeNull();
+    });
+  });
+
+  describe("dispose()", () => {
+    it("releases the provider subscriptions so a discarded instance stops listening", () => {
+      saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
+      const provider = installPeraProvider();
+      const discarded = new PeraWalletConnect();
+      const live = new PeraWalletConnect();
+      const onDiscarded = vi.fn();
+      const onLive = vi.fn();
+
+      discarded.on("disconnect", onDiscarded);
+      live.on("disconnect", onLive);
+
+      // Without dispose() the discarded instance would clear the storage the
+      // live instance's own handler then checks, and only the first would fire.
+      discarded.dispose();
+      provider.emit("disconnect");
+
+      expect(onDiscarded).not.toHaveBeenCalled();
+      expect(onLive).toHaveBeenCalledTimes(1);
+    });
+
+    it("leaves the wallet session alone", () => {
+      saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
+      const provider = installPeraProvider();
+      const pera = new PeraWalletConnect();
+
+      pera.dispose();
+
+      expect(provider.disconnect).not.toHaveBeenCalled();
+      expect(getWalletDetailsFromStorage()?.accounts).toEqual(["ADDR"]);
+    });
+  });
+
   describe("with window.pera present", () => {
     function clickExtensionButton() {
       // What the modal's extension button does on click: a bubbling, composed
@@ -295,6 +404,56 @@ describe("PeraWalletConnect.connect()", () => {
       await expect(connectPromise).rejects.toMatchObject({
         data: {type: "CONNECT_NETWORK_MISMATCH"}
       });
+    });
+
+    it("retires the pending WalletConnect pairing once the extension connects", async () => {
+      installPeraProvider(["EXT_ADDR"]);
+      const pera = new PeraWalletConnect();
+
+      const connectPromise = pera.connect();
+
+      await flush();
+      clickExtensionButton();
+      await expect(connectPromise).resolves.toEqual(["EXT_ADDR"]);
+      await flush();
+
+      // A QR scan landing after the extension has connected would otherwise
+      // overwrite the extension session with a mobile one.
+      FakeConnector.instances[0].emitConnect(null, ["MOBILE_ADDR"]);
+
+      expect(getWalletDetailsFromStorage()).toMatchObject({
+        type: "pera-wallet-extension",
+        accounts: ["EXT_ADDR"]
+      });
+      expect(pera.platform).toBe("extension");
+    });
+
+    it("takes the modal down before awaiting the provider, so a late approval cannot be cancelled", async () => {
+      const provider = installPeraProvider(["EXT_ADDR"]);
+      let approve: (result: unknown) => void = () => undefined;
+
+      provider.connect.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            approve = resolve;
+          })
+      );
+
+      const pera = new PeraWalletConnect();
+      const connectPromise = pera.connect();
+
+      await flush();
+      FakeConnector.instances[0].opts.qrcodeModal.open("wc:uri");
+      clickExtensionButton();
+
+      // The approval window owns the flow now; there is no close button left
+      // to reject a connect that the user is still about to approve.
+      expect(document.getElementById("pera-wallet-connect-modal-wrapper")).toBeNull();
+
+      approve({accounts: [{address: "EXT_ADDR", name: "EXT_ADDR"}], network: "testnet"});
+
+      await expect(connectPromise).resolves.toEqual(["EXT_ADDR"]);
+      expect(getWalletDetailsFromStorage()?.accounts).toEqual(["EXT_ADDR"]);
     });
 
     it("only answers one extension click per connect() call", async () => {

@@ -278,6 +278,11 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
     // extension's provider is present on the page; the other options collapse.
     if (isExtensionEnabled) {
       desktopModeDefaultView?.appendChild(extensionWalletOption);
+      // Tells the stylesheet more than one option is on screen, so hiding the
+      // web wallet must not force the rest permanently open.
+      desktopModeDefaultView?.classList.add(
+        "pera-wallet-connect-modal-desktop-mode__default-view--extension-enabled"
+      );
     }
 
     if (shouldPromoteMobile) {

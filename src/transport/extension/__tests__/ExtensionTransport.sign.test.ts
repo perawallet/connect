@@ -155,6 +155,36 @@ describe("ExtensionTransport signing", () => {
       expect(Array.from(result[0])).toEqual([7, 7]);
     });
 
+    it("drops unsigned entries instead of decoding them into bytes", async () => {
+      const sig = Buffer.from([7, 7]).toString("base64");
+
+      // `atob(null)` decodes the string "null" into three valid-looking bytes,
+      // so an unfiltered null would reach the dApp as a signature.
+      provider.signData.mockResolvedValue([sig, null]);
+      const transport = new ExtensionTransport(provider, {});
+
+      const result = await transport.signData(
+        [
+          {data: new Uint8Array([1]), message: "a"},
+          {data: new Uint8Array([2]), message: "b"}
+        ],
+        ADDRESS,
+        4160
+      );
+
+      expect(result).toHaveLength(1);
+      expect(Array.from(result[0])).toEqual([7, 7]);
+    });
+
+    it("maps a non-array response to SIGN_DATA rather than a TypeError", async () => {
+      provider.signData.mockResolvedValue(undefined);
+      const transport = new ExtensionTransport(provider, {});
+
+      await expect(
+        transport.signData([{data: new Uint8Array([1]), message: "m"}], ADDRESS, 4160)
+      ).rejects.toMatchObject({data: {type: "SIGN_DATA"}});
+    });
+
     it("maps user rejection to SIGN_DATA_CANCELLED", async () => {
       provider.signData.mockRejectedValue(
         providerError(PERA_PROVIDER_ERROR_CODES.USER_REJECTED)

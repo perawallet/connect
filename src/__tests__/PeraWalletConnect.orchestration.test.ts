@@ -136,6 +136,8 @@ describe("PeraWalletConnect orchestration", () => {
     });
 
     it("fires networkChanged with the wallet's new network", () => {
+      saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
+
       const provider = installPeraProvider();
       const pera = new PeraWalletConnect();
       const onNetworkChanged = vi.fn();
@@ -144,6 +146,21 @@ describe("PeraWalletConnect orchestration", () => {
       provider.emit("networkChanged", {network: "mainnet"});
 
       expect(onNetworkChanged).toHaveBeenCalledWith({network: "mainnet"});
+    });
+
+    it("ignores networkChanged while another transport owns the session", () => {
+      // The extension is installed but the session is a mobile one, so the
+      // wallet switching network says nothing about this dApp's connection.
+      saveWalletDetailsToStorage(["ADDR"], "pera-wallet");
+
+      const provider = installPeraProvider();
+      const pera = new PeraWalletConnect();
+      const onNetworkChanged = vi.fn();
+
+      pera.on("networkChanged", onNetworkChanged);
+      provider.emit("networkChanged", {network: "mainnet"});
+
+      expect(onNetworkChanged).not.toHaveBeenCalled();
     });
 
     it("on() returns an unsubscribe function", () => {

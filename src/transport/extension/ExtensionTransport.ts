@@ -284,7 +284,17 @@ export class ExtensionTransport implements WalletTransport {
     try {
       const signatures = await this.provider.signData(payload);
 
-      return signatures.map(base64ToUint8Array);
+      if (!Array.isArray(signatures)) {
+        throw new Error("The Pera extension returned an invalid signData response");
+      }
+
+      // `base64ToUint8Array` runs on `atob`, and `atob(null)` decodes the
+      // string "null" into three bytes, so an unsigned entry would otherwise
+      // reach the dApp as a plausible-looking signature. Drop non-strings the
+      // way `signTransaction` does.
+      return signatures
+        .filter((item): item is string => typeof item === "string")
+        .map(base64ToUint8Array);
     } catch (error) {
       throw mapProviderError(error, "sign-data");
     }
@@ -336,6 +346,14 @@ export class ExtensionTransport implements WalletTransport {
     const network = (params as {network?: PeraNetwork} | undefined)?.network;
 
     if (!network) {
+      return;
+    }
+
+    // The extension broadcasts to every page it is injected into, including
+    // ones whose session belongs to another transport. A dApp on a mobile
+    // session must not be told to repoint its algod client because the
+    // extension wallet — which it is not connected to — switched network.
+    if (getWalletPlatformFromStorage() !== "extension") {
       return;
     }
 

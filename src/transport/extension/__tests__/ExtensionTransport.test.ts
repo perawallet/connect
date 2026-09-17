@@ -248,6 +248,8 @@ describe("ExtensionTransport", () => {
     });
 
     it("forwards networkChanged with the new network", () => {
+      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
+
       const onNetworkChanged = vi.fn();
       const transport = new ExtensionTransport(provider, {onNetworkChanged});
 
@@ -255,6 +257,18 @@ describe("ExtensionTransport", () => {
 
       expect(onNetworkChanged).toHaveBeenCalledWith({network: "mainnet"});
       expect(transport.network).toBe("mainnet");
+    });
+
+    it("ignores networkChanged when the session is not an extension one", () => {
+      saveWalletDetailsToStorage([ADDRESS], "pera-wallet");
+
+      const onNetworkChanged = vi.fn();
+      const transport = new ExtensionTransport(provider, {onNetworkChanged});
+
+      provider.emit("networkChanged", {network: "mainnet"});
+
+      expect(onNetworkChanged).not.toHaveBeenCalled();
+      expect(transport.network).toBeNull();
     });
 
     it("dispose() unsubscribes from the provider", () => {

@@ -92,10 +92,17 @@ declare global {
   }
 }
 
+/**
+ * Duck-typed on purpose: the rejection may have crossed a realm (an iframe or
+ * another window) or a `structuredClone` boundary, either of which defeats
+ * `instanceof Error` and would degrade every provider error to the generic
+ * fallback.
+ */
 export function isPeraProviderError(error: unknown): error is PeraProviderError {
   return (
-    error instanceof Error &&
-    error.name === "PeraProviderError" &&
+    typeof error === "object" &&
+    error !== null &&
+    (error as {name?: unknown}).name === "PeraProviderError" &&
     typeof (error as {code?: unknown}).code === "number"
   );
 }

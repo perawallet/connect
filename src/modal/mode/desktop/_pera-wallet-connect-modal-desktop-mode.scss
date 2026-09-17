@@ -20,25 +20,31 @@
           display: none;
         }
 
-        .pera-wallet-accordion-item {
-          .pera-wallet-accordion-toggle {
-            padding: 26px 24px 12px;
+        // Hiding the web wallet can leave a single option, which is then shown
+        // permanently open instead of as a collapsible row. Scoped to that
+        // case: with the extension option present two rows remain, and forcing
+        // both open would render two expanded panels neither of which collapses.
+        &:not(.pera-wallet-connect-modal-desktop-mode__default-view--extension-enabled) {
+          .pera-wallet-accordion-item {
+            .pera-wallet-accordion-toggle {
+              padding: 26px 24px 12px;
 
-            border-radius: 24px 24px 0 0;
+              border-radius: 24px 24px 0 0;
 
-            transition: all ease-in 0.2s;
-          }
+              transition: all ease-in 0.2s;
+            }
 
-          .pera-wallet-accordion-item__content {
-            height: 434px;
+            .pera-wallet-accordion-item__content {
+              height: 434px;
 
-            border-radius: 0 0 24px 24px;
+              border-radius: 0 0 24px 24px;
 
-            transition: height ease-in 0.2s;
-          }
+              transition: height ease-in 0.2s;
+            }
 
-          .pera-wallet-accordion-icon {
-            transform: rotate(90deg);
+            .pera-wallet-accordion-icon {
+              transform: rotate(90deg);
+            }
           }
         }
 

@@ -102,7 +102,7 @@ describe("PeraWalletConnect.reconnectSession()", () => {
     expect(pera.isConnected).toBe(false);
   });
 
-  it("extension: rejects with SESSION_RECONNECT on any other provider failure", async () => {
+  it("extension: rejects with SESSION_RECONNECT on any other provider failure, keeping the approval", async () => {
     saveWalletDetailsToStorage(["STALE"], "pera-wallet-extension");
     const provider = installPeraProvider();
 
@@ -115,7 +115,30 @@ describe("PeraWalletConnect.reconnectSession()", () => {
     await expect(pera.reconnectSession()).rejects.toMatchObject({
       data: {type: "SESSION_RECONNECT"}
     });
-    expect(getWalletDetailsFromStorage()).toBeNull();
+    // A transient provider failure (the service worker restarting mid
+    // page-load) must not revoke the origin in the wallet or drop the session.
+    expect(provider.disconnect).not.toHaveBeenCalled();
+    expect(getWalletDetailsFromStorage()?.accounts).toEqual(["STALE"]);
+  });
+
+  it("extension: surfaces a network mismatch without revoking the origin", async () => {
+    saveWalletDetailsToStorage(["STALE"], "pera-wallet-extension");
+    const provider = installPeraProvider();
+
+    provider.connect.mockRejectedValue(
+      makePeraProviderError(PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED)
+    );
+
+    const pera = new PeraWalletConnect();
+
+    // The cause stays at `data.type` instead of being buried under a second
+    // SESSION_RECONNECT wrapper, and the session survives until the user
+    // switches the wallet back.
+    await expect(pera.reconnectSession()).rejects.toMatchObject({
+      data: {type: "CONNECT_NETWORK_MISMATCH"}
+    });
+    expect(provider.disconnect).not.toHaveBeenCalled();
+    expect(getWalletDetailsFromStorage()?.accounts).toEqual(["STALE"]);
   });
 
   it("extension: does not touch window.pera for a mobile session", async () => {
@@ -211,7 +234,7 @@ describe("PeraWalletConnect.disconnect()", () => {
     const pera = new PeraWalletConnect();
     const killSession = vi.fn().mockResolvedValue(undefined);
 
-    (pera as any).connector = {killSession};
+    (pera as any).connector = {connected: true, killSession};
 
     await pera.disconnect();
 

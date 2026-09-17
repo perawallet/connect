@@ -126,6 +126,8 @@ class PeraWalletConnect {
   shouldPreferExtension: boolean;
   experimental: boolean;
   private extensionTransport: ExtensionTransport | null;
+  /** Connectors the SDK has retired; see `abandonConnector()`. */
+  private abandonedConnectors = new WeakSet<WalletConnect>();
   private eventHandlers: {
     [E in PeraWalletConnectEvent]: Set<PeraWalletConnectEventHandler<E>>;
   } = {
@@ -237,11 +239,60 @@ class PeraWalletConnect {
    * The WalletConnect connector reports a wallet-side session end through its
    * own `disconnect` event; mirror it on the SDK so dApps can listen in one
    * place regardless of transport.
+   *
+   * The event is also how WalletConnect v1 reports *our* `killSession()`, so
+   * connectors we have abandoned are filtered out — a dApp must not be told
+   * the wallet ended a session that the SDK itself is tearing down.
    */
   private forwardConnectorDisconnect(connector: WalletConnect) {
     connector.on("disconnect", () => {
+      if (this.abandonedConnectors.has(connector)) {
+        return;
+      }
+
+      if (this.connector === connector) {
+        this.connector = null;
+      }
+
+      // Another transport may own the current session; only a mobile one is
+      // dropped here. Mirrors ExtensionTransport.handleProviderDisconnect(),
+      // so the handler sees cleared state either way.
+      if (getWalletPlatformFromStorage() === "mobile") {
+        resetWalletDetailsFromStorage();
+      }
+
       this.emit("disconnect", undefined);
     });
+  }
+
+  /**
+   * Retires a WalletConnect connector the SDK is done with. WalletConnect v1
+   * keeps its listeners for the connector's lifetime and its `off()` drops
+   * every listener for an event, so the connector is marked instead and its
+   * handlers bail.
+   *
+   * Without this a QR pairing left in flight by a connect that finished
+   * through another transport still fires `connect` when the user finally
+   * scans, overwriting the stored session with a mobile one.
+   */
+  private async abandonConnector(connector: WalletConnect | null) {
+    if (!connector) {
+      return;
+    }
+
+    this.abandonedConnectors.add(connector);
+
+    if (this.connector === connector) {
+      this.connector = null;
+    }
+
+    if (connector.connected) {
+      try {
+        await connector.killSession();
+      } catch (_error) {
+        // Best-effort: the connector is already detached either way.
+      }
+    }
   }
 
   get isConnected() {
@@ -293,15 +344,11 @@ class PeraWalletConnect {
       };
 
       try {
-        // check if already connected and kill session first before creating a new one.
-        // This is to kill the last session and make sure user start from scratch whenever `.connect()` method is called.
-        if (this.connector?.connected) {
-          try {
-            await this.connector.killSession();
-          } catch (_error) {
-            // No need to handle
-          }
-        }
+        // Retire the previous connector before creating a new one, so the user
+        // starts from scratch on every `.connect()` call. Going through
+        // `abandonConnector()` keeps our own `killSession()` from reaching the
+        // dApp as a wallet-side `disconnect` mid-connect.
+        await this.abandonConnector(this.connector);
 
         const {
           isWebWalletAvailable,
@@ -343,16 +390,23 @@ class PeraWalletConnect {
           const handleExtensionConnect = () => {
             removeExtensionListener();
 
+            // Take the modal down before awaiting the provider. The extension's
+            // own approval window owns the flow from here, and leaving our close
+            // button live would let the user "cancel" a connect that is already
+            // in flight: `connect()` would reject while the later approval still
+            // stored the session, so the dApp shows "not connected" and the next
+            // page load silently reconnects.
+            removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+
             extensionTransport
               .connect({selectedAccount: options?.selectedAccount})
               .then((accounts) => {
-                removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+                // The QR pairing may still be waiting for a scan; retire it so
+                // it cannot overwrite the extension session with a mobile one.
+                this.abandonConnector(this.connector);
                 resolve(accounts);
               })
-              .catch((error) => {
-                removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
-                reject(error);
-              });
+              .catch(reject);
           };
 
           document.addEventListener(
@@ -404,14 +458,20 @@ class PeraWalletConnect {
           )
         );
 
-        this.connector.on("connect", (error, _payload) => {
+        const {connector} = this;
+
+        connector.on("connect", (error, _payload) => {
+          if (this.abandonedConnectors.has(connector)) {
+            return;
+          }
+
           if (error) {
             reject(error);
           }
 
-          resolve(this.connector?.accounts || []);
+          resolve(connector.accounts || []);
 
-          saveWalletDetailsToStorage(this.connector?.accounts || []);
+          saveWalletDetailsToStorage(connector.accounts || []);
         });
       } catch (error: any) {
         reject(
@@ -471,7 +531,20 @@ class PeraWalletConnect {
           // A gesture-less connect(): the wallet answers at once with the
           // approved accounts, or with "unauthorized", which reconnect()
           // turns into [] after clearing the stale details.
-          resolve(await this.extensionTransport.reconnect());
+          //
+          // Anything else (the service worker restarting mid page-load, the
+          // wallet sitting on another network) is settled here rather than in
+          // the catch-all below: that catch disconnects, which for an
+          // extension session means revoking this origin in the wallet. The
+          // approval is the user's to give and take, so a transient failure
+          // must leave it — and the stored details — alone. Rejecting with the
+          // transport's own error also keeps the cause at `error.data.type`
+          // instead of burying it under a second SESSION_RECONNECT wrapper.
+          try {
+            resolve(await this.extensionTransport.reconnect());
+          } catch (error) {
+            reject(error);
+          }
 
           return;
         }
@@ -518,21 +591,41 @@ class PeraWalletConnect {
   }
 
   async disconnect() {
-    let killPromise: Promise<void> | undefined;
-
     if (this.isConnected && this.platform === "extension" && this.extensionTransport) {
       await this.extensionTransport.disconnect();
     }
 
     if (this.isConnected && this.platform === "mobile") {
-      killPromise = this.connector?.killSession();
-
-      killPromise?.then(() => {
-        this.connector = null;
-      });
+      // Retiring rather than killing directly: this is the SDK's own teardown,
+      // and WalletConnect reports `killSession()` through the same `disconnect`
+      // event a wallet-side end uses.
+      await this.abandonConnector(this.connector);
     }
 
     await resetWalletDetailsFromStorage();
+  }
+
+  /**
+   * Releases everything this instance holds: the `window.pera` subscriptions
+   * (the provider outlives the page's components, so an undisposed instance is
+   * retained for the page's life) and any WalletConnect connector. The wallet
+   * session itself is untouched — call `disconnect()` for that.
+   *
+   * Call it when the component owning the instance unmounts. Under React
+   * StrictMode or hot reload, skipping it leaves the discarded instance
+   * listening and swallowing the events the live one should handle.
+   */
+  dispose() {
+    this.extensionTransport?.dispose();
+    this.extensionTransport = null;
+
+    if (this.connector) {
+      this.abandonedConnectors.add(this.connector);
+      this.connector = null;
+    }
+
+    this.eventHandlers.disconnect.clear();
+    this.eventHandlers.networkChanged.clear();
   }
 
   verifySignature(
