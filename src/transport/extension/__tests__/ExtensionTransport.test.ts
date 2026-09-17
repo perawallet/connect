@@ -1,9 +1,8 @@
-import {describe, it, expect, vi, afterEach} from "vitest";
+import {describe, it, expect, vi, afterEach, beforeEach} from "vitest";
 import algosdk from "algosdk";
 
-import {ExtensionTransport} from "../ExtensionTransport";
-import {Arc0027RequestError} from "../arc0027Client";
-import {ARC0027_ERROR_CODES} from "../arc0027Types";
+import {ExtensionTransport, getPeraNetworkFromChainId} from "../ExtensionTransport";
+import {PERA_PROVIDER_ERROR_CODES, PeraProvider} from "../peraProviderTypes";
 import {ScopeType} from "../../../util/model/peraWalletModels";
 import {
   saveWalletDetailsToStorage,
@@ -11,295 +10,277 @@ import {
   resetWalletDetailsFromStorage
 } from "../../../util/storage/storageUtils";
 
-// A generated account gives us a real address for signer fields.
 const account = algosdk.generateAccount();
+const ADDRESS = account.addr.toString();
 
-function makeClient(request: any, discover: any = vi.fn()) {
-  return {request, discover} as any;
+function providerError(code: number, message = "provider error") {
+  const error = new Error(message) as Error & {code: number};
+
+  error.name = "PeraProviderError";
+  error.code = code;
+
+  return error;
 }
 
+type StubProvider = PeraProvider & {
+  connect: ReturnType<typeof vi.fn>;
+  disconnect: ReturnType<typeof vi.fn>;
+  getAddresses: ReturnType<typeof vi.fn>;
+  signTransactions: ReturnType<typeof vi.fn>;
+  signData: ReturnType<typeof vi.fn>;
+  on: ReturnType<typeof vi.fn>;
+  emit: (event: string, params?: unknown) => void;
+};
+
+function makeProvider(): StubProvider {
+  const handlers: Record<string, ((params: unknown) => void)[]> = {};
+
+  return {
+    version: "1",
+    connect: vi.fn().mockResolvedValue({
+      accounts: [{address: ADDRESS, name: "Main"}],
+      network: "testnet"
+    }),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    getAddresses: vi.fn().mockResolvedValue([]),
+    signTransactions: vi.fn(),
+    signData: vi.fn(),
+    on: vi.fn((event: string, handler: (params: unknown) => void) => {
+      handlers[event] = handlers[event] || [];
+      handlers[event].push(handler);
+
+      return () => {
+        handlers[event] = handlers[event].filter((item) => item !== handler);
+      };
+    }),
+    emit: (event: string, params?: unknown) => {
+      (handlers[event] || []).forEach((handler) => handler(params));
+    }
+  } as StubProvider;
+}
+
+describe("getPeraNetworkFromChainId", () => {
+  it("maps the specific chain ids and leaves all-networks unset", () => {
+    expect(getPeraNetworkFromChainId(416001)).toBe("mainnet");
+    expect(getPeraNetworkFromChainId(416002)).toBe("testnet");
+    expect(getPeraNetworkFromChainId(416003)).toBe("betanet");
+    expect(getPeraNetworkFromChainId(4160)).toBeUndefined();
+    expect(getPeraNetworkFromChainId(undefined)).toBeUndefined();
+  });
+});
+
 describe("ExtensionTransport", () => {
+  let provider: StubProvider;
+
+  beforeEach(() => {
+    provider = makeProvider();
+  });
+
   afterEach(() => resetWalletDetailsFromStorage());
 
-  it("connect() enables and returns accounts", async () => {
-    const client = makeClient(
-      vi.fn().mockResolvedValue({accounts: [{address: account.addr}]})
-    );
-    const transport = new ExtensionTransport(client);
+  describe("connect()", () => {
+    it("calls the provider synchronously (inside the user gesture) and returns addresses", async () => {
+      const transport = new ExtensionTransport(provider, {chainId: 416002});
 
-    const accounts = await transport.connect();
+      const promise = transport.connect();
 
-    expect(accounts).toEqual([account.addr]);
-    expect(client.request).toHaveBeenCalledWith("enable", expect.any(Object));
-  });
+      // No awaits may precede the provider call: transient activation is only
+      // guaranteed within the click's synchronous task.
+      expect(provider.connect).toHaveBeenCalledTimes(1);
 
-  it("signTransaction() decodes base64 stxns to Uint8Array", async () => {
-    const b64 = Buffer.from([1, 2, 3]).toString("base64");
-    const client = makeClient(vi.fn().mockResolvedValue({stxns: [b64]}));
-    const transport = new ExtensionTransport(client);
+      await expect(promise).resolves.toEqual([ADDRESS]);
+    });
 
-    const signed = await transport.signTransaction([{txn: "AA=="}]);
+    it("passes the dApp metadata and the pinned network", async () => {
+      document.title = "My dApp";
+      const transport = new ExtensionTransport(provider, {chainId: 416001});
 
-    expect(Array.from(signed[0])).toEqual([1, 2, 3]);
-  });
+      await transport.connect();
 
-  it("signData() fails fast with EXTENSION_UNSUPPORTED_OPERATION", async () => {
-    const client = makeClient(vi.fn());
-    const transport = new ExtensionTransport(client);
+      const options = provider.connect.mock.calls[0][0];
 
-    // eslint-disable-next-line no-magic-numbers
-    await expect(
-      transport.signData([{data: new Uint8Array([1]), message: "m"}], account.addr, 4160)
-    ).rejects.toMatchObject({data: {type: "EXTENSION_UNSUPPORTED_OPERATION"}});
-    expect(client.request).not.toHaveBeenCalled();
-  });
+      expect(options.name).toBe("My dApp");
+      expect(options.network).toBe("mainnet");
+    });
 
-  it("signArc60Data() sends the ARC-60 wire shape as sign_message params", async () => {
-    const sigB64 = Buffer.from([9, 9]).toString("base64");
-    const requestFn = vi.fn().mockResolvedValue({signature: sigB64});
-    const transport = new ExtensionTransport(makeClient(requestFn));
+    it("omits network for an all-networks session", async () => {
+      const transport = new ExtensionTransport(provider, {chainId: 4160});
 
-    // domain must match window.location.origin (jsdom default: http://localhost)
-    const domain = window.location.origin;
-    // signer is the raw Ed25519 public key, per PeraWalletArc60SignData —
-    // the same shape every caller (e.g. the demo dapp's buildArc60Payload)
-    // constructs via algosdk.decodeAddress(address).publicKey.
-    const signerPublicKey = algosdk.decodeAddress(account.addr.toString()).publicKey;
+      await transport.connect();
 
-    await transport.signArc60Data(
-      {
-        data: Buffer.from(new Uint8Array([1, 2])).toString("base64"),
-        signer: signerPublicKey,
-        domain,
-        authenticatorData: new Uint8Array(37)
-      },
-      {scope: ScopeType.AUTH, encoding: "base64"}
-    );
+      expect(provider.connect.mock.calls[0][0].network).toBeUndefined();
+    });
 
-    const [method, params] = requestFn.mock.calls[0];
+    it("persists the extension as the active platform", async () => {
+      const transport = new ExtensionTransport(provider, {});
 
-    expect(method).toBe("sign_message");
-    // base64
-    expect(typeof params.data).toBe("string");
-    // base64
-    expect(typeof params.authenticatorData).toBe("string");
-    // signer must go over the wire as a base32 Algorand address string (what
-    // the extension's arc60WireSchema validates), not the raw public key
-    // bytes — see MobileTransport/PeraWalletConnect.ts, which both encode.
-    expect(typeof params.signer).toBe("string");
-    expect(params.signer).toBe(account.addr.toString());
-    expect(params.metadata).toEqual({scope: ScopeType.AUTH, encoding: "base64"});
-  });
+      await transport.connect();
 
-  it("signArc60Data() resolves with the original raw signer public key bytes", async () => {
-    const sigB64 = Buffer.from([9, 9]).toString("base64");
-    const requestFn = vi.fn().mockResolvedValue({signature: sigB64});
-    const transport = new ExtensionTransport(makeClient(requestFn));
-    const domain = window.location.origin;
-    const signerPublicKey = algosdk.decodeAddress(account.addr.toString()).publicKey;
+      expect(getWalletDetailsFromStorage()).toMatchObject({
+        type: "pera-wallet-extension",
+        accounts: [ADDRESS]
+      });
+      expect(transport.network).toBe("testnet");
+    });
 
-    const response = await transport.signArc60Data(
-      {
-        data: new Uint8Array([1, 2]),
-        signer: signerPublicKey,
-        domain,
-        authenticatorData: new Uint8Array(37)
-      },
-      {scope: ScopeType.AUTH, encoding: "base64"}
-    );
-
-    expect(response.signer).toEqual(signerPublicKey);
-  });
-
-  it("signArc60Data() re-encodes non-base64 payload data to base64 on the wire", async () => {
-    const raw = new Uint8Array([1, 2, 3]);
-    const requestFn = vi
-      .fn()
-      .mockResolvedValue({signature: Buffer.from([9]).toString("base64")});
-    const transport = new ExtensionTransport(makeClient(requestFn));
-
-    await transport.signArc60Data(
-      {
-        data: Buffer.from(raw).toString("hex"),
-        signer: algosdk.decodeAddress(account.addr.toString()).publicKey,
-        domain: window.location.origin,
-        authenticatorData: new Uint8Array(37)
-      },
-      {scope: ScopeType.AUTH, encoding: "hex"}
-    );
-
-    const [, params] = requestFn.mock.calls[0];
-
-    expect(params.data).toBe(Buffer.from(raw).toString("base64"));
-  });
-
-  it("signArc60Data() maps a canceled request to SIGN_DATA_CANCELLED", async () => {
-    const requestFn = vi
-      .fn()
-      .mockRejectedValue(
-        new Arc0027RequestError(ARC0027_ERROR_CODES.MethodCanceledError, "closed")
+    it("maps user rejection to CONNECT_CANCELLED", async () => {
+      provider.connect.mockRejectedValue(
+        providerError(PERA_PROVIDER_ERROR_CODES.USER_REJECTED)
       );
-    const transport = new ExtensionTransport(makeClient(requestFn));
-
-    await expect(
-      transport.signArc60Data(
-        {
-          data: Buffer.from(new Uint8Array([1])).toString("base64"),
-          signer: algosdk.decodeAddress(account.addr.toString()).publicKey,
-          domain: window.location.origin,
-          authenticatorData: new Uint8Array(37)
-        },
-        {scope: ScopeType.AUTH, encoding: "base64"}
-      )
-    ).rejects.toMatchObject({data: {type: "SIGN_DATA_CANCELLED"}});
-  });
-
-  it("signArc60Data() maps an unrecognized error to a SIGN_DATA fallback", async () => {
-    const requestFn = vi.fn().mockRejectedValue(new Error("boom"));
-    const transport = new ExtensionTransport(makeClient(requestFn));
-
-    await expect(
-      transport.signArc60Data(
-        {
-          data: Buffer.from(new Uint8Array([1])).toString("base64"),
-          signer: algosdk.decodeAddress(account.addr.toString()).publicKey,
-          domain: window.location.origin,
-          authenticatorData: new Uint8Array(37)
-        },
-        {scope: ScopeType.AUTH, encoding: "base64"}
-      )
-    ).rejects.toMatchObject({data: {type: "SIGN_DATA"}, message: "boom"});
-  });
-
-  it("signArc60Data() rejects on origin mismatch before calling the extension", async () => {
-    const requestFn = vi.fn();
-    const transport = new ExtensionTransport(makeClient(requestFn));
-
-    await expect(
-      transport.signArc60Data(
-        {
-          data: new Uint8Array([1]),
-          signer: account.addr,
-          domain: "https://evil.example",
-          authenticatorData: new Uint8Array(37)
-        },
-        {scope: ScopeType.AUTH, encoding: "base64"}
-      )
-    ).rejects.toMatchObject({data: {type: "SIGN_DATA_DOMAIN_MISMATCH"}});
-    expect(requestFn).not.toHaveBeenCalled();
-  });
-
-  describe("connect() error mapping", () => {
-    it("maps a canceled-method error to CONNECT_MODAL_CLOSED", async () => {
-      const client = makeClient(
-        vi
-          .fn()
-          .mockRejectedValue(
-            new Arc0027RequestError(ARC0027_ERROR_CODES.MethodCanceledError, "closed")
-          )
-      );
-      const transport = new ExtensionTransport(client);
+      const transport = new ExtensionTransport(provider, {});
 
       await expect(transport.connect()).rejects.toMatchObject({
-        data: {type: "CONNECT_MODAL_CLOSED"}
+        name: "PeraWalletConnectError",
+        data: {type: "CONNECT_CANCELLED"}
+      });
+      expect(getWalletDetailsFromStorage()).toBeNull();
+    });
+
+    it("maps a network mismatch to CONNECT_NETWORK_MISMATCH", async () => {
+      provider.connect.mockRejectedValue(
+        providerError(PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED)
+      );
+      const transport = new ExtensionTransport(provider, {chainId: 416001});
+
+      await expect(transport.connect()).rejects.toMatchObject({
+        data: {type: "CONNECT_NETWORK_MISMATCH"}
       });
     });
 
-    it("maps an unauthorized-signer error to SESSION_RECONNECT", async () => {
-      const client = makeClient(
-        vi
-          .fn()
-          .mockRejectedValue(
-            new Arc0027RequestError(ARC0027_ERROR_CODES.UnauthorizedSignerError, "stale")
-          )
+    it("maps a missing user gesture to SESSION_CONNECT with the provider's message", async () => {
+      provider.connect.mockRejectedValue(
+        providerError(PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED, "user activation required")
       );
-      const transport = new ExtensionTransport(client);
+      const transport = new ExtensionTransport(provider, {});
 
       await expect(transport.connect()).rejects.toMatchObject({
-        data: {type: "SESSION_RECONNECT"}
+        data: {type: "SESSION_CONNECT"},
+        message: expect.stringContaining("user activation required")
       });
     });
 
-    it("maps an unrecognized error to a generic SIGN_TRANSACTIONS fallback", async () => {
-      const client = makeClient(vi.fn().mockRejectedValue(new Error("boom")));
-      const transport = new ExtensionTransport(client);
+    it("maps a wallet timeout to MESSAGE_NOT_RECEIVED", async () => {
+      provider.connect.mockRejectedValue(
+        providerError(PERA_PROVIDER_ERROR_CODES.TIMED_OUT)
+      );
+      const transport = new ExtensionTransport(provider, {});
 
       await expect(transport.connect()).rejects.toMatchObject({
-        data: {type: "SIGN_TRANSACTIONS"},
-        message: "boom"
-      });
-    });
-  });
-
-  describe("signTransaction() error mapping", () => {
-    it("maps a canceled-method error to SIGN_TXN_CANCELLED (sign context, not connect)", async () => {
-      const client = makeClient(
-        vi
-          .fn()
-          .mockRejectedValue(
-            new Arc0027RequestError(ARC0027_ERROR_CODES.MethodCanceledError, "closed")
-          )
-      );
-      const transport = new ExtensionTransport(client);
-
-      await expect(transport.signTransaction([{txn: "AA=="}])).rejects.toMatchObject({
-        data: {type: "SIGN_TXN_CANCELLED"}
+        data: {type: "MESSAGE_NOT_RECEIVED"}
       });
     });
   });
 
   describe("reconnect()", () => {
-    it("returns [] without clearing storage when the extension is still discoverable", async () => {
-      saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet-extension");
-      const discover = vi
-        .fn()
-        .mockResolvedValue({providerId: "pera", name: "Pera", networks: []});
-      const transport = new ExtensionTransport(makeClient(vi.fn(), discover));
+    it("resolves the stored accounts when the origin is already approved", async () => {
+      const transport = new ExtensionTransport(provider, {chainId: 416002});
 
-      await expect(transport.reconnect()).resolves.toEqual([]);
-      expect(discover).toHaveBeenCalled();
-      expect(getWalletDetailsFromStorage()).not.toBeNull();
+      await expect(transport.reconnect()).resolves.toEqual([ADDRESS]);
+      expect(getWalletDetailsFromStorage()?.type).toBe("pera-wallet-extension");
     });
 
-    it("clears storage and returns [] when the extension is no longer discoverable", async () => {
-      saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet-extension");
-      const discover = vi.fn().mockResolvedValue(null);
-      const transport = new ExtensionTransport(makeClient(vi.fn(), discover));
+    it("treats UNAUTHORIZED as no session rather than an error", async () => {
+      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
+      provider.connect.mockRejectedValue(
+        providerError(PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED)
+      );
+      const transport = new ExtensionTransport(provider, {});
 
       await expect(transport.reconnect()).resolves.toEqual([]);
       expect(getWalletDetailsFromStorage()).toBeNull();
+    });
+
+    it("surfaces other failures as SESSION_RECONNECT", async () => {
+      provider.connect.mockRejectedValue(
+        providerError(PERA_PROVIDER_ERROR_CODES.INTERNAL_ERROR)
+      );
+      const transport = new ExtensionTransport(provider, {});
+
+      await expect(transport.reconnect()).rejects.toMatchObject({
+        data: {type: "SESSION_RECONNECT"}
+      });
     });
   });
 
   describe("disconnect()", () => {
-    it("requests disable and clears storage on success", async () => {
-      saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet-extension");
-      const request = vi.fn().mockResolvedValue({});
-      const transport = new ExtensionTransport(makeClient(request));
-
-      await transport.disconnect();
-
-      expect(request).toHaveBeenCalledWith("disable", expect.any(Object));
-      expect(getWalletDetailsFromStorage()).toBeNull();
-    });
-
-    it("still clears storage when the disable request fails (best-effort)", async () => {
-      saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet-extension");
-      const request = vi.fn().mockRejectedValue(new Error("extension gone"));
-      const transport = new ExtensionTransport(makeClient(request));
+    it("calls the provider and clears storage even when the provider fails", async () => {
+      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
+      provider.disconnect.mockRejectedValue(
+        providerError(PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED)
+      );
+      const transport = new ExtensionTransport(provider, {});
 
       await expect(transport.disconnect()).resolves.toBeUndefined();
+      expect(provider.disconnect).toHaveBeenCalled();
       expect(getWalletDetailsFromStorage()).toBeNull();
     });
   });
 
-  describe("static discover()", () => {
-    it("delegates to the client's discover()", async () => {
-      const result = {providerId: "pera", name: "Pera", networks: []};
-      const client = makeClient(vi.fn(), vi.fn().mockResolvedValue(result));
+  describe("wallet-initiated notifications", () => {
+    it("subscribes once per provider and forwards disconnect after clearing the session", () => {
+      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
+      const onDisconnect = vi.fn();
+      const transport = new ExtensionTransport(provider, {onDisconnect});
 
-      await expect(ExtensionTransport.discover(client)).resolves.toEqual(result);
-      expect(client.discover).toHaveBeenCalled();
+      expect(provider.on).toHaveBeenCalledWith("disconnect", expect.any(Function));
+      expect(
+        provider.on.mock.calls.filter(([event]: [string]) => event === "disconnect")
+      ).toHaveLength(1);
+
+      provider.emit("disconnect");
+
+      expect(getWalletDetailsFromStorage()).toBeNull();
+      expect(onDisconnect).toHaveBeenCalledTimes(1);
+      expect(transport.network).toBeNull();
+    });
+
+    it("leaves a mobile session alone when the extension reports a disconnect", () => {
+      saveWalletDetailsToStorage([ADDRESS], "pera-wallet");
+      const onDisconnect = vi.fn();
+
+      const transport = new ExtensionTransport(provider, {onDisconnect});
+
+      provider.emit("disconnect");
+      expect(transport.network).toBeNull();
+
+      expect(getWalletDetailsFromStorage()?.type).toBe("pera-wallet");
+      expect(onDisconnect).not.toHaveBeenCalled();
+    });
+
+    it("forwards networkChanged with the new network", () => {
+      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
+
+      const onNetworkChanged = vi.fn();
+      const transport = new ExtensionTransport(provider, {onNetworkChanged});
+
+      provider.emit("networkChanged", {network: "mainnet"});
+
+      expect(onNetworkChanged).toHaveBeenCalledWith({network: "mainnet"});
+      expect(transport.network).toBe("mainnet");
+    });
+
+    it("ignores networkChanged when the session is not an extension one", () => {
+      saveWalletDetailsToStorage([ADDRESS], "pera-wallet");
+
+      const onNetworkChanged = vi.fn();
+      const transport = new ExtensionTransport(provider, {onNetworkChanged});
+
+      provider.emit("networkChanged", {network: "mainnet"});
+
+      expect(onNetworkChanged).not.toHaveBeenCalled();
+      expect(transport.network).toBeNull();
+    });
+
+    it("dispose() unsubscribes from the provider", () => {
+      const onDisconnect = vi.fn();
+      const transport = new ExtensionTransport(provider, {onDisconnect});
+
+      transport.dispose();
+      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
+      provider.emit("disconnect");
+
+      expect(onDisconnect).not.toHaveBeenCalled();
+      expect(getWalletDetailsFromStorage()).not.toBeNull();
     });
   });
 });

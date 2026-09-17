@@ -7,6 +7,7 @@ import {
   saveWalletDetailsToStorage,
   resetWalletDetailsFromStorage
 } from "../util/storage/storageUtils";
+import {installPeraProvider, uninstallPeraProvider} from "./helpers/peraProviderStub";
 
 vi.mock("../util/api/peraWalletConnectApi", () => ({
   getPeraConnectConfig: () =>
@@ -55,14 +56,19 @@ async function captureWalletPayload(
 ): Promise<PeraWalletTransaction[]> {
   saveWalletDetailsToStorage([String(accountA.addr)], "pera-wallet-extension");
 
+  const provider = installPeraProvider();
+
+  provider.signTransactions.mockResolvedValue([Buffer.from([1]).toString("base64")]);
+
   const pera = new PeraWalletConnect();
-  const spy = vi
-    .spyOn((pera as any).extensionTransport, "signTransaction")
-    .mockResolvedValue([new Uint8Array([1])]);
 
-  await pera.signTransaction(txGroups, signerAddress);
+  try {
+    await pera.signTransaction(txGroups, signerAddress);
+  } finally {
+    uninstallPeraProvider();
+  }
 
-  return spy.mock.calls[0][0] as PeraWalletTransaction[];
+  return provider.signTransactions.mock.calls[0][0] as PeraWalletTransaction[];
 }
 
 function decodePayloadTxn(payloadTxn: PeraWalletTransaction) {

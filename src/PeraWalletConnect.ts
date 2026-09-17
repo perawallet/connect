@@ -8,6 +8,7 @@ import {
   openPeraWalletConnectModal,
   removeModalWrapperFromDOM,
   PERA_WALLET_CONNECT_MODAL_ID,
+  PERA_WALLET_EXTENSION_CONNECT_EVENT,
   PeraWalletModalConfig,
   setupPeraWalletConnectModalCloseListener
 } from "./modal/peraWalletConnectModalUtils";
@@ -46,12 +47,12 @@ import {getNetworkFromChainId} from "./util/algod/algodUtils";
 import {PERA_WALLET_SIGNATURE_PREFIX} from "./util/peraWalletConstants";
 import {getPublicSettings} from "./util/webview-api/webviewApi";
 import {ExtensionTransport} from "./transport/extension/ExtensionTransport";
+import {getPeraProvider, PeraNetwork} from "./transport/extension/peraProviderTypes";
 import {isArc60OriginMismatch} from "./transport/extension/originBinding";
 import {MobileTransport} from "./transport/MobileTransport";
 import {WebTransport} from "./transport/WebTransport";
 import {ConnectOptions} from "./transport/WalletTransport";
 import {buildArc60SignDataResponse, decodeArc60SignedData} from "./transport/arc60Wire";
-import {Arc0027Client} from "./transport/extension/arc0027Client";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -59,15 +60,33 @@ interface PeraWalletConnectOptions {
   chainId?: AlgorandChainIDs;
   compactMode?: boolean;
   singleAccount?: boolean;
+  /**
+   * When the Pera browser extension is installed (`window.pera` is present),
+   * the connect modal offers "Connect with Pera Extension" and pre-selects it.
+   * Set to `false` to leave the extension out of the modal and only offer the
+   * QR / Pera Web options. Defaults to `true`.
+   */
   shouldPreferExtension?: boolean;
   /**
-   * Enables experimental features — currently ARC-0027 browser-extension
-   * support (extension detection on `connect()`, the extension option in the
-   * connect modal and the extension transport). Off by default and subject to
-   * change.
+   * Opts in to experimental features. Nothing is gated behind it at the
+   * moment: browser-extension support used to be, and is now on by default
+   * whenever `window.pera` is present. Kept as the opt-in for whatever is
+   * experimental next.
    */
   experimental?: boolean;
 }
+
+type PeraWalletConnectEventMap = {
+  /** The session ended from the wallet side (for example the user revoked the site). */
+  disconnect: undefined;
+  /** The wallet switched network (extension only). */
+  networkChanged: {network: PeraNetwork};
+};
+
+type PeraWalletConnectEvent = keyof PeraWalletConnectEventMap;
+type PeraWalletConnectEventHandler<E extends PeraWalletConnectEvent> = (
+  payload: PeraWalletConnectEventMap[E]
+) => void;
 
 function generatePeraWalletConnectModalActions({
   isWebWalletAvailable,
@@ -78,9 +97,7 @@ function generatePeraWalletConnectModalActions({
   singleAccount,
   selectedAccount,
   isInWebview,
-  isExtensionSupportEnabled,
-  isExtensionAvailable,
-  extensionName
+  isExtensionEnabled
 }: PeraWalletModalConfig) {
   return {
     open: openPeraWalletConnectModal({
@@ -92,9 +109,7 @@ function generatePeraWalletConnectModalActions({
       singleAccount,
       selectedAccount,
       isInWebview,
-      isExtensionSupportEnabled,
-      isExtensionAvailable,
-      extensionName
+      isExtensionEnabled
     }),
     close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
   };
@@ -109,9 +124,16 @@ class PeraWalletConnect {
   compactMode?: boolean;
   singleAccount?: boolean;
   shouldPreferExtension: boolean;
-  private isExperimentalEnabled: boolean;
-  private arc0027Client: Arc0027Client;
-  private extensionTransport: ExtensionTransport;
+  experimental: boolean;
+  private extensionTransport: ExtensionTransport | null;
+  /** Connectors the SDK has retired; see `abandonConnector()`. */
+  private abandonedConnectors = new WeakSet<WalletConnect>();
+  private eventHandlers: {
+    [E in PeraWalletConnectEvent]: Set<PeraWalletConnectEventHandler<E>>;
+  } = {
+    disconnect: new Set(),
+    networkChanged: new Set()
+  };
   private algodClients: Map<NetworkToggle, AlgodManager>;
   private _configPromise: ReturnType<typeof getPeraConnectConfig> | null = null;
   private _webviewCheckPromise: Promise<boolean> | null = null;
@@ -135,9 +157,8 @@ class PeraWalletConnect {
       typeof options?.shouldPreferExtension === "undefined"
         ? true
         : options.shouldPreferExtension;
-    this.isExperimentalEnabled = options?.experimental || false;
-    this.arc0027Client = new Arc0027Client();
-    this.extensionTransport = new ExtensionTransport(this.arc0027Client);
+    this.experimental = options?.experimental || false;
+    this.extensionTransport = this.createExtensionTransport();
 
     // Earlier versions persisted the WalletConnect session under the shared
     // WC v1 default key; move it to Pera's namespaced key before any connector
@@ -154,14 +175,124 @@ class PeraWalletConnect {
     return getWalletPlatformFromStorage();
   }
 
+  /**
+   * Whether the Pera browser extension's provider (`window.pera`) is present
+   * on this page. The detection itself is synchronous (the provider is
+   * installed before any page script runs, so there is nothing to poll for or
+   * wait on); the promise is kept for backwards compatibility.
+   */
   isExtensionAvailable(): Promise<boolean> {
-    // Always false unless experimental features are enabled via
-    // `new PeraWalletConnect({experimental: true})`.
-    if (!this.isExperimentalEnabled) {
-      return Promise.resolve(false);
+    return Promise.resolve(this.extensionTransport !== null);
+  }
+
+  /**
+   * Subscribe to session events. Returns the unsubscribe function.
+   *
+   * `disconnect` fires when the wallet ends the session on its side: the user
+   * revoked the site from the extension's Connections screen, or the Pera
+   * mobile wallet killed the WalletConnect session. `networkChanged` fires
+   * when the extension wallet switches network.
+   */
+  on<E extends PeraWalletConnectEvent>(
+    event: E,
+    handler: PeraWalletConnectEventHandler<E>
+  ): () => void {
+    const handlers = this.eventHandlers[event] as Set<PeraWalletConnectEventHandler<E>>;
+
+    handlers.add(handler);
+
+    return () => {
+      handlers.delete(handler);
+    };
+  }
+
+  private emit<E extends PeraWalletConnectEvent>(
+    event: E,
+    payload: PeraWalletConnectEventMap[E]
+  ) {
+    const handlers = this.eventHandlers[event] as Set<PeraWalletConnectEventHandler<E>>;
+
+    handlers.forEach((handler) => {
+      try {
+        handler(payload);
+      } catch {
+        // A faulty listener must not break the others or the SDK.
+      }
+    });
+  }
+
+  private createExtensionTransport(): ExtensionTransport | null {
+    const provider = getPeraProvider();
+
+    if (!provider) {
+      return null;
     }
 
-    return this.arc0027Client.discover().then((info) => info !== null);
+    return new ExtensionTransport(provider, {
+      chainId: this.chainId,
+      onDisconnect: () => this.emit("disconnect", undefined),
+      onNetworkChanged: (params) => this.emit("networkChanged", params)
+    });
+  }
+
+  /**
+   * The WalletConnect connector reports a wallet-side session end through its
+   * own `disconnect` event; mirror it on the SDK so dApps can listen in one
+   * place regardless of transport.
+   *
+   * The event is also how WalletConnect v1 reports *our* `killSession()`, so
+   * connectors we have abandoned are filtered out — a dApp must not be told
+   * the wallet ended a session that the SDK itself is tearing down.
+   */
+  private forwardConnectorDisconnect(connector: WalletConnect) {
+    connector.on("disconnect", () => {
+      if (this.abandonedConnectors.has(connector)) {
+        return;
+      }
+
+      if (this.connector === connector) {
+        this.connector = null;
+      }
+
+      // Another transport may own the current session; only a mobile one is
+      // dropped here. Mirrors ExtensionTransport.handleProviderDisconnect(),
+      // so the handler sees cleared state either way.
+      if (getWalletPlatformFromStorage() === "mobile") {
+        resetWalletDetailsFromStorage();
+      }
+
+      this.emit("disconnect", undefined);
+    });
+  }
+
+  /**
+   * Retires a WalletConnect connector the SDK is done with. WalletConnect v1
+   * keeps its listeners for the connector's lifetime and its `off()` drops
+   * every listener for an event, so the connector is marked instead and its
+   * handlers bail.
+   *
+   * Without this a QR pairing left in flight by a connect that finished
+   * through another transport still fires `connect` when the user finally
+   * scans, overwriting the stored session with a mobile one.
+   */
+  private async abandonConnector(connector: WalletConnect | null) {
+    if (!connector) {
+      return;
+    }
+
+    this.abandonedConnectors.add(connector);
+
+    if (this.connector === connector) {
+      this.connector = null;
+    }
+
+    if (connector.connected) {
+      try {
+        await connector.killSession();
+      } catch (_error) {
+        // Best-effort: the connector is already detached either way.
+      }
+    }
   }
 
   get isConnected() {
@@ -196,17 +327,28 @@ class PeraWalletConnect {
 
   // `selectedAccount` option is only applicable for Pera Wallet products
   connect(options?: ConnectOptions) {
-    return new Promise<string[]>(async (resolve, reject) => {
+    return new Promise<string[]>(async (resolveConnect, rejectConnect) => {
+      // The extension button's listener is scoped to this connect() call and
+      // must go away however the call settles (WalletConnect pairing, Pera
+      // Web, modal closed, failure), or a later click would hit a stale one.
+      let removeExtensionListener = () => {
+        // no listener registered
+      };
+      const resolve = (accounts: string[]) => {
+        removeExtensionListener();
+        resolveConnect(accounts);
+      };
+      const reject = (error: unknown) => {
+        removeExtensionListener();
+        rejectConnect(error);
+      };
+
       try {
-        // check if already connected and kill session first before creating a new one.
-        // This is to kill the last session and make sure user start from scratch whenever `.connect()` method is called.
-        if (this.connector?.connected) {
-          try {
-            await this.connector.killSession();
-          } catch (_error) {
-            // No need to handle
-          }
-        }
+        // Retire the previous connector before creating a new one, so the user
+        // starts from scratch on every `.connect()` call. Going through
+        // `abandonConnector()` keeps our own `killSession()` from reaching the
+        // dApp as a wallet-side `disconnect` mid-connect.
+        await this.abandonConnector(this.connector);
 
         const {
           isWebWalletAvailable,
@@ -236,23 +378,46 @@ class PeraWalletConnect {
           window.onWebWalletConnect = onWebWalletConnect;
         }
 
-        // Auto-detect the ARC-0027 browser extension before opening the modal
-        // (requires the `experimental` option).
-        const discovered =
-          this.isExperimentalEnabled && this.shouldPreferExtension
-            ? await this.arc0027Client.discover()
-            : null;
+        const extensionTransport = this.shouldPreferExtension
+          ? this.extensionTransport
+          : null;
 
-        if (discovered) {
-          // @ts-ignore ts-2339 — modal button bridge, mirrors onWebWalletConnect
-          window.onExtensionConnect = () => {
-            this.extensionTransport
+        if (extensionTransport) {
+          // The modal's extension button dispatches this event synchronously
+          // from its click handler, and `dispatchEvent` runs listeners
+          // synchronously, so `window.pera.connect()` below still runs inside
+          // the user's gesture (a first-time connect needs that activation).
+          const handleExtensionConnect = () => {
+            removeExtensionListener();
+
+            // Take the modal down before awaiting the provider. The extension's
+            // own approval window owns the flow from here, and leaving our close
+            // button live would let the user "cancel" a connect that is already
+            // in flight: `connect()` would reject while the later approval still
+            // stored the session, so the dApp shows "not connected" and the next
+            // page load silently reconnects.
+            removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+
+            extensionTransport
               .connect({selectedAccount: options?.selectedAccount})
               .then((accounts) => {
-                removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+                // The QR pairing may still be waiting for a scan; retire it so
+                // it cannot overwrite the extension session with a mobile one.
+                this.abandonConnector(this.connector);
                 resolve(accounts);
               })
               .catch(reject);
+          };
+
+          document.addEventListener(
+            PERA_WALLET_EXTENSION_CONNECT_EVENT,
+            handleExtensionConnect
+          );
+          removeExtensionListener = () => {
+            document.removeEventListener(
+              PERA_WALLET_EXTENSION_CONNECT_EVENT,
+              handleExtensionConnect
+            );
           };
         }
 
@@ -271,11 +436,11 @@ class PeraWalletConnect {
             singleAccount: this.singleAccount,
             selectedAccount: options?.selectedAccount,
             isInWebview: this.isInWebview,
-            isExtensionSupportEnabled: this.isExperimentalEnabled,
-            isExtensionAvailable: !!discovered,
-            extensionName: discovered?.name || "Pera Extension"
+            isExtensionEnabled: extensionTransport !== null
           })
         });
+
+        this.forwardConnectorDisconnect(this.connector);
 
         await this.connector.createSession({
           // eslint-disable-next-line no-magic-numbers
@@ -293,14 +458,20 @@ class PeraWalletConnect {
           )
         );
 
-        this.connector.on("connect", (error, _payload) => {
+        const {connector} = this;
+
+        connector.on("connect", (error, _payload) => {
+          if (this.abandonedConnectors.has(connector)) {
+            return;
+          }
+
           if (error) {
             reject(error);
           }
 
-          resolve(this.connector?.accounts || []);
+          resolve(connector.accounts || []);
 
-          saveWalletDetailsToStorage(this.connector?.accounts || []);
+          saveWalletDetailsToStorage(connector.accounts || []);
         });
       } catch (error: any) {
         reject(
@@ -348,20 +519,32 @@ class PeraWalletConnect {
         }
 
         if (walletDetails?.type === "pera-wallet-extension") {
-          if (!this.isExperimentalEnabled) {
-            // The stored session predates disabling experimental features;
-            // treat it as no session.
+          if (!this.extensionTransport) {
+            // The extension was removed (or this is another browser); the
+            // wallet owns the connection, so there is nothing to resume.
             await resetWalletDetailsFromStorage();
             resolve([]);
 
             return;
           }
 
-          const accounts = await this.extensionTransport.reconnect();
-
-          // reconnect() returns [] but leaves storage intact when the
-          // extension is still present; fall back to stored accounts.
-          resolve(accounts.length ? accounts : walletDetails.accounts || []);
+          // A gesture-less connect(): the wallet answers at once with the
+          // approved accounts, or with "unauthorized", which reconnect()
+          // turns into [] after clearing the stale details.
+          //
+          // Anything else (the service worker restarting mid page-load, the
+          // wallet sitting on another network) is settled here rather than in
+          // the catch-all below: that catch disconnects, which for an
+          // extension session means revoking this origin in the wallet. The
+          // approval is the user's to give and take, so a transient failure
+          // must leave it — and the stored details — alone. Rejecting with the
+          // transport's own error also keeps the cause at `error.data.type`
+          // instead of burying it under a second SESSION_RECONNECT wrapper.
+          try {
+            resolve(await this.extensionTransport.reconnect());
+          } catch (error) {
+            reject(error);
+          }
 
           return;
         }
@@ -380,6 +563,8 @@ class PeraWalletConnect {
             bridge: this.bridge,
             storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
           });
+
+          this.forwardConnectorDisconnect(this.connector);
 
           resolve(this.connector?.accounts || []);
         }
@@ -406,21 +591,41 @@ class PeraWalletConnect {
   }
 
   async disconnect() {
-    let killPromise: Promise<void> | undefined;
-
-    if (this.isConnected && this.platform === "extension") {
+    if (this.isConnected && this.platform === "extension" && this.extensionTransport) {
       await this.extensionTransport.disconnect();
     }
 
     if (this.isConnected && this.platform === "mobile") {
-      killPromise = this.connector?.killSession();
-
-      killPromise?.then(() => {
-        this.connector = null;
-      });
+      // Retiring rather than killing directly: this is the SDK's own teardown,
+      // and WalletConnect reports `killSession()` through the same `disconnect`
+      // event a wallet-side end uses.
+      await this.abandonConnector(this.connector);
     }
 
     await resetWalletDetailsFromStorage();
+  }
+
+  /**
+   * Releases everything this instance holds: the `window.pera` subscriptions
+   * (the provider outlives the page's components, so an undisposed instance is
+   * retained for the page's life) and any WalletConnect connector. The wallet
+   * session itself is untouched — call `disconnect()` for that.
+   *
+   * Call it when the component owning the instance unmounts. Under React
+   * StrictMode or hot reload, skipping it leaves the discarded instance
+   * listening and swallowing the events the live one should handle.
+   */
+  dispose() {
+    this.extensionTransport?.dispose();
+    this.extensionTransport = null;
+
+    if (this.connector) {
+      this.abandonedConnectors.add(this.connector);
+      this.connector = null;
+    }
+
+    this.eventHandlers.disconnect.clear();
+    this.eventHandlers.networkChanged.clear();
   }
 
   verifySignature(
@@ -500,6 +705,13 @@ class PeraWalletConnect {
 
   private getTransport() {
     if (this.platform === "extension") {
+      if (!this.extensionTransport) {
+        throw new PeraWalletConnectError(
+          {type: "EXTENSION_NOT_AVAILABLE"},
+          "The session was created with the Pera extension, but window.pera is not present on this page. Reconnect with another option."
+        );
+      }
+
       return this.extensionTransport;
     }
 

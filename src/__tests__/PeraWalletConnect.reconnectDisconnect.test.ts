@@ -10,6 +10,12 @@ import {
   PERA_WALLET_LOCAL_STORAGE_KEYS,
   LEGACY_WALLETCONNECT_STORAGE_KEY
 } from "../util/storage/storageConstants";
+import {PERA_PROVIDER_ERROR_CODES} from "../transport/extension/peraProviderTypes";
+import {
+  installPeraProvider,
+  makePeraProviderError,
+  uninstallPeraProvider
+} from "./helpers/peraProviderStub";
 
 const {configState} = vi.hoisted(() => ({
   configState: {
@@ -30,6 +36,7 @@ vi.mock("../util/api/peraWalletConnectApi", () => ({
 describe("PeraWalletConnect.reconnectSession()", () => {
   afterEach(() => {
     configState.isWebWalletAvailable = false;
+    uninstallPeraProvider();
     resetWalletDetailsFromStorage();
     vi.restoreAllMocks();
   });
@@ -60,35 +67,89 @@ describe("PeraWalletConnect.reconnectSession()", () => {
     });
   });
 
-  it("extension: treats a stored session as none when experimental support is off", async () => {
+  it("extension: treats a stored session as none when window.pera is gone", async () => {
     saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
 
     const pera = new PeraWalletConnect();
-    const reconnectSpy = vi.spyOn((pera as any).extensionTransport, "reconnect");
 
     await expect(pera.reconnectSession()).resolves.toEqual([]);
-    expect(reconnectSpy).not.toHaveBeenCalled();
     expect(getWalletDetailsFromStorage()).toBeNull();
   });
 
-  it("extension: resolves accounts returned live by the transport", async () => {
+  it("extension: silently reconnects with the wallet's current accounts", async () => {
     saveWalletDetailsToStorage(["STALE"], "pera-wallet-extension");
+    const provider = installPeraProvider(["LIVE"]);
 
-    const pera = new PeraWalletConnect({experimental: true});
-
-    vi.spyOn((pera as any).extensionTransport, "reconnect").mockResolvedValue(["LIVE"]);
+    const pera = new PeraWalletConnect();
 
     await expect(pera.reconnectSession()).resolves.toEqual(["LIVE"]);
+    expect(provider.connect).toHaveBeenCalledTimes(1);
+    expect(getWalletDetailsFromStorage()?.accounts).toEqual(["LIVE"]);
   });
 
-  it("extension: falls back to stored accounts when the transport returns none", async () => {
-    saveWalletDetailsToStorage(["STORED"], "pera-wallet-extension");
+  it("extension: resolves [] and clears storage when the origin is no longer approved", async () => {
+    saveWalletDetailsToStorage(["STALE"], "pera-wallet-extension");
+    const provider = installPeraProvider();
 
-    const pera = new PeraWalletConnect({experimental: true});
+    provider.connect.mockRejectedValue(
+      makePeraProviderError(PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED)
+    );
 
-    vi.spyOn((pera as any).extensionTransport, "reconnect").mockResolvedValue([]);
+    const pera = new PeraWalletConnect();
 
-    await expect(pera.reconnectSession()).resolves.toEqual(["STORED"]);
+    await expect(pera.reconnectSession()).resolves.toEqual([]);
+    expect(getWalletDetailsFromStorage()).toBeNull();
+    expect(pera.isConnected).toBe(false);
+  });
+
+  it("extension: rejects with SESSION_RECONNECT on any other provider failure, keeping the approval", async () => {
+    saveWalletDetailsToStorage(["STALE"], "pera-wallet-extension");
+    const provider = installPeraProvider();
+
+    provider.connect.mockRejectedValue(
+      makePeraProviderError(PERA_PROVIDER_ERROR_CODES.INTERNAL_ERROR)
+    );
+
+    const pera = new PeraWalletConnect();
+
+    await expect(pera.reconnectSession()).rejects.toMatchObject({
+      data: {type: "SESSION_RECONNECT"}
+    });
+    // A transient provider failure (the service worker restarting mid
+    // page-load) must not revoke the origin in the wallet or drop the session.
+    expect(provider.disconnect).not.toHaveBeenCalled();
+    expect(getWalletDetailsFromStorage()?.accounts).toEqual(["STALE"]);
+  });
+
+  it("extension: surfaces a network mismatch without revoking the origin", async () => {
+    saveWalletDetailsToStorage(["STALE"], "pera-wallet-extension");
+    const provider = installPeraProvider();
+
+    provider.connect.mockRejectedValue(
+      makePeraProviderError(PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED)
+    );
+
+    const pera = new PeraWalletConnect();
+
+    // The cause stays at `data.type` instead of being buried under a second
+    // SESSION_RECONNECT wrapper, and the session survives until the user
+    // switches the wallet back.
+    await expect(pera.reconnectSession()).rejects.toMatchObject({
+      data: {type: "CONNECT_NETWORK_MISMATCH"}
+    });
+    expect(provider.disconnect).not.toHaveBeenCalled();
+    expect(getWalletDetailsFromStorage()?.accounts).toEqual(["STALE"]);
+  });
+
+  it("extension: does not touch window.pera for a mobile session", async () => {
+    saveWalletDetailsToStorage(["ADDR"], "pera-wallet");
+    const provider = installPeraProvider();
+
+    const pera = new PeraWalletConnect();
+
+    await pera.reconnectSession();
+
+    expect(provider.connect).not.toHaveBeenCalled();
   });
 
   it("mobile: resolves the live connector's accounts when one is already set", async () => {
@@ -141,21 +202,29 @@ describe("PeraWalletConnect.reconnectSession()", () => {
 
 describe("PeraWalletConnect.disconnect()", () => {
   afterEach(() => {
+    uninstallPeraProvider();
     resetWalletDetailsFromStorage();
     vi.restoreAllMocks();
   });
 
-  it("extension: disconnects the transport and clears storage", async () => {
+  it("extension: disconnects through window.pera and clears storage", async () => {
     saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
+    const provider = installPeraProvider();
 
     const pera = new PeraWalletConnect();
-    const disconnectSpy = vi
-      .spyOn((pera as any).extensionTransport, "disconnect")
-      .mockResolvedValue(undefined);
 
     await pera.disconnect();
 
-    expect(disconnectSpy).toHaveBeenCalled();
+    expect(provider.disconnect).toHaveBeenCalled();
+    expect(getWalletDetailsFromStorage()).toBeNull();
+  });
+
+  it("extension: clears storage even when window.pera is gone", async () => {
+    saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
+
+    const pera = new PeraWalletConnect();
+
+    await expect(pera.disconnect()).resolves.toBeUndefined();
     expect(getWalletDetailsFromStorage()).toBeNull();
   });
 
@@ -165,7 +234,7 @@ describe("PeraWalletConnect.disconnect()", () => {
     const pera = new PeraWalletConnect();
     const killSession = vi.fn().mockResolvedValue(undefined);
 
-    (pera as any).connector = {killSession};
+    (pera as any).connector = {connected: true, killSession};
 
     await pera.disconnect();
 
@@ -175,14 +244,11 @@ describe("PeraWalletConnect.disconnect()", () => {
   });
 
   it("does nothing beyond clearing storage when nothing is connected", async () => {
+    const provider = installPeraProvider();
     const pera = new PeraWalletConnect();
-    const extensionDisconnectSpy = vi.spyOn(
-      (pera as any).extensionTransport,
-      "disconnect"
-    );
 
     await expect(pera.disconnect()).resolves.toBeUndefined();
-    expect(extensionDisconnectSpy).not.toHaveBeenCalled();
+    expect(provider.disconnect).not.toHaveBeenCalled();
   });
 });
 

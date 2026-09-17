@@ -49,14 +49,31 @@ npm install @perawallet/connect
 yarn add @perawallet/connect
 ```
 
+Subscribe to `disconnect` once, next to the instance rather than inside a connect
+callback: `on()` keeps every handler you pass it until you unsubscribe, so
+registering a fresh one per connect leaves the old ones running too.
+
+```jsx
+// Once, alongside the peraWallet instance — not inside connect()/reconnectSession()
+useEffect(() => {
+  // Fires for every transport (mobile, extension) when the wallet ends the
+  // session on its side. Returns the unsubscribe function.
+  const unsubscribe = peraWallet.on("disconnect", handleDisconnectWalletClick);
+
+  // Releases the `window.pera` subscriptions this instance holds; the wallet
+  // session itself is untouched.
+  return () => {
+    unsubscribe();
+    peraWallet.dispose();
+  };
+}, []);
+```
+
 ```jsx
 // Connect handler
 peraWallet
   .connect()
   .then((newAccounts) => {
-    // Setup the disconnect event listener
-    peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
-
     setAccountAddress(newAccounts[0]);
   })
   .catch((error) => {
@@ -73,9 +90,6 @@ If you don't want the user's account information to be lost by the dApp when the
 ```jsx
 // On the every page refresh
 peraWallet.reconnectSession().then((accounts) => {
-  // Setup the disconnect event listener
-  peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
-
   if (accounts.length) {
     setAccountAddress(accounts[0]);
   }
@@ -100,6 +114,7 @@ try {
 | `chainId`                | `4160`  | `416001`, `416002`, `416003` , `4160` | optional |
 | `shouldShowSignTxnToast` | `true`  | `boolean`                             | optional |
 | `compactMode`            | `false` | `boolean`                             | optional |
+| `shouldPreferExtension`  | `true`  | `boolean`                             | optional |
 
 #### **`chainId`**
 
@@ -123,6 +138,10 @@ It's enabled by default but in some cases, you may not need the toast message (e
 
 It offers a compact UI optimized for smaller screens, with a minimum resolution of 400x400 pixels.
 
+#### **`shouldPreferExtension`**
+
+When the Pera browser extension is installed, the connect modal lists "Connect with Pera Extension" first and pre-selects it. Set this to `false` to leave the extension out of the modal and only offer the QR code and Pera Web options. See [Browser extension](#browser-extension-windowpera) below.
+
 ## Methods
 
 #### `PeraWalletConnect.connect(): Promise<string[]>`
@@ -140,7 +159,28 @@ Disconnects from the wallet and resets the related storage items. Pera's session
 
 #### `PeraWalletConnect.platform: PeraWalletPlatformType`
 
-Returns the platform of the active session. Possible responses: _`mobile | web | null`_
+Returns the platform of the active session. Possible responses: _`mobile | web | extension | null`_
+
+#### `PeraWalletConnect.isExtensionAvailable(): Promise<boolean>`
+
+Resolves with whether the Pera browser extension's provider (`window.pera`) is present on the page. See [Browser extension](#browser-extension-windowpera).
+
+#### `PeraWalletConnect.on(event, handler): () => void`
+
+Subscribes to session events and returns the unsubscribe function.
+
+- `"disconnect"`: the wallet ended the session on its side. With the extension this happens when the user revokes your site from the extension's Connections screen; with Pera mobile when the WalletConnect session is killed from the app. The SDK has already cleared its session state when the handler runs. It does not fire for teardown the SDK itself starts — your own `disconnect()` call, or the session `connect()` replaces.
+- `"networkChanged"`: the extension wallet switched network, on a session owned by the extension. The handler receives `{network: "mainnet" | "testnet" | "betanet"}`.
+
+Handlers stay subscribed until you call the returned function, so register them once per instance rather than on every connect.
+
+```typescript
+const unsubscribe = peraWallet.on("disconnect", () => setAccountAddress(null));
+```
+
+#### `PeraWalletConnect.dispose(): void`
+
+Releases everything the instance holds — the `window.pera` subscriptions and any WalletConnect connector — without touching the wallet session. Call it when the component owning the instance unmounts; under React StrictMode or hot reload, an undisposed instance keeps listening and swallows events the live one should handle. Use `disconnect()` to end the session itself.
 
 #### `PeraWalletConnect.isConnected: boolean`
 
@@ -339,29 +379,44 @@ In some cases, you may want to customize it. You can achieve this by adding a me
 <meta name="name" content="My dApp" />
 ```
 
-## Browser extension (ARC-0027) — experimental
+## Browser extension (`window.pera`)
 
-Extension support is **experimental** and disabled by default. Opt in to
-experimental features with:
+The Pera browser extension injects a provider at `window.pera` on every `https` page (and `http://localhost`) before any page script runs. When it is present, `@perawallet/connect` uses it directly instead of WalletConnect: the connect modal lists "Connect with Pera Extension" first and pre-selects it, and `connect()`, `reconnectSession()`, `signTransaction()`, `signData()`, `signArc60Data()` and `disconnect()` all go through the provider. Pages without the extension behave exactly as before, and users can still pick the QR code or Pera Web options from the same modal.
+
+The SDK detects the provider synchronously when it is constructed, so no probe or handshake delays the connect modal. Call `peraWallet.isExtensionAvailable()` if you want to know yourself, or `getPeraProvider()` to reach the provider directly. Pass `shouldPreferExtension: false` to keep the extension out of the modal.
+
+#### `connect()` needs a user gesture
+
+The extension only opens its approval window for a first-time connection while the page has transient user activation (a click or key press within the last few seconds). The SDK's extension button calls `window.pera.connect()` synchronously from its click handler, so the normal flow works out of the box. If you build your own UI on top of `window.pera`, call `connect()` directly inside your click handler, before any `await`; a connect without activation fails with code `-32001` and no approval window.
+
+Once your origin is approved, `reconnectSession()` resolves silently with the wallet's current accounts on every page load. If the user has revoked the site, it resolves with `[]` just like any other missing session. Any other failure — a wallet on a network your `chainId` does not allow, or the extension's service worker restarting mid page-load — rejects with the cause at `error.data.type` and leaves the approval in place, so a later reload picks the session back up.
+
+#### Networks
+
+With a specific `chainId` (`416001`, `416002`, `416003`) the SDK asks the extension for that network, and `connect()` rejects with `CONNECT_NETWORK_MISMATCH` when the wallet is on a different one. With the default `4160` the wallet connects on whatever network it is on. Subscribe to `peraWallet.on("networkChanged", ...)` to follow later switches.
+
+#### Errors
+
+Provider errors are mapped onto the SDK's `PeraWalletConnectError` types:
+
+| extension code | meaning                          | `error.data.type`                                                                         |
+| -------------- | -------------------------------- | ----------------------------------------------------------------------------------------- |
+| `-32002`       | user rejected                    | `CONNECT_CANCELLED`, `SIGN_TXN_CANCELLED`, `SIGN_DATA_CANCELLED`                          |
+| `-32003`       | network mismatch                 | `CONNECT_NETWORK_MISMATCH`, `SIGN_TXN_NETWORK_MISMATCH`, `SIGN_DATA_NETWORK_MISMATCH`     |
+| `-32001`       | not connected / no user gesture  | `SESSION_CONNECT` on connect, `SESSION_DISCONNECTED` when signing, `[]` from reconnect    |
+| `-32004`       | the wallet did not answer in time| `MESSAGE_NOT_RECEIVED`                                                                    |
+
+The wallet applies its own approval timeout (about five minutes); the SDK adds none, so users can take their time. The original provider error is attached as `error.data.detail`.
+
+#### Using `window.pera` directly
+
+The provider's types are exported for dApps that talk to it themselves:
 
 ```typescript
-const peraWallet = new PeraWalletConnect({experimental: true});
+import {getPeraProvider, PERA_PROVIDER_ERROR_CODES, type PeraProvider} from "@perawallet/connect";
+
+const pera = getPeraProvider(); // PeraProvider | null, also typed as window.pera
 ```
-
-While enabled, the connect modal always lists a "Connect with Pera Extension"
-option. When a compatible Pera browser extension is installed, `connect()`
-auto-detects it (via an ARC-0027 `discover` round-trip) and pre-selects that
-option; otherwise the option shows an install link and the usual default option
-stays expanded. Users can still fall back to the QR / Pera Web options in the
-same modal.
-
-- Disable auto-detection (while keeping extension support enabled) with
-  `shouldPreferExtension: false`.
-- Check availability yourself with `await peraWallet.isExtensionAvailable()`
-  (always `false` when experimental support is off).
-- `signArc60Data` is supported on the extension; on that path `domain` must match
-  your page origin. Legacy `signData` (arbitrary data) is not yet supported on the
-  extension and throws `EXTENSION_UNSUPPORTED_OPERATION`.
 
 ## Contributing
 
