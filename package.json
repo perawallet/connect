@@ -12,6 +12,7 @@
   "module": "dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "dev": "rollup -c -w",
     "build": "pnpm run eslint && rollup -c",
     "build:release": "rollup -c",

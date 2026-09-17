@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# Blocks a commit that stages a secret.
+#
+# History is forever: once a credential is committed it is exposed even if the
+# next commit removes it, and if it reaches a published bundle it cannot be
+# recalled. This catches it while it is still only staged — the one point where
+# the fix is free.
+#
+# Enabled automatically by the `prepare` script in package.json, which points
+# core.hooksPath at this directory on install.
+#
+# This hook is a convenience, not the enforcement point: it warns and lets the
+# commit through when gitleaks is not installed, so a missing tool never blocks
+# work. CI runs the same scan and does fail the build.
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  printf '\033[33m! gitleaks not installed — staged changes were NOT scanned for secrets.\033[0m\n' >&2
+  printf '  Install it to catch secrets before they reach history:\n' >&2
+  printf '    macOS: brew install gitleaks\n' >&2
+  printf '    other: https://github.com/gitleaks/gitleaks#installing\n' >&2
+  printf '  CI scans regardless, and will fail the build.\n' >&2
+  exit 0
+fi
+
+if gitleaks git --staged --no-banner --redact --log-level error .; then
+  exit 0
+fi
+
+printf '\n\033[31m✖ Commit blocked: a secret was found in the staged changes.\033[0m\n' >&2
+printf '\n' >&2
+printf '  Remove it and read the value from the environment instead. A published\n' >&2
+printf '  package cannot keep a secret — anything committed here is public.\n' >&2
+printf '\n' >&2
+printf '  If it is genuinely not a secret, mark it at the source with a\n' >&2
+printf '  `gitleaks:allow` comment on the line, so the reason is visible in review.\n' >&2
+printf '\n' >&2
+printf '  `--no-verify` skips this check, but CI runs the same scan and will fail.\n' >&2
+printf '  If the secret is real and already committed, it must be rotated — removing\n' >&2
+printf '  it from the branch does not un-expose it.\n' >&2
+printf '\n' >&2
+exit 1

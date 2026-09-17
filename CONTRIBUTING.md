@@ -22,6 +22,37 @@ When opening a new issue, always make sure to fill out the issue template.
 
 Running `pnpm run build` from the root directory will run the build command for package.
 
+##### Secrets
+
+Never commit a credential. This package is published to npm, so anything in the
+source ends up in a bundle that anyone can read, in git history that cannot be
+rewritten away, and in released tarballs that cannot be recalled. Read values
+from the environment instead.
+
+Two automated checks back this up:
+
+- **Locally**, a `pre-commit` hook scans staged changes with
+  [gitleaks](https://github.com/gitleaks/gitleaks). `pnpm install` enables it by
+  pointing `core.hooksPath` at `.githooks/`. If gitleaks is not installed the
+  hook warns and lets the commit through, so install it —
+  `brew install gitleaks` on macOS.
+- **In CI**, `pr-check` scans the branch history and the release workflow scans
+  the built bundle before publishing. These fail the build; they are the
+  enforcement point, not the hook.
+
+If a scan flags something that is genuinely not a secret, mark it at the source
+with a `// gitleaks:allow` comment on the line so the reason shows up in review.
+Only add a fingerprint to `.gitleaksignore` for a secret that is already public
+*and* has been revoked — never to silence a live credential.
+
+If a real credential does get committed, removing it in a later commit does not
+un-expose it. It has to be rotated at the provider.
+
+These scans are a safety net, not a guarantee. gitleaks' generic rule keys off
+context — a long random string next to a word like `token`, `key` or `secret`.
+A credential assigned to an unsuggestive name can slip past it. Do not treat a
+green scan as permission to commit something you know is sensitive.
+
 ##### Branch Organization
 
 - `main` Branch: the single trunk for all development. Both stable and beta releases are cut from `main`.

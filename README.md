@@ -115,6 +115,7 @@ try {
 | `shouldShowSignTxnToast` | `true`  | `boolean`                             | optional |
 | `compactMode`            | `false` | `boolean`                             | optional |
 | `shouldPreferExtension`  | `true`  | `boolean`                             | optional |
+| `algod`                  | public nodes | `{mainnet?, testnet?: algosdk.Algodv2}` | optional |
 
 #### **`chainId`**
 
@@ -141,6 +142,26 @@ It offers a compact UI optimized for smaller screens, with a minimum resolution 
 #### **`shouldPreferExtension`**
 
 When the Pera browser extension is installed, the connect modal lists "Connect with Pera Extension" first and pre-selects it. Set this to `false` to leave the extension out of the modal and only offer the QR code and Pera Web options. See [Browser extension](#browser-extension-windowpera) below.
+
+#### **`algod`**
+
+Connect reads account state from an Algorand node in two places: `resolveArc60Signer`, and the auth-address lookup behind `signData` verification. By default those reads go to the public [AlgoNode](https://algonode.io) endpoints (`mainnet-api.algonode.cloud`, `testnet-api.algonode.cloud`), which need no API token.
+
+That default is a third party on a shared free tier. **If your dApp reads often, supply your own client** — otherwise a rate limit surfaces as `SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED`. Pass `algosdk.Algodv2` instances to keep these reads on your own infrastructure, with whatever token, headers, or HTTP client your provider needs. A network you leave out keeps the public default.
+
+```javascript
+import algosdk from "algosdk";
+import {PeraWalletConnect} from "@perawallet/connect";
+
+const peraWallet = new PeraWalletConnect({
+  chainId: 416001,
+  algod: {
+    mainnet: new algosdk.Algodv2(process.env.ALGOD_TOKEN, "https://my-node.example.com", 443)
+  }
+});
+```
+
+The client is used as you built it, so anything `algosdk.Algodv2` supports works — a tokenless node (`new algosdk.Algodv2("", "http://localhost", 4001)`), a provider that wants its own header (`new algosdk.Algodv2({"X-API-Key": key}, server, "")`), or a custom `BaseHTTPClient`.
 
 ## Methods
 
@@ -315,6 +336,8 @@ Rekeys are per network, and the wallet checks them on the network it is currentl
 **Returns:** `{accountAddress, signerAddress, signer, isRekeyed, network}`. `signer` is `signerAddress` as a public key, ready for `PeraWalletArc60SignData.signer`.
 
 **Throws:** `SIGN_DATA_INVALID_ADDRESS` for a malformed address, the network errors above, and `SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED` when the account lookup fails (the cause is in `error.data.detail`), instead of assuming the account is not rekeyed.
+
+The auth address is read from a public node by default. Use the [`algod`](#algod) option to read it from your own node instead — recommended for anything beyond light traffic.
 
 <details>
   <summary>See example</summary>

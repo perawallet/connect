@@ -1,6 +1,6 @@
 import {Transaction} from "algosdk";
 
-import {NetworkToggle} from "../algod/algodTypes";
+import {AlgodClients, NetworkToggle} from "../algod/algodTypes";
 
 export interface SignerTransaction {
   txn: Transaction;
@@ -189,6 +189,12 @@ export interface PeraWalletArc60SignDataResponse extends PeraWalletArc60SignData
 
 /** Networks connect can read accounts on; the auth address of a rekey is per network. */
 export type PeraWalletNetwork = NetworkToggle;
+
+/**
+ * Algod clients to read account state with, keyed by network, for
+ * `PeraWalletConnectOptions.algod`. A network left out keeps Pera's node.
+ */
+export type PeraWalletAlgodClients = AlgodClients;
 
 /**
  * Who has to sign an ARC-60 (SIWA) request for an account, see

@@ -2,8 +2,9 @@ import ALGOD_CREDENTIALS, {
   MAINNET_NODE_CHAIN_ID,
   TESTNET_NODE_CHAIN_ID
 } from "./algodConstants";
-import {AlgorandNodeProviderType, NetworkToggle} from "./algodTypes";
+import {AlgodClients, AlgorandNodeProviderType, NetworkToggle} from "./algodTypes";
 import {AlgorandChainIDs} from "../peraWalletTypes";
+import PeraWalletConnectError from "../PeraWalletConnectError";
 
 function getAlgosdkCredentialsForNetwork(
   network: NetworkToggle,
@@ -15,12 +16,10 @@ function getAlgosdkCredentialsForNetwork(
 
   return {
     tokens: {
-      client: preferredNetworkCredentials[credentialType].clientToken,
-      indexer: preferredNetworkCredentials[credentialType].indexerToken
+      client: preferredNetworkCredentials[credentialType].clientToken
     },
     server: {
-      client: preferredNetworkCredentials[credentialType].clientServer,
-      indexer: preferredNetworkCredentials[credentialType].indexerServer
+      client: preferredNetworkCredentials[credentialType].clientServer
     },
     port: preferredNetworkCredentials[credentialType].port
   };
@@ -51,4 +50,27 @@ function getNetworkFromChainId(chainId?: AlgorandChainIDs): NetworkToggle | null
   return null;
 }
 
-export {getAlgosdkCredentialsForNetwork, getChainIdForNetwork, getNetworkFromChainId};
+/**
+ * Checks supplied algod clients up front. Plain-JS callers bypass the type, and
+ * a wrong value would otherwise surface much later as a failed account lookup.
+ */
+function assertValidAlgodClients(clients: AlgodClients) {
+  (Object.entries(clients) as [NetworkToggle, unknown][]).forEach(([network, client]) => {
+    if (
+      !client ||
+      typeof (client as {accountInformation?: unknown}).accountInformation !== "function"
+    ) {
+      throw new PeraWalletConnectError(
+        {type: "INVALID_ALGOD_CLIENT", detail: {network}},
+        `algod.${network} must be an algosdk.Algodv2 instance.`
+      );
+    }
+  });
+}
+
+export {
+  assertValidAlgodClients,
+  getAlgosdkCredentialsForNetwork,
+  getChainIdForNetwork,
+  getNetworkFromChainId
+};
