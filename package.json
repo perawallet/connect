@@ -1,5 +1,5 @@
 {
-  "version": "1.7.0",
+  "version": "1.7.0-beta.1",
   "name": "@perawallet/connect",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications",
   "type": "module",
@@ -12,7 +12,6 @@
   "module": "dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "prepare": "git config core.hooksPath .githooks || true",
     "dev": "rollup -c -w",
     "build": "pnpm run eslint && rollup -c",
     "build:release": "rollup -c",
