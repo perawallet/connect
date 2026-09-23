@@ -44,7 +44,10 @@ import {
 } from "./util/algod/algodConstants";
 import {AlgodClients, NetworkToggle} from "./util/algod/algodTypes";
 import {assertValidAlgodClients, getNetworkFromChainId} from "./util/algod/algodUtils";
-import {PERA_WALLET_SIGNATURE_PREFIX} from "./util/peraWalletConstants";
+import {
+  PERA_WALLET_CONNECT_FALLBACK_BRIDGE,
+  PERA_WALLET_SIGNATURE_PREFIX
+} from "./util/peraWalletConstants";
 import {getPublicSettings} from "./util/webview-api/webviewApi";
 import {ExtensionTransport} from "./transport/extension/ExtensionTransport";
 import {getPeraProvider, PeraNetwork} from "./transport/extension/peraProviderTypes";
@@ -444,10 +447,12 @@ class PeraWalletConnect {
         }
 
         // Create Connector instance.
+        // Bridge precedence: dApp option, then config.json, then a Pera-hosted
+        // fallback for when the config is unreachable or lists no servers.
         // `storageId` namespaces the persisted session so Pera never shares the
         // WalletConnect v1 default key with other wallets on the same origin.
         this.connector = new WalletConnect({
-          bridge: this.bridge || bridgeURL || "https://bridge.walletconnect.org",
+          bridge: this.bridge || bridgeURL || PERA_WALLET_CONNECT_FALLBACK_BRIDGE,
           storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
           qrcodeModal: generatePeraWalletConnectModalActions({
             isWebWalletAvailable,
