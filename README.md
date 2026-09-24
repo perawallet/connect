@@ -248,7 +248,7 @@ const result = await atc.execute(algod, 4);
 
 #### `PeraWalletConnect.signData(data: PeraWalletArbitraryData[], signer: string, verifySignature?: boolean): Promise<Uint8Array[]>`
 
-Starts the signing process for arbitrary data signing and returns the signed data in `Uint8Array`. Uses `signBytes` method of `algosdk` behind the scenes. `signer` should be a valid Algorand address that exists in the user's wallet.
+Starts the signing process for arbitrary data signing and returns the signed data in `Uint8Array`. The wallet signs each item with the `"MX"` prefix, exactly like `algosdk.signBytes`, so each signature verifies with `algosdk.verifyBytes` against the account that signed it, or with `verifySignature` below. `signer` should be a valid Algorand address that exists in the user's wallet.
 
 **Parameters:**
 - `data`: Array of arbitrary data to sign
@@ -401,6 +401,10 @@ In some cases, you may want to customize it. You can achieve this by adding a me
 ```html
 <meta name="name" content="My dApp" />
 ```
+
+## WalletConnect
+
+`@perawallet/connect` talks to the Pera mobile app over **WalletConnect v1**, through [`@perawallet/walletconnect`](https://github.com/perawallet/pera-walletconnect-ts), a v1 client that Pera maintains. WalletConnect v2 is not supported, and the Pera mobile app only accepts v1 pairing URIs. Sessions run through Pera-hosted bridge servers, so no WalletConnect Cloud project ID is needed.
 
 ## Browser extension (`window.pera`)
 
