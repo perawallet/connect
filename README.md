@@ -2,7 +2,7 @@
 
 ## @perawallet/connect
 
-JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web applications. For more detailed information, please check our [Pera Connect Docs](https://docs.perawallet.app/references/pera-connect/). You may also want to check the [use-wallet](https://github.com/TxnLab/use-wallet). Use-wallet provides an easy way to integrate multiple wallets into your dApp. 
+JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web applications. For more detailed information, please check our [Pera Connect Docs](https://docs.perawallet.app/references/pera-connect/). Using [use-wallet](https://github.com/TxnLab/use-wallet) to support several wallets? See [Using with use-wallet](#using-with-use-wallet).
 
 [![](https://img.shields.io/npm/v/@perawallet/connect?style=flat-square)](https://www.npmjs.com/package/@perawallet/connect) [![](https://img.shields.io/bundlephobia/min/@perawallet/connect?style=flat-square)](https://www.npmjs.com/package/@perawallet/connect)
 
@@ -106,6 +106,23 @@ try {
   console.log("Couldn't sign Opt-in txns", error);
 }
 ```
+
+## Using with use-wallet
+
+If your dApp uses [use-wallet](https://github.com/TxnLab/use-wallet) v5, add Pera with [`@perawallet/use-wallet-pera`](https://github.com/perawallet/use-wallet-pera). Pera maintains that adapter, and it pins the version of this SDK it was tested against.
+
+```sh
+pnpm add @perawallet/use-wallet-pera
+```
+
+```ts
+import {WalletManager} from "@txnlab/use-wallet";
+import {pera} from "@perawallet/use-wallet-pera";
+
+const manager = new WalletManager({wallets: [pera()]});
+```
+
+`pera()` accepts the same [options](#options) as `new PeraWalletConnect()`. Moving from TxnLab's `@txnlab/use-wallet-pera` only means changing the import: the wallet id is still `"pera"`, so persisted sessions carry over.
 
 ## Options
 
