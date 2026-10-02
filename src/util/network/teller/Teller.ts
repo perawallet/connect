@@ -21,15 +21,32 @@ class Teller<Message> {
     this.channel = options.channel;
   }
 
+  /**
+   * Only messages from `source`, the window we opened, served from `origin`
+   * are delivered. Any window holding a reference to this page can post to it
+   * (an embedded iframe, the site that opened it), and the channel name is
+   * public, so a channel match alone would let them answer for Pera Web.
+   */
   public setupListener({
-    onReceiveMessage
+    onReceiveMessage,
+    origin,
+    source
   }: {
     onReceiveMessage: (event: MessageEvent<TellerMessage<Message>>) => void;
+    /** URL whose origin the messages must come from. */
+    origin: string;
+    source: MessageEventSource | null;
   }) {
     // Close the existing listener if it exists
     this.close();
 
+    const expectedOrigin = new URL(origin).origin;
+
     this.listener = (event: MessageEvent<TellerMessage<Message>>) => {
+      if (!source || event.source !== source || event.origin !== expectedOrigin) {
+        return;
+      }
+
       if (typeof event.data === "object") {
         try {
           if (event.data.channel === this.channel) {

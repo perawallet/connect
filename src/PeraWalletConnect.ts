@@ -133,6 +133,48 @@ function generatePeraWalletConnectModalActions({
   };
 }
 
+/**
+ * The wallet's answer is only as trustworthy as the channel it arrived on, and
+ * a dApp submits what it gets back. Each signed transaction must be the one
+ * that was asked for (same txID, same position), so a wallet bug or a forged
+ * response cannot hand the dApp a different transaction as the user's.
+ */
+function assertSignedTransactionsMatch(
+  expected: SignerTransaction[],
+  signed: Uint8Array[]
+) {
+  if (signed.length !== expected.length) {
+    throw new PeraWalletConnectError(
+      {
+        type: "SIGN_TRANSACTIONS",
+        detail: {expected: expected.length, received: signed.length}
+      },
+      `Expected ${expected.length} signed transaction(s) from the wallet but received ${signed.length}`
+    );
+  }
+
+  signed.forEach((signedTxn, index) => {
+    const expectedTxId = expected[index].txn.txID();
+    let signedTxId: string | undefined;
+
+    try {
+      signedTxId = algosdk.decodeSignedTransaction(signedTxn).txn.txID();
+    } catch (_error) {
+      // Undecodable bytes fall through to the mismatch below.
+    }
+
+    if (signedTxId !== expectedTxId) {
+      throw new PeraWalletConnectError(
+        {
+          type: "SIGN_TRANSACTIONS",
+          detail: {index, expected: expectedTxId, received: signedTxId}
+        },
+        `The wallet returned a different transaction than the one requested at position ${index}`
+      );
+    }
+  });
+}
+
 class PeraWalletConnect {
   bridge: string;
   connector: WalletConnect | null;
@@ -774,15 +816,21 @@ class PeraWalletConnect {
     signerAddress?: string
   ): Promise<Uint8Array[]> {
     const transport = this.getTransport();
+    const txns = txGroups.flat();
 
     // Prepare transactions to be sent to wallet
-    const signTxnRequestParams = txGroups.flatMap((txGroup) =>
-      txGroup.map<PeraWalletTransaction>((txGroupDetail) =>
-        composeTransaction(txGroupDetail, signerAddress)
-      )
+    const signTxnRequestParams = txns.map<PeraWalletTransaction>((txGroupDetail) =>
+      composeTransaction(txGroupDetail, signerAddress)
     );
 
     const result = await transport.signTransaction(signTxnRequestParams);
+
+    // `signers: []` marks a transaction the wallet was told not to sign; it
+    // returns only the others, in group order.
+    assertSignedTransactionsMatch(
+      txns.filter((_, index) => signTxnRequestParams[index].signers?.length !== 0),
+      result
+    );
 
     return result;
   }
@@ -843,17 +891,8 @@ class PeraWalletConnect {
       indexesToSign.includes(index) ? {txn} : {txn, signers: []}
     );
 
+    // signTransaction rejects unless exactly the requested slots come back.
     const signed = await this.signTransaction([txGroup]);
-
-    if (signed.length !== indexesToSign.length) {
-      throw new PeraWalletConnectError(
-        {
-          type: "SIGN_TRANSACTIONS",
-          detail: {expected: indexesToSign.length, received: signed.length}
-        },
-        `Expected ${indexesToSign.length} signed transaction(s) from the wallet but received ${signed.length}`
-      );
-    }
 
     // The wallet returns signed transactions in group order; TransactionSigner
     // requires result[i] to correspond to txnGroup[indexesToSign[i]].

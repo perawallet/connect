@@ -112,15 +112,14 @@ describe("PeraWalletConnect.getTransport()", () => {
 
   it("web: signTransaction reaches the web wallet URL resolved from config", async () => {
     saveWalletDetailsToStorage(["ADDR"], "pera-wallet-web");
-    runWebSignTransactionFlowMock.mockImplementation((args) =>
-      args.resolve([new Uint8Array([1])])
-    );
+    const txn = makeTxn();
+    const signedTxn = txn.signTxn(algosdk.generateAccount().sk);
+
+    runWebSignTransactionFlowMock.mockImplementation((args) => args.resolve([signedTxn]));
 
     const pera = new PeraWalletConnect();
 
-    await expect(pera.signTransaction([[{txn: makeTxn()}]])).resolves.toEqual([
-      new Uint8Array([1])
-    ]);
+    await expect(pera.signTransaction([[{txn}]])).resolves.toEqual([signedTxn]);
     expect(runWebSignTransactionFlowMock).toHaveBeenCalledWith(
       expect.objectContaining({webWalletURL: "https://web.test"})
     );
@@ -130,15 +129,15 @@ describe("PeraWalletConnect.getTransport()", () => {
     saveWalletDetailsToStorage(["ADDR"], "pera-wallet");
 
     const pera = new PeraWalletConnect();
+    const txn = makeTxn();
+    const signedTxn = txn.signTxn(algosdk.generateAccount().sk);
     const sendCustomRequest = vi
       .fn()
-      .mockResolvedValue([Buffer.from([1]).toString("base64")]);
+      .mockResolvedValue([Buffer.from(signedTxn).toString("base64")]);
 
     (pera as any).connector = {sendCustomRequest, accounts: ["ADDR"]};
 
-    await expect(pera.signTransaction([[{txn: makeTxn()}]])).resolves.toEqual([
-      new Uint8Array([1])
-    ]);
+    await expect(pera.signTransaction([[{txn}]])).resolves.toEqual([signedTxn]);
     expect(sendCustomRequest).toHaveBeenCalledWith(
       expect.any(Object),
       // config.silent is mocked to true above -> forcePushNotification is false

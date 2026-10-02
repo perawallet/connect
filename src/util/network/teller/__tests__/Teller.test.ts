@@ -8,8 +8,22 @@ interface TestMessage {
 
 const CHANNEL = "test-channel";
 
-function dispatchMessage(data: unknown) {
-  window.dispatchEvent(new MessageEvent("message", {data}));
+const PERA_WEB_URL = "https://web.perawallet.app/connect";
+const PERA_WEB_ORIGIN = "https://web.perawallet.app";
+
+// The listener only trusts the tab it opened; in these tests that "tab" is a
+// stand-in window object.
+const peraWebTab = window;
+
+function dispatchMessage(
+  data: unknown,
+  {origin = PERA_WEB_ORIGIN, source = peraWebTab as MessageEventSource | null} = {}
+) {
+  window.dispatchEvent(new MessageEvent("message", {data, origin, source}));
+}
+
+function listen(teller: Teller<TestMessage>, onReceiveMessage: () => void) {
+  teller.setupListener({onReceiveMessage, origin: PERA_WEB_URL, source: peraWebTab});
 }
 
 describe("Teller", () => {
@@ -29,7 +43,7 @@ describe("Teller", () => {
     it("invokes the callback for messages on the matching channel", () => {
       const onReceiveMessage = vi.fn();
 
-      teller.setupListener({onReceiveMessage});
+      listen(teller, onReceiveMessage);
       dispatchMessage({channel: CHANNEL, message: {type: "HELLO"}});
 
       expect(onReceiveMessage).toHaveBeenCalledTimes(1);
@@ -38,7 +52,7 @@ describe("Teller", () => {
     it("ignores messages on a different channel", () => {
       const onReceiveMessage = vi.fn();
 
-      teller.setupListener({onReceiveMessage});
+      listen(teller, onReceiveMessage);
       dispatchMessage({channel: "other-channel", message: {type: "HELLO"}});
 
       expect(onReceiveMessage).not.toHaveBeenCalled();
@@ -47,8 +61,44 @@ describe("Teller", () => {
     it("ignores non-object message data", () => {
       const onReceiveMessage = vi.fn();
 
-      teller.setupListener({onReceiveMessage});
+      listen(teller, onReceiveMessage);
       dispatchMessage("not-an-object");
+
+      expect(onReceiveMessage).not.toHaveBeenCalled();
+    });
+
+    it("ignores messages from another origin", () => {
+      const onReceiveMessage = vi.fn();
+
+      listen(teller, onReceiveMessage);
+      dispatchMessage(
+        {channel: CHANNEL, message: {type: "HELLO"}},
+        {origin: "https://evil.example"}
+      );
+
+      expect(onReceiveMessage).not.toHaveBeenCalled();
+    });
+
+    it("ignores messages from a window other than the opened tab", () => {
+      const onReceiveMessage = vi.fn();
+      const otherFrame = document.createElement("iframe");
+
+      document.body.appendChild(otherFrame);
+      listen(teller, onReceiveMessage);
+      dispatchMessage(
+        {channel: CHANNEL, message: {type: "HELLO"}},
+        {source: otherFrame.contentWindow}
+      );
+      otherFrame.remove();
+
+      expect(onReceiveMessage).not.toHaveBeenCalled();
+    });
+
+    it("ignores every message when the tab failed to open", () => {
+      const onReceiveMessage = vi.fn();
+
+      teller.setupListener({onReceiveMessage, origin: PERA_WEB_URL, source: null});
+      dispatchMessage({channel: CHANNEL, message: {type: "HELLO"}}, {source: null});
 
       expect(onReceiveMessage).not.toHaveBeenCalled();
     });
@@ -57,8 +107,8 @@ describe("Teller", () => {
       const first = vi.fn();
       const second = vi.fn();
 
-      teller.setupListener({onReceiveMessage: first});
-      teller.setupListener({onReceiveMessage: second});
+      listen(teller, first);
+      listen(teller, second);
       dispatchMessage({channel: CHANNEL, message: {type: "HELLO"}});
 
       expect(first).not.toHaveBeenCalled();
@@ -70,7 +120,7 @@ describe("Teller", () => {
     it("stops the listener from receiving further messages", () => {
       const onReceiveMessage = vi.fn();
 
-      teller.setupListener({onReceiveMessage});
+      listen(teller, onReceiveMessage);
       teller.close();
       dispatchMessage({channel: CHANNEL, message: {type: "HELLO"}});
 

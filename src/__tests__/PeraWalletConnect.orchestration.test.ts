@@ -33,8 +33,6 @@ describe("PeraWalletConnect orchestration", () => {
     saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
     const provider = installPeraProvider();
 
-    provider.signTransactions.mockResolvedValue([Buffer.from([1]).toString("base64")]);
-
     const pera = new PeraWalletConnect();
     const txn = new algosdk.Transaction({
       type: algosdk.TransactionType.pay,
@@ -54,6 +52,13 @@ describe("PeraWalletConnect orchestration", () => {
       }
     });
 
+    const signedTxn = txn.signTxn(algosdk.generateAccount().sk);
+
+    provider.signTransactions.mockResolvedValue([
+      Buffer.from(signedTxn).toString("base64"),
+      null
+    ]);
+
     const signed = await pera.signTransaction([[{txn}, {txn, signers: []}]]);
 
     const sent = provider.signTransactions.mock.calls[0][0];
@@ -63,8 +68,7 @@ describe("PeraWalletConnect orchestration", () => {
       Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64")
     );
     expect(sent[1].signers).toEqual([]);
-    expect(signed).toHaveLength(1);
-    expect(Array.from(signed[0])).toEqual([1]);
+    expect(signed).toEqual([signedTxn]);
   });
 
   it("routes signData through window.pera when platform is extension", async () => {

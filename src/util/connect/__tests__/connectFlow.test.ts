@@ -71,6 +71,11 @@ describe("runWebConnectFlow", () => {
     expect(sent.message).toMatchObject({type: "CONNECT", data: {chainId: 416001}});
     expect(sent.targetWindow).toBe(tab);
     expect(setupListenerMock).toHaveBeenCalledTimes(1);
+    // Only the opened Pera Web tab may answer.
+    expect(setupListenerMock.mock.calls[0][0]).toMatchObject({
+      origin: "https://web.perawallet.app/connect",
+      source: tab
+    });
   });
 
   it("still sets up the listener when no tab is returned", async () => {

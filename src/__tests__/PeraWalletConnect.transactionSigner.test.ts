@@ -114,7 +114,9 @@ describe("PeraWalletConnect.transactionSigner", () => {
     const pera = makeConnectedPera();
     const txns = [makeTxn(walletAccount, 1), makeTxn(walletAccount, 2)];
 
-    vi.spyOn(pera, "signTransaction").mockResolvedValue([new Uint8Array([0])]);
+    vi.spyOn(pera as any, "getTransport").mockReturnValue({
+      signTransaction: () => Promise.resolve([txns[0].signTxn(walletAccount.sk)])
+    });
 
     await expect(pera.transactionSigner(txns, [0, 1])).rejects.toMatchObject({
       data: {type: "SIGN_TRANSACTIONS", detail: {expected: 2, received: 1}}
