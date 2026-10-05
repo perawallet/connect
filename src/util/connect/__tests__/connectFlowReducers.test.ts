@@ -69,16 +69,15 @@ describe("newTabConnectFlowTellerReducer", () => {
       expect(close).toHaveBeenCalled();
     });
 
-    it("rejects and stores nothing when an address is not a valid Algorand address", () => {
+    it.each([
+      [
+        "an address is not a valid Algorand address",
+        [ADDR_1, "<img src=x onerror=alert(1)>"]
+      ],
+      ["no address is returned", []]
+    ])("rejects and stores nothing when %s", (_, addresses) => {
       const {resolve, reject, close} = callReducer({
-        event: {
-          data: {
-            message: {
-              type: "CONNECT_CALLBACK",
-              data: {addresses: [ADDR_1, "<img src=x onerror=alert(1)>"]}
-            }
-          }
-        }
+        event: {data: {message: {type: "CONNECT_CALLBACK", data: {addresses}}}}
       });
 
       expect(resolve).not.toHaveBeenCalled();

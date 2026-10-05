@@ -22,6 +22,7 @@ function newTabConnectFlowTellerReducer({
     // is refused rather than persisted.
     if (
       !Array.isArray(accounts) ||
+      accounts.length === 0 ||
       !accounts.every((account) => algosdk.isValidAddress(account))
     ) {
       reject(
