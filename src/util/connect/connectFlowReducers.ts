@@ -1,3 +1,5 @@
+import algosdk from "algosdk";
+
 import {
   PERA_WALLET_CONNECT_MODAL_ID,
   removeModalWrapperFromDOM
@@ -15,6 +17,26 @@ function newTabConnectFlowTellerReducer({
 }: NewTabConnectFlowTellerReducerParams) {
   if (resolve && event.data.message.type === "CONNECT_CALLBACK") {
     const accounts = event.data.message.data.addresses;
+
+    // dApps store and render these as the user's addresses, so anything else
+    // is refused rather than persisted.
+    if (
+      !Array.isArray(accounts) ||
+      accounts.length === 0 ||
+      !accounts.every((account) => algosdk.isValidAddress(account))
+    ) {
+      reject(
+        new PeraWalletConnectError(
+          {type: "SESSION_CONNECT", detail: accounts},
+          "Pera Web returned an invalid account address"
+        )
+      );
+
+      removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+      newPeraWalletTab?.close();
+
+      return;
+    }
 
     saveWalletDetailsToStorage(accounts, "pera-wallet-web");
 

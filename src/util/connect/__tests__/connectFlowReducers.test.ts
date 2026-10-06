@@ -1,4 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from "vitest";
+import algosdk from "algosdk";
 
 import PeraWalletConnectError from "../../PeraWalletConnectError";
 import {newTabConnectFlowTellerReducer} from "../connectFlowReducers";
@@ -41,21 +42,22 @@ describe("newTabConnectFlowTellerReducer", () => {
   });
 
   describe("CONNECT_CALLBACK", () => {
+    const ADDR_1 = String(algosdk.generateAccount().addr);
     const event = {
-      data: {message: {type: "CONNECT_CALLBACK", data: {addresses: ["ADDR_1"]}}}
+      data: {message: {type: "CONNECT_CALLBACK", data: {addresses: [ADDR_1]}}}
     };
 
     it("resolves with the returned addresses", () => {
       const {resolve} = callReducer({event});
 
-      expect(resolve).toHaveBeenCalledWith(["ADDR_1"]);
+      expect(resolve).toHaveBeenCalledWith([ADDR_1]);
     });
 
     it("persists the accounts as a pera-wallet-web session", () => {
       callReducer({event});
 
       expect(saveWalletDetailsToStorage).toHaveBeenCalledWith(
-        ["ADDR_1"],
+        [ADDR_1],
         "pera-wallet-web"
       );
     });
@@ -64,6 +66,24 @@ describe("newTabConnectFlowTellerReducer", () => {
       const {close} = callReducer({event});
 
       expect(removeModalWrapperFromDOM).toHaveBeenCalledWith("pera-wallet-connect-modal");
+      expect(close).toHaveBeenCalled();
+    });
+
+    it.each([
+      [
+        "an address is not a valid Algorand address",
+        [ADDR_1, "<img src=x onerror=alert(1)>"]
+      ],
+      ["no address is returned", []]
+    ])("rejects and stores nothing when %s", (_, addresses) => {
+      const {resolve, reject, close} = callReducer({
+        event: {data: {message: {type: "CONNECT_CALLBACK", data: {addresses}}}}
+      });
+
+      expect(resolve).not.toHaveBeenCalled();
+      expect(saveWalletDetailsToStorage).not.toHaveBeenCalled();
+      expect(reject).toHaveBeenCalledWith(expect.any(PeraWalletConnectError));
+      expect(reject.mock.calls[0][0].data.type).toBe("SESSION_CONNECT");
       expect(close).toHaveBeenCalled();
     });
 

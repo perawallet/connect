@@ -70,6 +70,8 @@ function runWebSignTransactionFlow({
       }, 2000);
 
       appTellerManager.setupListener({
+        origin: webWalletURLs.TRANSACTION_SIGN,
+        source: newPeraWalletTab,
         onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) =>
           newTabSignTransactionFlowTellerReducer({
             event,

@@ -59,6 +59,8 @@ function runWebConnectFlow({
       }, 2000);
 
       appTellerManager.setupListener({
+        origin: webWalletURLs.CONNECT,
+        source: newPeraWalletTab,
         onReceiveMessage: (event: MessageEvent<TellerMessage<PeraTeller>>) =>
           newTabConnectFlowTellerReducer({event, newPeraWalletTab, resolve, reject})
       });

@@ -62,6 +62,11 @@ describe("runWebSignTransactionFlow", () => {
       txn: TXN_PARAMS
     });
     expect(setupListenerMock).toHaveBeenCalledTimes(1);
+    // Only the opened Pera Web tab may answer.
+    expect(setupListenerMock.mock.calls[0][0]).toMatchObject({
+      origin: "https://web.perawallet.app/transaction/sign",
+      source: tab
+    });
   });
 
   it("posts a SIGN_DATA message when signer and chainId are provided", async () => {

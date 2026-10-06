@@ -63,7 +63,9 @@ async function captureWalletPayload(
   const pera = new PeraWalletConnect();
 
   try {
-    await pera.signTransaction(txGroups, signerAddress);
+    // Only the outgoing payload matters here; the stub's signature doesn't
+    // match the request, so signTransaction itself rejects.
+    await pera.signTransaction(txGroups, signerAddress).catch(() => undefined);
   } finally {
     uninstallPeraProvider();
   }

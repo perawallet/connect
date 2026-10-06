@@ -160,6 +160,8 @@ function waitForTabOpening(url: string): Promise<Window | null> {
       }, WAIT_FOR_TAB_TRY_INTERVAL);
 
       appTellerManager.setupListener({
+        origin: url,
+        source: newWindow,
         onReceiveMessage: (newTabEvent: MessageEvent<TellerMessage<PeraTeller>>) => {
           if (newTabEvent.data.message.type === "TAB_OPEN_RECEIVED") {
             clearInterval(checkTabIsOpened);
