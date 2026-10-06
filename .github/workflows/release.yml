@@ -47,6 +47,9 @@ jobs:
         run: pnpm run eslint && pnpm test
 
       - name: Install gitleaks
+        # Outside the checkout: `pnpm publish` packs the working directory, so a
+        # binary downloaded there ships to every consumer of the package.
+        working-directory: ${{ runner.temp }}
         run: |
           set -euo pipefail
           curl --proto '=https' --tlsv1.2 -sSfL \
@@ -56,7 +59,7 @@ jobs:
           tar -xzf gitleaks.tar.gz gitleaks
 
       - name: Scan history for secrets
-        run: ./gitleaks git --no-banner --redact .
+        run: ${{ runner.temp }}/gitleaks git --no-banner --redact .
 
       - name: Build app
         run: pnpm run build:release
@@ -64,7 +67,7 @@ jobs:
       # The last gate before npm. Source-level scanning can miss a secret that
       # only a build step inlines, and a published tarball cannot be recalled.
       - name: Scan built bundle for secrets
-        run: ./gitleaks dir --no-banner --redact dist
+        run: ${{ runner.temp }}/gitleaks dir --no-banner --redact dist
 
       - name: Audit dependencies
         run: pnpm audit --prod --audit-level=moderate

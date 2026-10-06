@@ -61,6 +61,9 @@ jobs:
           fetch-depth: 0
 
       - name: Install gitleaks
+        # Outside the checkout: `pnpm publish` packs the working directory, so a
+        # binary downloaded there ships to every consumer of the package.
+        working-directory: ${{ runner.temp }}
         run: |
           set -euo pipefail
           curl --proto '=https' --tlsv1.2 -sSfL \
@@ -71,4 +74,4 @@ jobs:
           ./gitleaks version
 
       - name: Scan history for secrets
-        run: ./gitleaks git --no-banner --redact .
+        run: ${{ runner.temp }}/gitleaks git --no-banner --redact .

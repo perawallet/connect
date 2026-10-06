@@ -14,3 +14,10 @@ pnpm-workspace.yaml
 .tool-versions
 .npmrc
 .github
+.githooks
+.gitleaksignore
+
+# Secret-scan binary. CI downloads it outside the checkout; this is a backstop
+# so it can never ship in the package again.
+gitleaks
+gitleaks.tar.gz
