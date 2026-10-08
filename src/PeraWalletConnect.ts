@@ -52,7 +52,13 @@ import {getPublicSettings} from "./util/webview-api/webviewApi";
 import {ExtensionTransport} from "./transport/extension/ExtensionTransport";
 import {getPeraProvider, PeraNetwork} from "./transport/extension/peraProviderTypes";
 import {isArc60OriginMismatch} from "./transport/extension/originBinding";
-import {MobileTransport} from "./transport/MobileTransport";
+import {MobileTransport, requestEmptySignatures} from "./transport/MobileTransport";
+import {
+  EMPTY_SIGNATURES_CAIP2_CHAIN_IDS,
+  assertEmptySignaturesNetwork,
+  filterEmptySignatures,
+  resolveEmptySignaturesNetwork
+} from "./util/emptySignatures";
 import {WebTransport} from "./transport/WebTransport";
 import {ConnectOptions} from "./transport/WalletTransport";
 import {buildArc60SignDataResponse, decodeArc60SignedData} from "./transport/arc60Wire";
@@ -1122,6 +1128,61 @@ class PeraWalletConnect {
       isRekeyed: authAddr !== null,
       network: resolvedNetwork
     };
+  }
+
+  /**
+   * Each connected account's empty signature, for use-wallet's
+   * `WalletAccount.emptySignature` (TxnLab/use-wallet#465): base64 of a
+   * `SignedTransaction` without `txn`, which tells the account type and feeds
+   * fee simulation. Accounts missing from the result are unknown.
+   *
+   * Only Pera Mobile answers it, over WalletConnect (`algo_getEmptySignatures`),
+   * without prompting the user. The extension and Pera Web don't provide it
+   * yet, so they resolve `{}`. Call it right after a fresh `connect()`; a value
+   * must come from the wallet just now, never be replayed after
+   * `reconnectSession()`.
+   *
+   * `network` defaults to the one the `chainId` option pins. An all-networks
+   * session (`4160`, the default) needs it (`EMPTY_SIGNATURES_NETWORK_REQUIRED`).
+   * Rejects with `SESSION_DISCONNECTED`, `EMPTY_SIGNATURES_TIMEOUT` after 30 s
+   * (older Pera apps, or iOS suspending Pera), or `EMPTY_SIGNATURES`
+   * (`detail.reason`: `"wallet-error"`, `"session-changed"`, `"invalid-result"`).
+   */
+  async getEmptySignatures(network?: PeraNetwork): Promise<Record<string, string>> {
+    assertEmptySignaturesNetwork(network);
+
+    if (this.platform === "extension" || this.platform === "web") {
+      return {};
+    }
+
+    const {connector} = this;
+
+    if (!connector || !connector.connected) {
+      throw new PeraWalletConnectError(
+        {type: "SESSION_DISCONNECTED"},
+        "Connect Pera before asking for empty signatures."
+      );
+    }
+
+    const resolvedNetwork = resolveEmptySignaturesNetwork(network, this.chainId);
+    // reconnectSession() replaces the connector object for the same session, so
+    // a changed session is detected by its peer, not by object identity.
+    const {peerId} = connector;
+    const accounts = [...connector.accounts];
+
+    const result = await requestEmptySignatures(
+      connector,
+      EMPTY_SIGNATURES_CAIP2_CHAIN_IDS[resolvedNetwork]
+    );
+
+    if (!this.connector || this.connector.peerId !== peerId) {
+      throw new PeraWalletConnectError(
+        {type: "EMPTY_SIGNATURES", detail: {reason: "session-changed"}},
+        "The WalletConnect session changed while waiting for empty signatures."
+      );
+    }
+
+    return filterEmptySignatures(result, accounts);
   }
 
   /**
