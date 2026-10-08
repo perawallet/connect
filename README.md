@@ -124,6 +124,8 @@ const manager = new WalletManager({wallets: [pera()]});
 
 `pera()` accepts the same [options](#options) as `new PeraWalletConnect()`. Moving from TxnLab's `@txnlab/use-wallet-pera` only means changing the import: the wallet id is still `"pera"`, so persisted sessions carry over.
 
+[`getEmptySignatures()`](#perawalletconnectgetemptysignaturesnetwork-peranetwork-promiserecordstring-string) is what the adapter will use to report account types for use-wallet 5.1.
+
 ## Options
 
 | option                   | default | value                                 |          |
@@ -397,6 +399,31 @@ const response = await peraWallet.signArc60Data(
 // that `account_address` has no auth address (it is not rekeyed).
 ```
 </details>
+
+#### `PeraWalletConnect.getEmptySignatures(network?: PeraNetwork): Promise<Record<string, string>>`
+
+Returns each connected account's **empty signature**, as defined by [use-wallet](https://github.com/TxnLab/use-wallet/pull/465): base64 of a `SignedTransaction` without its `txn` field. It tells you the account type (ed25519, multisig, logic sig or post-quantum) and lets you simulate with correctly shaped signatures. Accounts missing from the result are unknown.
+
+```js
+const accounts = await peraWallet.connect();
+const emptySignatures = await peraWallet.getEmptySignatures("testnet");
+// {"<address>": "<base64>"}
+```
+
+- Only Pera Mobile answers it, without prompting the user. With the Pera extension and Pera Web it resolves `{}`.
+- Call it right after a fresh `connect()`, not after `reconnectSession()`: a value must come from the wallet just now.
+- `network` (`"mainnet"`, `"testnet"` or `"betanet"`) defaults to the network your `chainId` option pins. With the default `chainId` (`4160`, any network) it is required.
+- If Pera doesn't answer within 30 seconds it rejects with `EMPTY_SIGNATURES_TIMEOUT`. That happens with Pera versions that don't support it yet, or when iOS suspends Pera after the user returns to the browser. Treat it as "unknown" and don't block your UI on it.
+
+It rejects with these `error.data.type` values:
+
+| `error.data.type`                      | when                                                                                      |
+| -------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `SESSION_DISCONNECTED`                 | no Pera Mobile session is connected                                                       |
+| `EMPTY_SIGNATURES_NETWORK_REQUIRED`    | `network` is missing and the session allows any network (`chainId` `4160`)                 |
+| `EMPTY_SIGNATURES_NETWORK_UNSUPPORTED` | `network` isn't `"mainnet"`, `"testnet"` or `"betanet"`                                   |
+| `EMPTY_SIGNATURES_TIMEOUT`             | Pera didn't answer within 30 seconds                                                      |
+| `EMPTY_SIGNATURES`                     | `error.data.detail.reason` is `"wallet-error"`, `"session-changed"` or `"invalid-result"` |
 
 ## Customizing Style
 
