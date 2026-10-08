@@ -14,6 +14,11 @@ import {
   formatJsonRpcRequest
 } from "../util/transaction/transactionUtils";
 import {
+  EMPTY_SIGNATURES_METHOD,
+  EMPTY_SIGNATURES_TIMEOUT_MS,
+  withTimeout
+} from "../util/emptySignatures";
+import {
   removeModalWrapperFromDOM,
   PERA_WALLET_REDIRECT_MODAL_ID,
   PERA_WALLET_SIGN_TXN_TOAST_ID,
@@ -34,6 +39,43 @@ export interface MobileTransportDeps {
   shouldShowSignTxnToast: boolean;
   isInWebview: boolean;
   getSilent: () => Promise<boolean>;
+}
+
+/**
+ * Asks the wallet for its accounts' empty signatures. This is a function rather
+ * than a MobileTransport method because the wallet answers without prompting:
+ * the class's constructor opens the signing toast or redirect modal, and this
+ * request must show nothing, send no push notification and open no deep link.
+ * Pera apps that don't know the method drop it silently, so the timeout is the
+ * only way out.
+ */
+export function requestEmptySignatures(
+  connector: {sendCustomRequest: (request: any, options?: any) => Promise<any>},
+  caipChainId: string
+): Promise<unknown> {
+  const request = formatJsonRpcRequest(EMPTY_SIGNATURES_METHOD, {chainId: caipChainId});
+
+  return withTimeout(
+    // WalletConnect v1 throws synchronously when the session is gone.
+    Promise.resolve().then(() =>
+      connector.sendCustomRequest(request, {forcePushNotification: false})
+    ),
+    EMPTY_SIGNATURES_TIMEOUT_MS,
+    () =>
+      new PeraWalletConnectError(
+        {type: "EMPTY_SIGNATURES_TIMEOUT"},
+        `Pera didn't answer ${EMPTY_SIGNATURES_METHOD} within ${EMPTY_SIGNATURES_TIMEOUT_MS} ms. Its accounts' types stay unknown.`
+      )
+  ).catch((error) => {
+    if (error instanceof PeraWalletConnectError) {
+      throw error;
+    }
+
+    throw new PeraWalletConnectError(
+      {type: "EMPTY_SIGNATURES", detail: {reason: "wallet-error", error}},
+      error?.message || `Pera couldn't answer ${EMPTY_SIGNATURES_METHOD}.`
+    );
+  });
 }
 
 export class MobileTransport implements WalletTransport {
