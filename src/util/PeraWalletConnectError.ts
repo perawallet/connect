@@ -33,7 +33,13 @@ interface PeraWalletConnectErrorData {
     | "SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED"
 
     // Configuration
-    | "INVALID_ALGOD_CLIENT";
+    | "INVALID_ALGOD_CLIENT"
+
+    // Empty signatures
+    | "EMPTY_SIGNATURES"
+    | "EMPTY_SIGNATURES_TIMEOUT"
+    | "EMPTY_SIGNATURES_NETWORK_REQUIRED"
+    | "EMPTY_SIGNATURES_NETWORK_UNSUPPORTED";
   detail?: any;
 }
 
