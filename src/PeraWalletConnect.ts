@@ -49,7 +49,10 @@ import {
   PERA_WALLET_SIGNATURE_PREFIX
 } from "./util/peraWalletConstants";
 import {getPublicSettings} from "./util/webview-api/webviewApi";
-import {ExtensionTransport} from "./transport/extension/ExtensionTransport";
+import {
+  ExtensionTransport,
+  getPeraNetworkFromChainId
+} from "./transport/extension/ExtensionTransport";
 import {getPeraProvider, PeraNetwork} from "./transport/extension/peraProviderTypes";
 import {isArc60OriginMismatch} from "./transport/extension/originBinding";
 import {MobileTransport, requestEmptySignatures} from "./transport/MobileTransport";
@@ -1136,14 +1139,16 @@ class PeraWalletConnect {
    * `SignedTransaction` without `txn`, which tells the account type and feeds
    * fee simulation. Accounts missing from the result are unknown.
    *
-   * Only Pera Mobile answers it, over WalletConnect (`algo_getEmptySignatures`),
-   * without prompting the user. The extension and Pera Web don't provide it
-   * yet, so they resolve `{}`. Call it right after a fresh `connect()`; a value
-   * must come from the wallet just now, never be replayed after
-   * `reconnectSession()`.
+   * Pera Mobile answers over WalletConnect (`algo_getEmptySignatures`) and the
+   * Pera extension through `window.pera`, both without prompting the user.
+   * Pera Web, and extensions that predate the method, resolve `{}`. Call it
+   * right after a fresh `connect()`; a value must come from the wallet just
+   * now, never be replayed after `reconnectSession()`.
    *
-   * `network` defaults to the one the `chainId` option pins. An all-networks
-   * session (`4160`, the default) needs it (`EMPTY_SIGNATURES_NETWORK_REQUIRED`).
+   * `network` defaults to the one the `chainId` option pins. On Pera Mobile an
+   * all-networks session (`4160`, the default) needs it
+   * (`EMPTY_SIGNATURES_NETWORK_REQUIRED`); the extension answers for the
+   * network it is on and refuses another (`EMPTY_SIGNATURES_NETWORK_MISMATCH`).
    * Rejects with `SESSION_DISCONNECTED`, `EMPTY_SIGNATURES_TIMEOUT` after 30 s
    * (older Pera apps, or iOS suspending Pera), or `EMPTY_SIGNATURES`
    * (`detail.reason`: `"wallet-error"`, `"session-changed"`, `"invalid-result"`).
@@ -1151,8 +1156,19 @@ class PeraWalletConnect {
   async getEmptySignatures(network?: PeraNetwork): Promise<Record<string, string>> {
     assertEmptySignaturesNetwork(network);
 
-    if (this.platform === "extension" || this.platform === "web") {
+    if (this.platform === "web") {
       return {};
+    }
+
+    if (this.platform === "extension") {
+      // Throws EXTENSION_NOT_AVAILABLE when window.pera is gone from the page.
+      const transport = this.getTransport() as ExtensionTransport;
+      const accounts = getWalletDetailsFromStorage()?.accounts || [];
+      const result = await transport.getEmptySignatures(
+        network || getPeraNetworkFromChainId(this.chainId)
+      );
+
+      return filterEmptySignatures(result, accounts);
     }
 
     const {connector} = this;
