@@ -1,7 +1,7 @@
 import {describe, it, expect, vi, afterEach} from "vitest";
 import algosdk from "algosdk";
 
-import {MobileTransport} from "../MobileTransport";
+import {MobileTransport, requestEmptySignatures} from "../MobileTransport";
 import {ScopeType} from "../../util/model/peraWalletModels";
 import {
   PERA_WALLET_REDIRECT_MODAL_ID,
@@ -301,6 +301,82 @@ describe("MobileTransport", () => {
           encoding: "base64"
         })
       ).rejects.toMatchObject({data: {type: "SIGN_DATA"}});
+    });
+  });
+});
+
+describe("requestEmptySignatures", () => {
+  const CHAIN = "algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe";
+
+  afterEach(() => {
+    vi.useRealTimers();
+    setUserAgent(DESKTOP_UA);
+    document.body.innerHTML = "";
+  });
+
+  it("sends algo_getEmptySignatures with object params and no push notification", async () => {
+    const connector = makeConnector({ADDR: "gA=="});
+
+    await expect(requestEmptySignatures(connector, CHAIN)).resolves.toEqual({
+      ADDR: "gA=="
+    });
+
+    expect(connector.sendCustomRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jsonrpc: "2.0",
+        method: "algo_getEmptySignatures",
+        params: {chainId: CHAIN}
+      }),
+      {forcePushNotification: false}
+    );
+  });
+
+  it("opens no toast or redirect modal, even on mobile web", async () => {
+    setUserAgent(IPHONE_UA);
+
+    await requestEmptySignatures(makeConnector({}), CHAIN);
+
+    expect(document.getElementById(PERA_WALLET_REDIRECT_MODAL_ID)).toBeNull();
+    expect(document.getElementById(PERA_WALLET_SIGN_TXN_TOAST_ID)).toBeNull();
+  });
+
+  it("rejects with EMPTY_SIGNATURES_TIMEOUT when the wallet never answers", async () => {
+    vi.useFakeTimers();
+
+    const connector = {sendCustomRequest: vi.fn(() => new Promise(() => undefined))};
+    const pending = requestEmptySignatures(connector, CHAIN);
+    const assertion = expect(pending).rejects.toMatchObject({
+      data: {type: "EMPTY_SIGNATURES_TIMEOUT"}
+    });
+
+    await vi.advanceTimersByTimeAsync(30_000);
+    await assertion;
+  });
+
+  it("wraps a wallet error as EMPTY_SIGNATURES and keeps its message", async () => {
+    const connector = {
+      sendCustomRequest: vi.fn().mockRejectedValue(new Error("Method not found"))
+    };
+
+    await expect(requestEmptySignatures(connector, CHAIN)).rejects.toMatchObject({
+      message: "Method not found",
+      data: {
+        type: "EMPTY_SIGNATURES",
+        detail: expect.objectContaining({reason: "wallet-error"})
+      }
+    });
+  });
+
+  it("wraps a synchronous throw (a disconnected session) the same way", async () => {
+    const connector = {
+      sendCustomRequest: vi.fn(() => {
+        throw new Error("Session currently disconnected");
+      })
+    };
+
+    await expect(requestEmptySignatures(connector, CHAIN)).rejects.toMatchObject({
+      message: "Session currently disconnected",
+      data: {type: "EMPTY_SIGNATURES"}
     });
   });
 });
