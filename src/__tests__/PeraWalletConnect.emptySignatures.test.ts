@@ -6,6 +6,12 @@ import {
   resetWalletDetailsFromStorage,
   saveWalletDetailsToStorage
 } from "../util/storage/storageUtils";
+import {PERA_PROVIDER_ERROR_CODES} from "../transport/extension/peraProviderTypes";
+import {
+  installPeraProvider,
+  makePeraProviderError,
+  uninstallPeraProvider
+} from "./helpers/peraProviderStub";
 
 vi.mock("../util/api/peraWalletConnectApi", () => ({
   getPeraConnectConfig: () =>
@@ -115,20 +121,94 @@ describe("PeraWalletConnect.getEmptySignatures()", () => {
     });
   });
 
-  it.each([["pera-wallet-extension"], ["pera-wallet-web"]] as const)(
-    "resolves {} without contacting anything on %s",
-    async (type) => {
-      saveWalletDetailsToStorage([ACCOUNT], type);
+  it("resolves {} without contacting anything on Pera Web", async () => {
+    saveWalletDetailsToStorage([ACCOUNT], "pera-wallet-web");
 
-      const pera = new PeraWalletConnect();
-      const connector = makeConnector();
+    const pera = new PeraWalletConnect();
+    const connector = makeConnector();
 
-      (pera as any).connector = connector;
+    (pera as any).connector = connector;
 
-      await expect(pera.getEmptySignatures("testnet")).resolves.toEqual({});
-      expect(connector.sendCustomRequest).not.toHaveBeenCalled();
+    await expect(pera.getEmptySignatures("testnet")).resolves.toEqual({});
+    expect(connector.sendCustomRequest).not.toHaveBeenCalled();
+  });
+
+  describe("on the Pera extension", () => {
+    afterEach(() => {
+      uninstallPeraProvider();
+    });
+
+    function extensionWallet(
+      getEmptySignatures?: ReturnType<typeof vi.fn>,
+      chainId?: 416001 | 416002 | 416003 | 4160
+    ) {
+      const provider = installPeraProvider([ACCOUNT]);
+
+      if (getEmptySignatures) {
+        Object.assign(provider, {getEmptySignatures});
+      }
+
+      saveWalletDetailsToStorage([ACCOUNT], "pera-wallet-extension");
+
+      return new PeraWalletConnect(chainId ? {chainId} : undefined);
     }
-  );
+
+    it("resolves {} from an extension that predates getEmptySignatures", async () => {
+      await expect(extensionWallet().getEmptySignatures("testnet")).resolves.toEqual({});
+    });
+
+    it("asks window.pera and filters the answer to the connected accounts", async () => {
+      const stranger = algosdk.generateAccount().addr.toString();
+      const getEmptySignatures = vi
+        .fn()
+        .mockResolvedValue({[ACCOUNT]: "gA==", [stranger]: "gA=="});
+
+      await expect(
+        extensionWallet(getEmptySignatures).getEmptySignatures("testnet")
+      ).resolves.toEqual({[ACCOUNT]: "gA=="});
+      expect(getEmptySignatures).toHaveBeenCalledWith({network: "testnet"});
+    });
+
+    it("lets the wallet pick its network on an all-networks session", async () => {
+      const getEmptySignatures = vi.fn().mockResolvedValue({[ACCOUNT]: "gA=="});
+
+      await expect(
+        extensionWallet(getEmptySignatures, 4160).getEmptySignatures()
+      ).resolves.toEqual({[ACCOUNT]: "gA=="});
+      expect(getEmptySignatures).toHaveBeenCalledWith(undefined);
+    });
+
+    it("sends the network the chainId option pins", async () => {
+      const getEmptySignatures = vi.fn().mockResolvedValue({});
+
+      await extensionWallet(getEmptySignatures, 416002).getEmptySignatures();
+
+      expect(getEmptySignatures).toHaveBeenCalledWith({network: "testnet"});
+    });
+
+    it("rejects with EMPTY_SIGNATURES_NETWORK_MISMATCH when the wallet is elsewhere", async () => {
+      const getEmptySignatures = vi
+        .fn()
+        .mockRejectedValue(
+          makePeraProviderError(
+            PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED,
+            "The wallet is on mainnet, not testnet"
+          )
+        );
+
+      await expect(
+        extensionWallet(getEmptySignatures).getEmptySignatures("testnet")
+      ).rejects.toMatchObject({data: {type: "EMPTY_SIGNATURES_NETWORK_MISMATCH"}});
+    });
+
+    it("rejects with EXTENSION_NOT_AVAILABLE when window.pera is gone", async () => {
+      saveWalletDetailsToStorage([ACCOUNT], "pera-wallet-extension");
+
+      await expect(
+        new PeraWalletConnect().getEmptySignatures("testnet")
+      ).rejects.toMatchObject({data: {type: "EXTENSION_NOT_AVAILABLE"}});
+    });
+  });
 
   it("rejects an unsupported network before anything else, even on the extension", async () => {
     saveWalletDetailsToStorage([ACCOUNT], "pera-wallet-extension");
