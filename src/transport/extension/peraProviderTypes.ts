@@ -27,6 +27,8 @@ export interface PeraProviderConnectOptions {
 export interface PeraProviderConnectResult {
   accounts: PeraAccount[];
   network: PeraNetwork;
+  /** Same as `getEmptySignatures()`, from extensions that support it. */
+  emptySignatures?: Record<string, string>;
 }
 
 /** ARC-0001 `WalletTransaction`; `txn` is the base64 unsigned transaction. */
@@ -51,6 +53,13 @@ export interface PeraProvider {
   connect(options?: PeraProviderConnectOptions): Promise<PeraProviderConnectResult>;
   disconnect(): Promise<void>;
   getAddresses(): Promise<PeraAccount[]>;
+  /**
+   * use-wallet's empty signatures for this origin's accounts: address to base64
+   * `SignedTransaction` without `txn`. Answered without a prompt. Without
+   * `network` the wallet answers for the network it is on; any other network is
+   * refused with `NETWORK_NOT_SUPPORTED`. Missing from extensions that predate it.
+   */
+  getEmptySignatures?(options?: {network?: PeraNetwork}): Promise<Record<string, string>>;
   /**
    * One base64 signed transaction per entry, in order; `null` where the entry
    * had `signers: []` and was therefore not signed by the wallet.

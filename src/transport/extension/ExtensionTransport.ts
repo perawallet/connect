@@ -7,6 +7,7 @@ import {
   PERA_PROVIDER_ERROR_CODES,
   isPeraProviderError
 } from "./peraProviderTypes";
+import {mapEmptySignaturesError} from "./emptySignaturesError";
 import PeraWalletConnectError from "../../util/PeraWalletConnectError";
 import {
   PeraWalletArbitraryData,
@@ -297,6 +298,23 @@ export class ExtensionTransport implements WalletTransport {
         .map(base64ToUint8Array);
     } catch (error) {
       throw mapProviderError(error, "sign-data");
+    }
+  }
+
+  /**
+   * The wallet's empty signatures for this origin, unfiltered, or `{}` from an
+   * extension that predates the method. Without `network` the wallet answers
+   * for the network it is on.
+   */
+  async getEmptySignatures(network: PeraNetwork | undefined): Promise<unknown> {
+    if (typeof this.provider.getEmptySignatures !== "function") {
+      return {};
+    }
+
+    try {
+      return await this.provider.getEmptySignatures(network ? {network} : undefined);
+    } catch (error) {
+      throw mapEmptySignaturesError(error);
     }
   }
 

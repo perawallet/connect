@@ -216,6 +216,81 @@ describe("ExtensionTransport", () => {
     });
   });
 
+  describe("getEmptySignatures()", () => {
+    it("resolves {} from an extension that predates the method", async () => {
+      const transport = new ExtensionTransport(provider, {});
+
+      await expect(transport.getEmptySignatures("testnet")).resolves.toEqual({});
+    });
+
+    it("asks the provider for the given network and returns its answer as is", async () => {
+      const getEmptySignatures = vi
+        .fn()
+        .mockResolvedValue({[ADDRESS]: "gA==", OTHER: "x"});
+      const transport = new ExtensionTransport(
+        Object.assign(provider, {getEmptySignatures}),
+        {}
+      );
+
+      await expect(transport.getEmptySignatures("testnet")).resolves.toEqual({
+        [ADDRESS]: "gA==",
+        OTHER: "x"
+      });
+      expect(getEmptySignatures).toHaveBeenCalledWith({network: "testnet"});
+    });
+
+    it("lets the wallet answer for its own network when none is given", async () => {
+      const getEmptySignatures = vi.fn().mockResolvedValue({});
+      const transport = new ExtensionTransport(
+        Object.assign(provider, {getEmptySignatures}),
+        {}
+      );
+
+      await transport.getEmptySignatures(undefined);
+
+      expect(getEmptySignatures).toHaveBeenCalledWith(undefined);
+    });
+
+    it.each([
+      [PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED, "SESSION_DISCONNECTED"],
+      [
+        PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED,
+        "EMPTY_SIGNATURES_NETWORK_MISMATCH"
+      ],
+      [PERA_PROVIDER_ERROR_CODES.TIMED_OUT, "EMPTY_SIGNATURES_TIMEOUT"]
+    ])("maps provider code %s to %s", async (code, type) => {
+      const getEmptySignatures = vi
+        .fn()
+        .mockRejectedValue(providerError(code, "The wallet is on mainnet, not testnet"));
+      const transport = new ExtensionTransport(
+        Object.assign(provider, {getEmptySignatures}),
+        {}
+      );
+
+      await expect(transport.getEmptySignatures("testnet")).rejects.toMatchObject({
+        message: "The wallet is on mainnet, not testnet",
+        data: {type}
+      });
+    });
+
+    it("wraps any other failure as EMPTY_SIGNATURES with reason wallet-error", async () => {
+      const failure = providerError(
+        PERA_PROVIDER_ERROR_CODES.INTERNAL_ERROR,
+        "Internal error"
+      );
+      const getEmptySignatures = vi.fn().mockRejectedValue(failure);
+      const transport = new ExtensionTransport(
+        Object.assign(provider, {getEmptySignatures}),
+        {}
+      );
+
+      await expect(transport.getEmptySignatures("testnet")).rejects.toMatchObject({
+        message: "Internal error",
+        data: {type: "EMPTY_SIGNATURES", detail: {reason: "wallet-error", error: failure}}
+      });
+    });
+  });
+
   describe("wallet-initiated notifications", () => {
     it("subscribes once per provider and forwards disconnect after clearing the session", () => {
       saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");

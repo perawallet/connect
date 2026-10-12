@@ -410,18 +410,19 @@ const emptySignatures = await peraWallet.getEmptySignatures("testnet");
 // {"<address>": "<base64>"}
 ```
 
-- Only Pera Mobile answers it, without prompting the user. With the Pera extension and Pera Web it resolves `{}`.
+- Pera Mobile and the Pera extension answer it without prompting the user. Pera Web, and extension versions that don't support it yet, resolve `{}`.
 - Call it right after a fresh `connect()`, not after `reconnectSession()`: a value must come from the wallet just now.
-- `network` (`"mainnet"`, `"testnet"` or `"betanet"`) defaults to the network your `chainId` option pins. With the default `chainId` (`4160`, any network) it is required.
-- If Pera doesn't answer within 30 seconds it rejects with `EMPTY_SIGNATURES_TIMEOUT`. That happens with Pera versions that don't support it yet, or when iOS suspends Pera after the user returns to the browser. Treat it as "unknown" and don't block your UI on it.
+- `network` (`"mainnet"`, `"testnet"` or `"betanet"`) defaults to the network your `chainId` option pins. With the default `chainId` (`4160`, any network), Pera Mobile needs it; the extension answers for the network it is on.
+- If Pera Mobile doesn't answer within 30 seconds it rejects with `EMPTY_SIGNATURES_TIMEOUT`. That happens with Pera versions that don't support it yet, or when iOS suspends Pera after the user returns to the browser. Treat it as "unknown" and don't block your UI on it.
 
 It rejects with these `error.data.type` values:
 
 | `error.data.type`                      | when                                                                                      |
 | -------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `SESSION_DISCONNECTED`                 | no Pera Mobile session is connected                                                       |
-| `EMPTY_SIGNATURES_NETWORK_REQUIRED`    | `network` is missing and the session allows any network (`chainId` `4160`)                 |
+| `SESSION_DISCONNECTED`                 | no Pera session is connected                                                              |
+| `EMPTY_SIGNATURES_NETWORK_REQUIRED`    | Pera Mobile only: `network` is missing and the session allows any network (`chainId` `4160`) |
 | `EMPTY_SIGNATURES_NETWORK_UNSUPPORTED` | `network` isn't `"mainnet"`, `"testnet"` or `"betanet"`                                   |
+| `EMPTY_SIGNATURES_NETWORK_MISMATCH`    | extension only: the wallet is on a different network than `network`                       |
 | `EMPTY_SIGNATURES_TIMEOUT`             | Pera didn't answer within 30 seconds                                                      |
 | `EMPTY_SIGNATURES`                     | `error.data.detail.reason` is `"wallet-error"`, `"session-changed"` or `"invalid-result"` |
 
