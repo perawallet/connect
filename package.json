@@ -28,7 +28,7 @@
   "devDependencies": {
     "@hipo/eslint-config-base": "^4.1.1",
     "@hipo/eslint-config-typescript": "^1.1.0",
-    "@rollup/plugin-image": "^2.1.1",
+    "@rollup/plugin-image": "^3.0.3",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-replace": "^5.0.2",
     "@types/node": "^25.5.2",
