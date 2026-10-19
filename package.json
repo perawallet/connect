@@ -38,6 +38,8 @@
     "format": "oxfmt \"**/*.{ts,md,scss}\"",
     "format:check": "oxfmt --check \"**/*.{ts,md,scss}\"",
     "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "check:package": "publint --strict && attw --pack --profile esm-only",

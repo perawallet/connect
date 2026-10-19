@@ -3,7 +3,7 @@
 `@perawallet/connect`: the JavaScript SDK dApps use to connect to Pera Wallet and sign with it. Published to npm and consumed directly and through use-wallet, so the public API and the messages sent to the wallet are contracts. **Always use `pnpm`.**
 
 ```sh
-pnpm test                    # Vitest on jsdom; pass a path while iterating: pnpm vitest run src/util/storage
+pnpm test                    # Unit + integration; pass a path while iterating: pnpm vitest run src/util/storage
 pnpm lint && pnpm typecheck  # Fast checks; also run by the pre-push hook
 pnpm verify                  # Everything CI runs: lint, type-aware lint, format, typecheck, coverage, build, package check
 pnpm format                  # oxfmt; never hand-format
@@ -32,7 +32,14 @@ The code says what; comments say why, and only when the why isn't obvious. Keep 
 
 ## Testing
 
-Vitest on jsdom. Files are `*.spec.ts` in a colocated `__tests__/` folder, written Arrange-Act-Assert. Test behaviour through the public class or the `util/*` function that owns it; mock the network edge (`getPeraConnectConfig`, `fetch`, the WalletConnect connector, `window.pera`), not our own modules. Coverage is gated at 80% (`vitest.config.ts`); the modal UI is excluded.
+Vitest on jsdom, in two projects:
+
+- **Unit** (`pnpm test:unit`): `*.spec.ts` in a colocated `__tests__/` folder. One module at a time; mock at the module's edges.
+- **Integration** (`pnpm test:integration`): `src/__integration__/`. Whole flows through the public entry point with the real modal elements, storage and algosdk; only the wallets, the network and the QR/Lottie renderers are faked (see its README). A change in how a flow behaves for a dApp belongs here.
+
+Arrange-Act-Assert, behaviour over implementation, no snapshots, no style assertions. Coverage gates live in `vitest.config.ts` and only go up. `it.todo` in the integration suite marks known-wrong behaviour; replace it with a real test when fixing the bug.
+
+`e2e/` packs the library, bundles it into a small Vite app and drives it in Chromium with Playwright (`pnpm test:e2e`); it catches packaging and bundling breaks the jsdom suites can't.
 
 ## Work completion
 

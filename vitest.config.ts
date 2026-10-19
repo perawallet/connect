@@ -2,32 +2,48 @@ import { defineConfig, mergeConfig } from 'vitest/config'
 
 import viteConfig from './vite.config'
 
-const COVERAGE_THRESHOLD = 80
+// Ratchet: raise these as coverage grows, never lower them to land a change.
+const COVERAGE_THRESHOLDS = {
+    branches: 90,
+    functions: 95,
+    lines: 95,
+    statements: 95,
+}
 
 export default mergeConfig(
     viteConfig,
     defineConfig({
         test: {
             environment: 'jsdom',
-            include: ['src/**/__tests__/**/*.spec.ts'],
             restoreMocks: true,
+            projects: [
+                {
+                    extends: true,
+                    test: {
+                        name: 'unit',
+                        include: ['src/**/__tests__/**/*.spec.ts'],
+                    },
+                },
+                {
+                    // Public-API flows against the real modal elements, with
+                    // only the wallets faked (see src/__integration__/README).
+                    extends: true,
+                    test: {
+                        name: 'integration',
+                        include: ['src/__integration__/**/*.spec.ts'],
+                    },
+                },
+            ],
             coverage: {
                 provider: 'v8',
                 include: ['src/**/*.ts'],
                 exclude: [
                     'src/**/__tests__/**',
+                    'src/__integration__/**',
                     'src/**/*.d.ts',
-                    'src/index.ts',
-                    'src/App.ts',
-                    'src/modal/**',
                 ],
                 reporter: ['text', 'html', 'lcov'],
-                thresholds: {
-                    branches: COVERAGE_THRESHOLD,
-                    functions: COVERAGE_THRESHOLD,
-                    lines: COVERAGE_THRESHOLD,
-                    statements: COVERAGE_THRESHOLD,
-                },
+                thresholds: COVERAGE_THRESHOLDS,
             },
         },
     }),
