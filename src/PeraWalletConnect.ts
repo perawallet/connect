@@ -639,7 +639,6 @@ class PeraWalletConnect {
                     reject,
                     webWalletURL: config.webWalletURL,
                     chainId: this.chainId,
-                    isCompactMode: this.compactMode,
                 })
             }
 

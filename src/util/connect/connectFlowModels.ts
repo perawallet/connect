@@ -9,7 +9,6 @@ interface ConnectFlowPromise {
 interface RunWebConnectFlowTypes extends ConnectFlowPromise {
     webWalletURL: string
     chainId: AlgorandChainIDs | undefined
-    isCompactMode?: boolean
 }
 
 interface NewTabConnectFlowTellerReducerParams extends ConnectFlowPromise {
