@@ -10,3 +10,8 @@ coverage
 # pnpm is the only supported package manager; block stray lockfiles
 package-lock.json
 yarn.lock
+
+# e2e
+e2e/.output
+test-results
+playwright-report

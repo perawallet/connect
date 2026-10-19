@@ -24,10 +24,16 @@
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "noEmit": true
+        "noEmit": true,
+        "paths": {
+            "@perawallet/connect": [
+                "./src/index.ts"
+            ]
+        }
     },
     "include": [
         "src",
+        "e2e",
         "vite.config.ts",
         "vitest.config.ts"
     ]

@@ -9,16 +9,17 @@ pnpm run setup:hooks   # points git at .githooks/ (secret scan, commit message, 
 
 Node comes from `.tool-versions` and pnpm from the `packageManager` field (`corepack enable` picks it up). Read [CLAUDE.md](CLAUDE.md) for how the code is laid out and the rules reviews come back to.
 
-| Command              | Does                                                    |
-| -------------------- | ------------------------------------------------------- |
-| `pnpm dev`           | Rebuilds `dist/` on change                              |
-| `pnpm test`          | Unit tests (`pnpm vitest run <path>` for one area)      |
-| `pnpm lint`          | oxlint; `pnpm lint:types` adds the type-aware rules     |
-| `pnpm format`        | oxfmt                                                   |
-| `pnpm typecheck`     | `tsc --noEmit`                                          |
-| `pnpm build`         | Bundle with Vite, declarations with `tsc`               |
-| `pnpm check:package` | publint and arethetypeswrong against the packed tarball |
-| `pnpm verify`        | Everything CI runs                                      |
+| Command              | Does                                                                                         |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| `pnpm dev`           | Rebuilds `dist/` on change                                                                   |
+| `pnpm test`          | Unit and integration tests (`pnpm vitest run <path>` for one area)                           |
+| `pnpm test:e2e`      | Builds, bundles a sample dApp and drives it in Chromium (`playwright install chromium` once) |
+| `pnpm lint`          | oxlint; `pnpm lint:types` adds the type-aware rules                                          |
+| `pnpm format`        | oxfmt                                                                                        |
+| `pnpm typecheck`     | `tsc --noEmit`                                                                               |
+| `pnpm build`         | Bundle with Vite, declarations with `tsc`                                                    |
+| `pnpm check:package` | publint and arethetypeswrong against the packed tarball                                      |
+| `pnpm verify`        | Everything CI runs                                                                           |
 
 ### Trying a change in a dApp
 
