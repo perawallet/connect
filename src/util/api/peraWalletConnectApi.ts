@@ -1,6 +1,6 @@
-import { shuffleArray } from '../array/arrayUtils'
-import { fetcher } from './fetcher'
-import { type PeraWalletConfig } from './peraWalletConnectApiTypes'
+import { shuffleArray } from '../array/arrayUtils.js'
+import { fetcher } from './fetcher.js'
+import { type PeraWalletConfig } from './peraWalletConnectApiTypes.js'
 
 const PERA_CONNECT_CONFIG_URL = 'https://wc.perawallet.app/config.json'
 

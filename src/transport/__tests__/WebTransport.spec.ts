@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const runWebSignTransactionFlow = vi.fn()
 
-vi.mock('../../util/sign/signTransactionFlow', () => ({
+vi.mock('../../util/sign/signTransactionFlow.js', () => ({
     runWebSignTransactionFlow: (args: any) => runWebSignTransactionFlow(args),
 }))
 
 // Import AFTER the mock is registered.
-const { WebTransport } = await import('../WebTransport')
+const { WebTransport } = await import('../WebTransport.js')
 
 function makeTransport() {
     return new WebTransport({

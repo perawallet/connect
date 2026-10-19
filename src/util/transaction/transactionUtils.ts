@@ -3,8 +3,8 @@ import algosdk, { type Transaction } from 'algosdk'
 import {
     type PeraWalletTransaction,
     type SignerTransaction,
-} from '../model/peraWalletModels'
-import { generateSimpleId } from '../number/numberUtils'
+} from '../model/peraWalletModels.js'
+import { generateSimpleId } from '../number/numberUtils.js'
 
 function encodeUnsignedTransactionInBase64(txn: Transaction): string {
     return algosdk.bytesToBase64(algosdk.encodeUnsignedTransaction(txn))

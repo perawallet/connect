@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { appTellerManager } from '../../network/teller/appTellerManager'
-import { waitForTabOpening } from '../../dom/domUtils'
-import { removeModalWrapperFromDOM } from '../../../modal/peraWalletConnectModalUtils'
-import { runWebConnectFlow } from '../connectFlow'
+import { appTellerManager } from '../../network/teller/appTellerManager.js'
+import { waitForTabOpening } from '../../dom/domUtils.js'
+import { removeModalWrapperFromDOM } from '../../../modal/peraWalletConnectModalUtils.js'
+import { runWebConnectFlow } from '../connectFlow.js'
 
-vi.mock('../../dom/domUtils', () => ({
+vi.mock('../../dom/domUtils.js', () => ({
     waitForTabOpening: vi.fn(),
     getMetaInfo: vi.fn(() => ({
         title: 'dApp',
@@ -15,11 +15,11 @@ vi.mock('../../dom/domUtils', () => ({
     })),
 }))
 
-vi.mock('../../network/teller/appTellerManager', () => ({
+vi.mock('../../network/teller/appTellerManager.js', () => ({
     appTellerManager: { sendMessage: vi.fn(), setupListener: vi.fn() },
 }))
 
-vi.mock('../../../modal/peraWalletConnectModalUtils', () => ({
+vi.mock('../../../modal/peraWalletConnectModalUtils.js', () => ({
     PERA_WALLET_CONNECT_MODAL_ID: 'pera-wallet-connect-modal',
     removeModalWrapperFromDOM: vi.fn(),
 }))

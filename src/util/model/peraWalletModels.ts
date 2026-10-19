@@ -1,6 +1,6 @@
 import { type Transaction } from 'algosdk'
 
-import { type AlgodClients, type NetworkToggle } from '../algod/algodTypes'
+import { type AlgodClients, type NetworkToggle } from '../algod/algodTypes.js'
 
 export interface SignerTransaction {
     txn: Transaction

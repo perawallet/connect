@@ -1,6 +1,6 @@
-import { generatePeraWalletConnectDeepLink } from '../../../util/peraWalletUtils'
+import { generatePeraWalletConnectDeepLink } from '../../../util/peraWalletUtils.js'
 import styles from './_pera-wallet-modal-touch-screen-mode.scss?inline'
-import { appendTemplateWithStyles } from '../../shadowDomUtils'
+import { appendTemplateWithStyles } from '../../shadowDomUtils.js'
 
 const peraWalletModalTouchScreenMode = document.createElement('template')
 

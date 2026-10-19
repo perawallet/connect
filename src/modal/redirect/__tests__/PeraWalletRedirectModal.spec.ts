@@ -1,18 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { PeraWalletRedirectModal } from '../PeraWalletRedirectModal'
-import { openDeepLinkInCurrentTab } from '../../../util/dom/domUtils'
+import { PeraWalletRedirectModal } from '../PeraWalletRedirectModal.js'
+import { openDeepLinkInCurrentTab } from '../../../util/dom/domUtils.js'
 import {
     PERA_WALLET_REDIRECT_MODAL_ID,
     openPeraWalletRedirectModal,
-} from '../../peraWalletConnectModalUtils'
+} from '../../peraWalletConnectModalUtils.js'
 
-vi.mock('../../../util/dom/domUtils', async importOriginal => ({
+vi.mock('../../../util/dom/domUtils.js', async importOriginal => ({
     ...(await importOriginal<Record<string, unknown>>()),
     openDeepLinkInCurrentTab: vi.fn(),
 }))
 
-vi.mock('../../../util/device/deviceUtils', () => ({
+vi.mock('../../../util/device/deviceUtils.js', () => ({
     detectBrowser: () => 'Chrome',
     isAndroid: () => false,
     isIOS: () => true,

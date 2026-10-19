@@ -6,9 +6,9 @@ import styles from './_pera-wallet-sign-txn-toast.scss?inline'
 import {
     PERA_WALLET_SIGN_TXN_TOAST_ID,
     removeModalWrapperFromDOM,
-} from '../peraWalletConnectModalUtils'
-import { SIGN_TXN_ANIMATION_URL } from './util/peraWalletSignTxnToastConstants'
-import { appendTemplateWithStyles } from '../shadowDomUtils'
+} from '../peraWalletConnectModalUtils.js'
+import { SIGN_TXN_ANIMATION_URL } from './util/peraWalletSignTxnToastConstants.js'
+import { appendTemplateWithStyles } from '../shadowDomUtils.js'
 
 const peraWalletSignTxnToastTemplate = document.createElement('template')
 

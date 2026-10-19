@@ -1,16 +1,16 @@
-import { PeraWalletConnectError } from '../PeraWalletConnectError'
-import { waitForTabOpening } from '../dom/domUtils'
+import { PeraWalletConnectError } from '../PeraWalletConnectError.js'
+import { waitForTabOpening } from '../dom/domUtils.js'
 import {
     type PeraWalletArbitraryData,
     type PeraWalletTransaction,
-} from '../model/peraWalletModels'
+} from '../model/peraWalletModels.js'
 import {
     appTellerManager,
     type PeraTeller,
-} from '../network/teller/appTellerManager'
-import { getPeraWebWalletURL } from '../peraWalletConstants'
-import { type RunSignTransactionFlowParams } from './signTransactionFlowModels'
-import { newTabSignTransactionFlowTellerReducer } from './signTransactionFlowReducers'
+} from '../network/teller/appTellerManager.js'
+import { getPeraWebWalletURL } from '../peraWalletConstants.js'
+import { type RunSignTransactionFlowParams } from './signTransactionFlowModels.js'
+import { newTabSignTransactionFlowTellerReducer } from './signTransactionFlowReducers.js'
 
 function runWebSignTransactionFlow({
     method,

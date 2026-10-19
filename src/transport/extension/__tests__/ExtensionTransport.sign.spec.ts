@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import { ExtensionTransport } from '../ExtensionTransport'
+import { ExtensionTransport } from '../ExtensionTransport.js'
 import {
     PERA_PROVIDER_ERROR_CODES,
     type PeraProvider,
-} from '../peraProviderTypes'
-import { ScopeType } from '../../../util/model/peraWalletModels'
+} from '../peraProviderTypes.js'
+import { ScopeType } from '../../../util/model/peraWalletModels.js'
 
 const account = algosdk.generateAccount()
 const ADDRESS = account.addr.toString()

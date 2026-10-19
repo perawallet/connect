@@ -1,13 +1,13 @@
-import { type WalletTransport } from './WalletTransport'
+import { type WalletTransport } from './WalletTransport.js'
 import {
     type PeraWalletArbitraryData,
     type PeraWalletArc60SignData,
     type PeraWalletArc60SignDataResponse,
     type SignMetadata,
     type PeraWalletTransaction,
-} from '../util/model/peraWalletModels'
-import { type AlgorandChainIDs } from '../util/peraWalletTypes'
-import { runWebSignTransactionFlow } from '../util/sign/signTransactionFlow'
+} from '../util/model/peraWalletModels.js'
+import { type AlgorandChainIDs } from '../util/peraWalletTypes.js'
+import { runWebSignTransactionFlow } from '../util/sign/signTransactionFlow.js'
 
 export interface WebTransportDeps {
     getWebWalletURL: () => Promise<string>

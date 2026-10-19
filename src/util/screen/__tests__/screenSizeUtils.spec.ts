@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { setupDynamicVhValue, setVhVariable } from '../screenSizeUtils'
+import { setupDynamicVhValue, setVhVariable } from '../screenSizeUtils.js'
 
 function setInnerHeight(height: number) {
     Object.defineProperty(window, 'innerHeight', {

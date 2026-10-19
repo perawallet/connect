@@ -1,35 +1,41 @@
 import algosdk from 'algosdk'
-import { type WalletTransport, type ConnectOptions } from '../WalletTransport'
-import { buildArc60WireParams, buildArc60SignDataResponse } from '../arc60Wire'
+import {
+    type WalletTransport,
+    type ConnectOptions,
+} from '../WalletTransport.js'
+import {
+    buildArc60WireParams,
+    buildArc60SignDataResponse,
+} from '../arc60Wire.js'
 import {
     type PeraNetwork,
     type PeraProvider,
     type PeraProviderConnectOptions,
     PERA_PROVIDER_ERROR_CODES,
     isPeraProviderError,
-} from './peraProviderTypes'
-import { mapEmptySignaturesError } from './emptySignaturesError'
-import { PeraWalletConnectError } from '../../util/PeraWalletConnectError'
+} from './peraProviderTypes.js'
+import { mapEmptySignaturesError } from './emptySignaturesError.js'
+import { PeraWalletConnectError } from '../../util/PeraWalletConnectError.js'
 import {
     type PeraWalletArbitraryData,
     type PeraWalletArc60SignData,
     type PeraWalletArc60SignDataResponse,
     type SignMetadata,
     type PeraWalletTransaction,
-} from '../../util/model/peraWalletModels'
-import { type AlgorandChainIDs } from '../../util/peraWalletTypes'
+} from '../../util/model/peraWalletModels.js'
+import { type AlgorandChainIDs } from '../../util/peraWalletTypes.js'
 import {
     BETANET_NODE_CHAIN_ID,
     MAINNET_NODE_CHAIN_ID,
     TESTNET_NODE_CHAIN_ID,
-} from '../../util/algod/algodConstants'
-import { base64ToUint8Array } from '../../util/transaction/transactionUtils'
-import { getMetaInfo } from '../../util/dom/domUtils'
+} from '../../util/algod/algodConstants.js'
+import { base64ToUint8Array } from '../../util/transaction/transactionUtils.js'
+import { getMetaInfo } from '../../util/dom/domUtils.js'
 import {
     saveWalletDetailsToStorage,
     resetWalletDetailsFromStorage,
     getWalletPlatformFromStorage,
-} from '../../util/storage/storageUtils'
+} from '../../util/storage/storageUtils.js'
 
 const MAX_NAME_LENGTH = 100
 const MAX_DESCRIPTION_LENGTH = 300

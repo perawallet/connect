@@ -1,9 +1,9 @@
 import {
     type PeraWalletArbitraryData,
     type PeraWalletTransaction,
-} from '../model/peraWalletModels'
-import { type PeraTeller } from '../network/teller/appTellerManager'
-import { type AlgorandChainIDs } from '../peraWalletTypes'
+} from '../model/peraWalletModels.js'
+import { type PeraTeller } from '../network/teller/appTellerManager.js'
+import { type AlgorandChainIDs } from '../peraWalletTypes.js'
 
 type SignTransactionFlowMethod = 'SIGN_TXN' | 'SIGN_DATA'
 

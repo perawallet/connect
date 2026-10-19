@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest'
 
 // The custom element self-registers on import via App.ts in production; here we
 // register it directly if not already defined.
-import { PeraWalletModalDesktopMode } from '../PeraWalletConnectModalDesktopMode'
-import { PERA_WALLET_EXTENSION_CONNECT_EVENT } from '../../../peraWalletConnectModalUtils'
+import { PeraWalletModalDesktopMode } from '../PeraWalletConnectModalDesktopMode.js'
+import { PERA_WALLET_EXTENSION_CONNECT_EVENT } from '../../../peraWalletConnectModalUtils.js'
 
 beforeAll(() => {
     if (!customElements.get('pera-wallet-modal-desktop-mode')) {

@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import {
     verifyArc60Signature,
     verifyPeraSignature,
-} from '../signatureVerification'
+} from '../signatureVerification.js'
 
 const account = algosdk.generateAccount()
 const address = account.addr.toString()

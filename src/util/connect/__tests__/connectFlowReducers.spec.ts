@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import { PeraWalletConnectError } from '../../PeraWalletConnectError'
-import { newTabConnectFlowTellerReducer } from '../connectFlowReducers'
-import { type NewTabConnectFlowTellerReducerParams } from '../connectFlowModels'
+import { PeraWalletConnectError } from '../../PeraWalletConnectError.js'
+import { newTabConnectFlowTellerReducer } from '../connectFlowReducers.js'
+import { type NewTabConnectFlowTellerReducerParams } from '../connectFlowModels.js'
 
 const saveWalletDetailsToStorage = vi.fn()
 const removeModalWrapperFromDOM = vi.fn()
 
-vi.mock('../../storage/storageUtils', () => ({
+vi.mock('../../storage/storageUtils.js', () => ({
     saveWalletDetailsToStorage: (...args: unknown[]) =>
         saveWalletDetailsToStorage(...args),
 }))
 
-vi.mock('../../../modal/peraWalletConnectModalUtils', () => ({
+vi.mock('../../../modal/peraWalletConnectModalUtils.js', () => ({
     PERA_WALLET_CONNECT_MODAL_ID: 'pera-wallet-connect-modal',
     removeModalWrapperFromDOM: (...args: unknown[]) =>
         removeModalWrapperFromDOM(...args),

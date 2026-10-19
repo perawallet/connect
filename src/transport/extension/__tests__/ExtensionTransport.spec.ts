@@ -4,16 +4,16 @@ import algosdk from 'algosdk'
 import {
     ExtensionTransport,
     getPeraNetworkFromChainId,
-} from '../ExtensionTransport'
+} from '../ExtensionTransport.js'
 import {
     PERA_PROVIDER_ERROR_CODES,
     type PeraProvider,
-} from '../peraProviderTypes'
+} from '../peraProviderTypes.js'
 import {
     saveWalletDetailsToStorage,
     getWalletDetailsFromStorage,
     resetWalletDetailsFromStorage,
-} from '../../../util/storage/storageUtils'
+} from '../../../util/storage/storageUtils.js'
 
 const account = algosdk.generateAccount()
 const ADDRESS = account.addr.toString()

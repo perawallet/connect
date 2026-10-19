@@ -6,10 +6,10 @@ import {
     DEFAULT_ALGOD_TOKEN,
     MAINNET_NODE_CHAIN_ID,
     TESTNET_NODE_CHAIN_ID,
-} from './algodConstants'
-import { type AlgodClients, type NetworkToggle } from './algodTypes'
-import { type AlgorandChainIDs } from '../peraWalletTypes'
-import { PeraWalletConnectError } from '../PeraWalletConnectError'
+} from './algodConstants.js'
+import { type AlgodClients, type NetworkToggle } from './algodTypes.js'
+import { type AlgorandChainIDs } from '../peraWalletTypes.js'
+import { PeraWalletConnectError } from '../PeraWalletConnectError.js'
 
 function createDefaultAlgodClient(network: NetworkToggle) {
     return new algosdk.Algodv2(

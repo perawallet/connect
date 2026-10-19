@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
-import { fetcher } from '../fetcher'
+import { fetcher } from '../fetcher.js'
 
 describe('fetcher', () => {
     afterEach(() => {

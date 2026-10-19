@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { shuffleArray, concatArrays } from '../arrayUtils'
+import { shuffleArray, concatArrays } from '../arrayUtils.js'
 
 describe('arrayUtils', () => {
     describe('shuffleArray', () => {

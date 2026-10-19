@@ -2,10 +2,16 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "compilerOptions": {
         "target": "ES2020",
-        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "lib": [
+            "ES2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
         "module": "ESNext",
         "moduleResolution": "Bundler",
-        "types": ["vite/client"],
+        "types": [
+            "vite/client"
+        ],
         "strict": true,
         "noImplicitOverride": true,
         "noImplicitReturns": true,
@@ -20,5 +26,9 @@
         "skipLibCheck": true,
         "noEmit": true
     },
-    "include": ["src", "vite.config.ts", "vitest.config.ts"]
+    "include": [
+        "src",
+        "vite.config.ts",
+        "vitest.config.ts"
+    ]
 }

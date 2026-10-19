@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
     buildSignerGroupForIndexes,
     orderSignedByIndexes,
-} from '../transactionSignerUtils'
+} from '../transactionSignerUtils.js'
 
 const sender = algosdk.generateAccount().addr
 

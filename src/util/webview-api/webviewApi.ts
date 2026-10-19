@@ -1,5 +1,5 @@
-import { callMobileMethodWithResponse } from './webviewBridge'
-import type { PublicSettings } from './webviewApiTypes'
+import { callMobileMethodWithResponse } from './webviewBridge.js'
+import type { PublicSettings } from './webviewApiTypes.js'
 
 const DEFAULT_TIMEOUT = 2000
 

@@ -1,14 +1,14 @@
 import {
     type AlgorandChainIDs,
     type PeraWalletPlatformType,
-} from '../util/peraWalletTypes'
+} from '../util/peraWalletTypes.js'
 import {
     type PeraWalletArbitraryData,
     type PeraWalletArc60SignData,
     type PeraWalletArc60SignDataResponse,
     type PeraWalletTransaction,
     type SignMetadata,
-} from '../util/model/peraWalletModels'
+} from '../util/model/peraWalletModels.js'
 
 export type ConnectOptions = { selectedAccount?: string }
 

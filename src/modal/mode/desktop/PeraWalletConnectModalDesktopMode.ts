@@ -13,7 +13,7 @@ import QRCodeStyling from 'qr-code-styling'
 
 import styles from './_pera-wallet-connect-modal-desktop-mode.scss?inline'
 import accordionStyles from './accordion/_pera-wallet-accordion.scss?inline'
-import { PERA_WALLET_EXTENSION_CONNECT_EVENT } from '../../peraWalletConnectModalUtils'
+import { PERA_WALLET_EXTENSION_CONNECT_EVENT } from '../../peraWalletConnectModalUtils.js'
 
 const peraWalletConnectModalDesktopMode = document.createElement('template')
 const styleSheet = document.createElement('style')

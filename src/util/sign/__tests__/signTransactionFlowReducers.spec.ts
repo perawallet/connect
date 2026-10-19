@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import { PeraWalletConnectError } from '../../PeraWalletConnectError'
-import { newTabSignTransactionFlowTellerReducer } from '../signTransactionFlowReducers'
-import { type NewTabSignTransactionFlowTellerReducerParams } from '../signTransactionFlowModels'
+import { PeraWalletConnectError } from '../../PeraWalletConnectError.js'
+import { newTabSignTransactionFlowTellerReducer } from '../signTransactionFlowReducers.js'
+import { type NewTabSignTransactionFlowTellerReducerParams } from '../signTransactionFlowModels.js'
 
 const resetWalletDetailsFromStorage = vi.fn(() => Promise.resolve(undefined))
 
-vi.mock('../../storage/storageUtils', () => ({
+vi.mock('../../storage/storageUtils.js', () => ({
     resetWalletDetailsFromStorage: () => resetWalletDetailsFromStorage(),
 }))
 

@@ -1,8 +1,8 @@
 import algosdk from 'algosdk'
 import nacl from 'tweetnacl'
 
-import { concatArrays } from '../array/arrayUtils'
-import { PERA_WALLET_SIGNATURE_PREFIX } from '../peraWalletConstants'
+import { concatArrays } from '../array/arrayUtils.js'
+import { PERA_WALLET_SIGNATURE_PREFIX } from '../peraWalletConstants.js'
 
 async function sha256(data: Uint8Array) {
     return new Uint8Array(

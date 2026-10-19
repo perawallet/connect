@@ -1,35 +1,38 @@
 import type WalletConnect from '@perawallet/walletconnect'
 import algosdk from 'algosdk'
 
-import { type WalletTransport } from './WalletTransport'
-import { buildArc60WireParams, buildArc60SignDataResponse } from './arc60Wire'
-import { PeraWalletConnectError } from '../util/PeraWalletConnectError'
+import { type WalletTransport } from './WalletTransport.js'
+import {
+    buildArc60WireParams,
+    buildArc60SignDataResponse,
+} from './arc60Wire.js'
+import { PeraWalletConnectError } from '../util/PeraWalletConnectError.js'
 import {
     type PeraWalletArbitraryData,
     type PeraWalletArc60SignData,
     type PeraWalletArc60SignDataResponse,
     type SignMetadata,
     type PeraWalletTransaction,
-} from '../util/model/peraWalletModels'
-import { type AlgorandChainIDs } from '../util/peraWalletTypes'
+} from '../util/model/peraWalletModels.js'
+import { type AlgorandChainIDs } from '../util/peraWalletTypes.js'
 import {
     base64ToUint8Array,
     formatJsonRpcRequest,
-} from '../util/transaction/transactionUtils'
+} from '../util/transaction/transactionUtils.js'
 import {
     EMPTY_SIGNATURES_METHOD,
     EMPTY_SIGNATURES_TIMEOUT_MS,
     withTimeout,
-} from '../util/emptySignatures'
+} from '../util/emptySignatures.js'
 import {
     removeModalWrapperFromDOM,
     PERA_WALLET_REDIRECT_MODAL_ID,
     PERA_WALLET_SIGN_TXN_TOAST_ID,
     openPeraWalletRedirectModal,
     openPeraWalletSignTxnToast,
-} from '../modal/peraWalletConnectModalUtils'
-import { isMobile } from '../util/device/deviceUtils'
-import { getErrorMessage } from '../util/error/errorUtils'
+} from '../modal/peraWalletConnectModalUtils.js'
+import { isMobile } from '../util/device/deviceUtils.js'
+import { getErrorMessage } from '../util/error/errorUtils.js'
 
 // Only the request method is needed, which keeps test doubles small.
 type Connector = Pick<WalletConnect, 'sendCustomRequest'>

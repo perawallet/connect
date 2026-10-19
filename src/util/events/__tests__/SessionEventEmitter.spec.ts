@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { SessionEventEmitter } from '../SessionEventEmitter'
+import { SessionEventEmitter } from '../SessionEventEmitter.js'
 
 describe('SessionEventEmitter', () => {
     it('delivers the payload to every handler of that event only', () => {

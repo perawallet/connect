@@ -1,8 +1,8 @@
 import {
     appTellerManager,
     type PeraTeller,
-} from '../network/teller/appTellerManager'
-import { PeraWalletConnectError } from '../PeraWalletConnectError'
+} from '../network/teller/appTellerManager.js'
+import { PeraWalletConnectError } from '../PeraWalletConnectError.js'
 
 export const WAIT_FOR_TAB_TRY_INTERVAL = 700
 export const WAIT_FOR_TAB_MAX_TRY_COUNT = 50

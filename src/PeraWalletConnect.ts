@@ -7,56 +7,56 @@ import {
     PERA_WALLET_EXTENSION_CONNECT_EVENT,
     removeModalWrapperFromDOM,
     setupPeraWalletConnectModalCloseListener,
-} from './modal/peraWalletConnectModalUtils'
+} from './modal/peraWalletConnectModalUtils.js'
 import {
     buildArc60SignDataResponse,
     decodeArc60SignedData,
-} from './transport/arc60Wire'
+} from './transport/arc60Wire.js'
 import {
     ExtensionTransport,
     getPeraNetworkFromChainId,
-} from './transport/extension/ExtensionTransport'
+} from './transport/extension/ExtensionTransport.js'
 import {
     getPeraProvider,
     type PeraNetwork,
-} from './transport/extension/peraProviderTypes'
+} from './transport/extension/peraProviderTypes.js'
 import {
     MobileTransport,
     requestEmptySignatures,
-} from './transport/MobileTransport'
+} from './transport/MobileTransport.js'
 import {
     type ConnectOptions,
     type WalletTransport,
-} from './transport/WalletTransport'
-import { WebTransport } from './transport/WebTransport'
-import { AlgodClientPool } from './util/algod/algod'
-import { ALGORAND_NODE_CHAIN_ID } from './util/algod/algodConstants'
-import { type AlgodClients } from './util/algod/algodTypes'
+} from './transport/WalletTransport.js'
+import { WebTransport } from './transport/WebTransport.js'
+import { AlgodClientPool } from './util/algod/algod.js'
+import { ALGORAND_NODE_CHAIN_ID } from './util/algod/algodConstants.js'
+import { type AlgodClients } from './util/algod/algodTypes.js'
 import {
     assertValidAlgodClients,
     getNetworkFromChainId,
-} from './util/algod/algodUtils'
-import { getPeraConnectConfig } from './util/api/peraWalletConnectApi'
+} from './util/algod/algodUtils.js'
+import { getPeraConnectConfig } from './util/api/peraWalletConnectApi.js'
 import {
     assertArc60DomainMatchesOrigin,
     assertValidArc60Account,
     lookupArc60Signer,
     resolveArc60SignerNetwork,
-} from './util/arc60/arc60Signer'
-import { runWebConnectFlow } from './util/connect/connectFlow'
-import { isMobile, isPeraDiscoverBrowser } from './util/device/deviceUtils'
+} from './util/arc60/arc60Signer.js'
+import { runWebConnectFlow } from './util/connect/connectFlow.js'
+import { isMobile, isPeraDiscoverBrowser } from './util/device/deviceUtils.js'
 import {
     assertEmptySignaturesNetwork,
     EMPTY_SIGNATURES_CAIP2_CHAIN_IDS,
     filterEmptySignatures,
     resolveEmptySignaturesNetwork,
-} from './util/emptySignatures'
-import { getErrorMessage } from './util/error/errorUtils'
+} from './util/emptySignatures.js'
+import { getErrorMessage } from './util/error/errorUtils.js'
 import {
     SessionEventEmitter,
     type PeraWalletConnectEvent,
     type PeraWalletConnectEventHandler,
-} from './util/events/SessionEventEmitter'
+} from './util/events/SessionEventEmitter.js'
 import {
     type PeraWalletArbitraryData,
     type PeraWalletArc60SignData,
@@ -66,15 +66,15 @@ import {
     type PeraWalletTransaction,
     type SignerTransaction,
     type SignMetadata,
-} from './util/model/peraWalletModels'
-import { PeraWalletConnectError } from './util/PeraWalletConnectError'
-import { PERA_WALLET_CONNECT_FALLBACK_BRIDGE } from './util/peraWalletConstants'
-import { type AlgorandChainIDs } from './util/peraWalletTypes'
+} from './util/model/peraWalletModels.js'
+import { PeraWalletConnectError } from './util/PeraWalletConnectError.js'
+import { PERA_WALLET_CONNECT_FALLBACK_BRIDGE } from './util/peraWalletConstants.js'
+import { type AlgorandChainIDs } from './util/peraWalletTypes.js'
 import {
     verifyArc60Signature,
     verifyPeraSignature,
-} from './util/signature/signatureVerification'
-import { PERA_WALLET_LOCAL_STORAGE_KEYS } from './util/storage/storageConstants'
+} from './util/signature/signatureVerification.js'
+import { PERA_WALLET_LOCAL_STORAGE_KEYS } from './util/storage/storageConstants.js'
 import {
     getWalletConnectObjectFromStorage,
     getWalletDetailsFromStorage,
@@ -82,14 +82,14 @@ import {
     migrateLegacyWalletConnectSession,
     resetWalletDetailsFromStorage,
     saveWalletDetailsToStorage,
-} from './util/storage/storageUtils'
-import { assertSignedTransactionsMatch } from './util/transaction/signedTransactionMatch'
+} from './util/storage/storageUtils.js'
+import { assertSignedTransactionsMatch } from './util/transaction/signedTransactionMatch.js'
 import {
     buildSignerGroupForIndexes,
     orderSignedByIndexes,
-} from './util/transaction/transactionSignerUtils'
-import { composeTransaction } from './util/transaction/transactionUtils'
-import { getPublicSettings } from './util/webview-api/webviewApi'
+} from './util/transaction/transactionSignerUtils.js'
+import { composeTransaction } from './util/transaction/transactionUtils.js'
+import { getPublicSettings } from './util/webview-api/webviewApi.js'
 
 interface PeraWalletConnectOptions {
     bridge?: string

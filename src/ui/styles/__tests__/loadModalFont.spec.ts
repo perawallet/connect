@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { loadModalFont } from '../loadModalFont'
+import { loadModalFont } from '../loadModalFont.js'
 
 function fontLinks() {
     return document.head.querySelectorAll<HTMLLinkElement>(

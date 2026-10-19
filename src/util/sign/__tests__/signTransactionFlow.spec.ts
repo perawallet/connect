@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { appTellerManager } from '../../network/teller/appTellerManager'
-import { waitForTabOpening } from '../../dom/domUtils'
-import { type RunSignTransactionFlowParams } from '../signTransactionFlowModels'
-import { runWebSignTransactionFlow } from '../signTransactionFlow'
+import { appTellerManager } from '../../network/teller/appTellerManager.js'
+import { waitForTabOpening } from '../../dom/domUtils.js'
+import { type RunSignTransactionFlowParams } from '../signTransactionFlowModels.js'
+import { runWebSignTransactionFlow } from '../signTransactionFlow.js'
 
-vi.mock('../../dom/domUtils', () => ({
+vi.mock('../../dom/domUtils.js', () => ({
     waitForTabOpening: vi.fn(),
 }))
 
-vi.mock('../../network/teller/appTellerManager', () => ({
+vi.mock('../../network/teller/appTellerManager.js', () => ({
     appTellerManager: { sendMessage: vi.fn(), setupListener: vi.fn() },
 }))
 

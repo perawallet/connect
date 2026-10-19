@@ -1,7 +1,7 @@
 import type algosdk from 'algosdk'
 
-import { type AlgodClients, type NetworkToggle } from './algodTypes'
-import { createDefaultAlgodClient } from './algodUtils'
+import { type AlgodClients, type NetworkToggle } from './algodTypes.js'
+import { createDefaultAlgodClient } from './algodUtils.js'
 
 // One client per network, built on first use: the integrator's when supplied,
 // otherwise a public node.

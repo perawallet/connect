@@ -1,9 +1,9 @@
 import {
     type PeraWalletArbitraryData,
     type PeraWalletTransaction,
-} from '../../model/peraWalletModels'
-import { type AlgorandChainIDs } from '../../peraWalletTypes'
-import { Teller } from './Teller'
+} from '../../model/peraWalletModels.js'
+import { type AlgorandChainIDs } from '../../peraWalletTypes.js'
+import { Teller } from './Teller.js'
 
 export type PeraTeller =
     | {

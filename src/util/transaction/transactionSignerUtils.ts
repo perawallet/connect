@@ -1,7 +1,7 @@
 import type algosdk from 'algosdk'
 
-import { type SignerTransaction } from '../model/peraWalletModels'
-import { PeraWalletConnectError } from '../PeraWalletConnectError'
+import { type SignerTransaction } from '../model/peraWalletModels.js'
+import { PeraWalletConnectError } from '../PeraWalletConnectError.js'
 
 // Validated before the round-trip so a bad caller never triggers a wallet
 // prompt for the wrong slots and then fails on the count check.

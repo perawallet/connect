@@ -1,16 +1,16 @@
 import {
     PERA_WALLET_CONNECT_MODAL_ID,
     removeModalWrapperFromDOM,
-} from '../../modal/peraWalletConnectModalUtils'
-import { PeraWalletConnectError } from '../PeraWalletConnectError'
-import { getMetaInfo, waitForTabOpening } from '../dom/domUtils'
+} from '../../modal/peraWalletConnectModalUtils.js'
+import { PeraWalletConnectError } from '../PeraWalletConnectError.js'
+import { getMetaInfo, waitForTabOpening } from '../dom/domUtils.js'
 import {
     appTellerManager,
     type PeraTeller,
-} from '../network/teller/appTellerManager'
-import { getPeraWebWalletURL } from '../peraWalletConstants'
-import { type RunWebConnectFlowTypes } from './connectFlowModels'
-import { newTabConnectFlowTellerReducer } from './connectFlowReducers'
+} from '../network/teller/appTellerManager.js'
+import { getPeraWebWalletURL } from '../peraWalletConstants.js'
+import { type RunWebConnectFlowTypes } from './connectFlowModels.js'
+import { newTabConnectFlowTellerReducer } from './connectFlowReducers.js'
 
 function runWebConnectFlow({
     webWalletURL,

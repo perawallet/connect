@@ -5,7 +5,7 @@ import {
     type PeraWalletArc60SignData,
     type PeraWalletArc60SignDataResponse,
     type SignMetadata,
-} from '../util/model/peraWalletModels'
+} from '../util/model/peraWalletModels.js'
 
 type Arc60WirePayload = Pick<
     PeraWalletArc60SignData,

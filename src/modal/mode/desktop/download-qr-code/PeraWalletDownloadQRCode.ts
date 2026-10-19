@@ -3,8 +3,8 @@ import PeraWalletLogoWithBlackBackground from '../../../../asset/icon/PeraWallet
 import QRCodeStyling from 'qr-code-styling'
 
 import styles from './_pera-wallet-download-qr-code.scss?inline'
-import { PERA_DOWNLOAD_URL } from '../../../../util/peraWalletConstants'
-import { appendTemplateWithStyles } from '../../../shadowDomUtils'
+import { PERA_DOWNLOAD_URL } from '../../../../util/peraWalletConstants.js'
+import { appendTemplateWithStyles } from '../../../shadowDomUtils.js'
 
 const peraWalletDownloadQRCode = document.createElement('template')
 

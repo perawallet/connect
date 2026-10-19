@@ -1,5 +1,5 @@
-import { type PeraTeller } from '../network/teller/appTellerManager'
-import { type AlgorandChainIDs } from '../peraWalletTypes'
+import { type PeraTeller } from '../network/teller/appTellerManager.js'
+import { type AlgorandChainIDs } from '../peraWalletTypes.js'
 
 interface ConnectFlowPromise {
     resolve: (accounts: string[]) => void

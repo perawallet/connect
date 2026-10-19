@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 
-import { type PeraProvider } from '../../transport/extension/peraProviderTypes'
+import { type PeraProvider } from '../../transport/extension/peraProviderTypes.js'
 
 export type PeraProviderStub = PeraProvider & {
     connect: ReturnType<typeof vi.fn>

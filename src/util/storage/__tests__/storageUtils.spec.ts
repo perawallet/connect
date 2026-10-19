@@ -7,11 +7,11 @@ import {
     resetWalletDetailsFromStorage,
     getWalletPlatformFromStorage,
     migrateLegacyWalletConnectSession,
-} from '../storageUtils'
+} from '../storageUtils.js'
 import {
     PERA_WALLET_LOCAL_STORAGE_KEYS,
     LEGACY_WALLETCONNECT_STORAGE_KEY,
-} from '../storageConstants'
+} from '../storageConstants.js'
 
 // Shape of a persisted WalletConnect v1 session (IWalletConnectSession).
 const LEGACY_SESSION = {

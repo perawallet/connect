@@ -1,20 +1,20 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import { PeraWalletConnect } from '../PeraWalletConnect'
-import { ExtensionTransport } from '../transport/extension/ExtensionTransport'
-import { WebTransport } from '../transport/WebTransport'
-import { MobileTransport } from '../transport/MobileTransport'
+import { PeraWalletConnect } from '../PeraWalletConnect.js'
+import { ExtensionTransport } from '../transport/extension/ExtensionTransport.js'
+import { WebTransport } from '../transport/WebTransport.js'
+import { MobileTransport } from '../transport/MobileTransport.js'
 import {
     saveWalletDetailsToStorage,
     resetWalletDetailsFromStorage,
-} from '../util/storage/storageUtils'
+} from '../util/storage/storageUtils.js'
 import {
     installPeraProvider,
     uninstallPeraProvider,
-} from './helpers/peraProviderStub'
+} from './helpers/peraProviderStub.js'
 
-vi.mock('../util/api/peraWalletConnectApi', () => ({
+vi.mock('../util/api/peraWalletConnectApi.js', () => ({
     getPeraConnectConfig: () =>
         Promise.resolve({
             isWebWalletAvailable: false,
@@ -29,7 +29,7 @@ vi.mock('../util/api/peraWalletConnectApi', () => ({
 
 const runWebSignTransactionFlowMock = vi.fn()
 
-vi.mock('../util/sign/signTransactionFlow', () => ({
+vi.mock('../util/sign/signTransactionFlow.js', () => ({
     runWebSignTransactionFlow: (args: any) =>
         runWebSignTransactionFlowMock(args),
 }))

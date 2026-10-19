@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
-import { callMobileMethodWithResponse } from '../webviewBridge'
+import { callMobileMethodWithResponse } from '../webviewBridge.js'
 
 type MutableWindow = typeof window & {
     peraMobileInterface?: { handleRequest?: (message: string) => void }

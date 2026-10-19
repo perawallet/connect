@@ -1,6 +1,6 @@
 import algosdk from 'algosdk'
 
-import { PeraWalletConnectError } from '../PeraWalletConnectError'
+import { PeraWalletConnectError } from '../PeraWalletConnectError.js'
 
 // The txID a transaction would have without its fee and group ID. The wallet
 // may raise the fee (quantum accounts need more than the dApp's estimate) and

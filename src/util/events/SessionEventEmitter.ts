@@ -1,4 +1,4 @@
-import { type PeraNetwork } from '../../transport/extension/peraProviderTypes'
+import { type PeraNetwork } from '../../transport/extension/peraProviderTypes.js'
 
 type PeraWalletConnectEventMap = {
     /** The session ended from the wallet side (for example the user revoked the site). */

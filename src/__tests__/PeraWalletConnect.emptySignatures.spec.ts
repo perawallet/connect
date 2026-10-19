@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import { PeraWalletConnect } from '../PeraWalletConnect'
+import { PeraWalletConnect } from '../PeraWalletConnect.js'
 import {
     resetWalletDetailsFromStorage,
     saveWalletDetailsToStorage,
-} from '../util/storage/storageUtils'
-import { PERA_PROVIDER_ERROR_CODES } from '../transport/extension/peraProviderTypes'
+} from '../util/storage/storageUtils.js'
+import { PERA_PROVIDER_ERROR_CODES } from '../transport/extension/peraProviderTypes.js'
 import {
     installPeraProvider,
     makePeraProviderError,
     uninstallPeraProvider,
-} from './helpers/peraProviderStub'
+} from './helpers/peraProviderStub.js'
 
-vi.mock('../util/api/peraWalletConnectApi', () => ({
+vi.mock('../util/api/peraWalletConnectApi.js', () => ({
     getPeraConnectConfig: () =>
         Promise.resolve({
             isWebWalletAvailable: false,

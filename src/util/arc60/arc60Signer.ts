@@ -1,14 +1,14 @@
 import algosdk from 'algosdk'
 
-import { isArc60OriginMismatch } from '../../transport/extension/originBinding'
-import { ALGORAND_NODE_CHAIN_ID } from '../algod/algodConstants'
-import { getNetworkFromChainId } from '../algod/algodUtils'
+import { isArc60OriginMismatch } from '../../transport/extension/originBinding.js'
+import { ALGORAND_NODE_CHAIN_ID } from '../algod/algodConstants.js'
+import { getNetworkFromChainId } from '../algod/algodUtils.js'
 import {
     type PeraWalletArc60SignerResolution,
     type PeraWalletNetwork,
-} from '../model/peraWalletModels'
-import { PeraWalletConnectError } from '../PeraWalletConnectError'
-import { type AlgorandChainIDs } from '../peraWalletTypes'
+} from '../model/peraWalletModels.js'
+import { PeraWalletConnectError } from '../PeraWalletConnectError.js'
+import { type AlgorandChainIDs } from '../peraWalletTypes.js'
 
 // SIWA origin binding, checked on every transport before the wallet is
 // contacted. A guard for honest integrations: the extension enforces the same

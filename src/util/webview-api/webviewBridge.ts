@@ -6,7 +6,7 @@ import {
     type JsonRpcBatchResponse,
     type JsonRpcError,
     JsonRpcErrorCode,
-} from './webviewApiTypes'
+} from './webviewApiTypes.js'
 
 export type MobileMethodName = 'getPublicSettings'
 

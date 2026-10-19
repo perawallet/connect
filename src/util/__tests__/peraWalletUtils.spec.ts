@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
     generatePeraWalletAppDeepLink,
     generatePeraWalletConnectDeepLink,
-} from '../peraWalletUtils'
+} from '../peraWalletUtils.js'
 
 const deviceMock = {
     detectBrowser: vi.fn<() => string | null>(() => 'Chrome'),
@@ -11,7 +11,7 @@ const deviceMock = {
     isAndroid: vi.fn(() => false),
 }
 
-vi.mock('../device/deviceUtils', () => ({
+vi.mock('../device/deviceUtils.js', () => ({
     detectBrowser: () => deviceMock.detectBrowser(),
     isIOS: () => deviceMock.isIOS(),
     isAndroid: () => deviceMock.isAndroid(),

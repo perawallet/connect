@@ -3,11 +3,11 @@ import { type IWalletConnectSession } from '@perawallet/walletconnect'
 import {
     type PeraWalletDetails,
     type PeraWalletPlatformType,
-} from '../peraWalletTypes'
+} from '../peraWalletTypes.js'
 import {
     PERA_WALLET_LOCAL_STORAGE_KEYS,
     LEGACY_WALLETCONNECT_STORAGE_KEY,
-} from './storageConstants'
+} from './storageConstants.js'
 
 function getLocalStorage() {
     return typeof localStorage === 'undefined' ? undefined : localStorage

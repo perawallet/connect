@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import { type SignerTransaction } from '../../model/peraWalletModels'
+import { type SignerTransaction } from '../../model/peraWalletModels.js'
 import {
     base64ToUint8Array,
     composeTransaction,
     formatJsonRpcRequest,
-} from '../transactionUtils'
+} from '../transactionUtils.js'
 
 vi.mock('algosdk', async importOriginal => {
     const actual = await importOriginal<typeof import('algosdk')>()

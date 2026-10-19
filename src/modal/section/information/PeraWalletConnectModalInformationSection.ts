@@ -5,7 +5,7 @@ import PeraWalletWithText from '../../../asset/icon/PeraWallet--with-text.svg'
 import PeraWalletLogo from '../../../asset/icon/PeraWallet.svg'
 
 import styles from './_pera-wallet-connect-modal-information-section.scss?inline'
-import { isMobile } from '../../../util/device/deviceUtils'
+import { isMobile } from '../../../util/device/deviceUtils.js'
 
 const peraWalletConnectModalInformationSectionTemplate =
     document.createElement('template')

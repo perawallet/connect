@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { generateSimpleId } from '../numberUtils'
+import { generateSimpleId } from '../numberUtils.js'
 
 describe('numberUtils', () => {
     describe('generateSimpleId', () => {

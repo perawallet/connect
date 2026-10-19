@@ -1,5 +1,5 @@
-import { detectBrowser, isAndroid, isIOS } from './device/deviceUtils'
-import { PERA_WALLET_APP_DEEP_LINK } from './peraWalletConstants'
+import { detectBrowser, isAndroid, isIOS } from './device/deviceUtils.js'
+import { PERA_WALLET_APP_DEEP_LINK } from './peraWalletConstants.js'
 
 function generatePeraWalletAppDeepLink(shouldAddBrowserName = true): string {
     let appDeepLink = PERA_WALLET_APP_DEEP_LINK

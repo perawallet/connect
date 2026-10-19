@@ -1,13 +1,13 @@
 import PeraRedirectIcon from '../../asset/icon/PeraRedirectIcon.svg'
 
-import { openDeepLinkInCurrentTab } from '../../util/dom/domUtils'
-import { generatePeraWalletAppDeepLink } from '../../util/peraWalletUtils'
+import { openDeepLinkInCurrentTab } from '../../util/dom/domUtils.js'
+import { generatePeraWalletAppDeepLink } from '../../util/peraWalletUtils.js'
 import {
     PERA_WALLET_REDIRECT_MODAL_ID,
     removeModalWrapperFromDOM,
-} from '../peraWalletConnectModalUtils'
+} from '../peraWalletConnectModalUtils.js'
 import styles from './_pera-wallet-redirect-modal.scss?inline'
-import { appendTemplateWithStyles } from '../shadowDomUtils'
+import { appendTemplateWithStyles } from '../shadowDomUtils.js'
 
 const peraWalletRedirectModalTemplate = document.createElement('template')
 

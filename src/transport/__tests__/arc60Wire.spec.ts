@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import algosdk from 'algosdk'
 
-import { buildArc60WireParams, buildArc60SignDataResponse } from '../arc60Wire'
-import { ScopeType } from '../../util/model/peraWalletModels'
+import {
+    buildArc60WireParams,
+    buildArc60SignDataResponse,
+} from '../arc60Wire.js'
+import { ScopeType } from '../../util/model/peraWalletModels.js'
 
 const account = algosdk.generateAccount()
 

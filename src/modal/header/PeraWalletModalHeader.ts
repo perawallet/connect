@@ -3,12 +3,12 @@ import CloseIcon from '../../asset/icon/Close.svg'
 import CloseIconDark from '../../asset/icon/Close--dark.svg'
 
 import styles from './_pera-wallet-modal-header.scss?inline'
-import { isMobile } from '../../util/device/deviceUtils'
+import { isMobile } from '../../util/device/deviceUtils.js'
 import {
     PERA_WALLET_REDIRECT_MODAL_ID,
     removeModalWrapperFromDOM,
-} from '../peraWalletConnectModalUtils'
-import { appendTemplateWithStyles } from '../shadowDomUtils'
+} from '../peraWalletConnectModalUtils.js'
+import { appendTemplateWithStyles } from '../shadowDomUtils.js'
 
 const peraWalletModalHeader = document.createElement('template')
 

@@ -6,7 +6,7 @@ import {
     PERA_DOWNLOAD_URL,
     PERA_WALLET_SIGNATURE_PREFIX,
     PERA_WALLET_CONNECT_FALLBACK_BRIDGE,
-} from '../peraWalletConstants'
+} from '../peraWalletConstants.js'
 
 describe('peraWalletConstants', () => {
     describe('getPeraWebWalletURL', () => {

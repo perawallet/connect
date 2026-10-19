@@ -7,14 +7,14 @@ import Lottie from '@evanhahn/lottie-web-light'
 import {
     PERA_WALLET_CONNECT_MODAL_ID,
     removeModalWrapperFromDOM,
-} from '../../peraWalletConnectModalUtils'
+} from '../../peraWalletConnectModalUtils.js'
 import styles from './_pera-wallet-connect-modal-pending-message.scss?inline'
-import { isIOS } from '../../../util/device/deviceUtils'
+import { isIOS } from '../../../util/device/deviceUtils.js'
 import {
     CONNECT_AUDIO_URL,
     CONNECT_TIMEOUT_INTERVAL,
     PERA_LOADER_ANIMATION_URL,
-} from './util/peraWalletConnectModalPendingMessageConstants'
+} from './util/peraWalletConnectModalPendingMessageConstants.js'
 
 const peraWalletConnectModalPendingMessageTemplate =
     document.createElement('template')

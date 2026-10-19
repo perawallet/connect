@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { isArc60OriginMismatch, hostFromMaybeUrl } from '../originBinding'
+import { isArc60OriginMismatch, hostFromMaybeUrl } from '../originBinding.js'
 
 describe('isArc60OriginMismatch', () => {
     it('returns false when domain host matches the verified origin host', () => {

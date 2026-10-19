@@ -1,21 +1,21 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
-import { PeraWalletConnect } from '../PeraWalletConnect'
+import { PeraWalletConnect } from '../PeraWalletConnect.js'
 import {
     saveWalletDetailsToStorage,
     getWalletDetailsFromStorage,
     resetWalletDetailsFromStorage,
-} from '../util/storage/storageUtils'
+} from '../util/storage/storageUtils.js'
 import {
     PERA_WALLET_LOCAL_STORAGE_KEYS,
     LEGACY_WALLETCONNECT_STORAGE_KEY,
-} from '../util/storage/storageConstants'
-import { PERA_PROVIDER_ERROR_CODES } from '../transport/extension/peraProviderTypes'
+} from '../util/storage/storageConstants.js'
+import { PERA_PROVIDER_ERROR_CODES } from '../transport/extension/peraProviderTypes.js'
 import {
     installPeraProvider,
     makePeraProviderError,
     uninstallPeraProvider,
-} from './helpers/peraProviderStub'
+} from './helpers/peraProviderStub.js'
 
 const { configState } = vi.hoisted(() => ({
     configState: {
@@ -29,7 +29,7 @@ const { configState } = vi.hoisted(() => ({
     },
 }))
 
-vi.mock('../util/api/peraWalletConnectApi', () => ({
+vi.mock('../util/api/peraWalletConnectApi.js', () => ({
     getPeraConnectConfig: () => Promise.resolve(configState),
 }))
 

@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer'
 
-import { closePeraWalletSignTxnToast } from './modal/peraWalletConnectModalUtils'
-import { PeraWalletConnect } from './PeraWalletConnect'
+import { closePeraWalletSignTxnToast } from './modal/peraWalletConnectModalUtils.js'
+import { PeraWalletConnect } from './PeraWalletConnect.js'
 
 if (typeof window !== 'undefined') {
     // The SDK no longer reads these, but earlier releases installed them and
@@ -11,16 +11,16 @@ if (typeof window !== 'undefined') {
 
     // Registers the modal's custom elements. Loaded lazily so server-side
     // rendering never touches `customElements`.
-    void import('./App')
+    void import('./App.js')
 }
 
 export { PeraWalletConnect, closePeraWalletSignTxnToast }
-export { type PeraWalletConnectOptions } from './PeraWalletConnect'
+export { type PeraWalletConnectOptions } from './PeraWalletConnect.js'
 export {
     type PeraWalletConnectEvent,
     type PeraWalletConnectEventHandler,
     type PeraWalletConnectEventMap,
-} from './util/events/SessionEventEmitter'
+} from './util/events/SessionEventEmitter.js'
 export {
     ScopeType,
     type PeraWalletArbitraryData,
@@ -34,7 +34,7 @@ export {
     type SignerTransaction,
     type SignMetadata,
     type Siwa,
-} from './util/model/peraWalletModels'
+} from './util/model/peraWalletModels.js'
 export {
     PERA_PROVIDER_ERROR_CODES,
     getPeraProvider,
@@ -47,4 +47,4 @@ export {
     type PeraProviderError,
     type PeraProviderEvent,
     type PeraProviderWalletTransaction,
-} from './transport/extension/peraProviderTypes'
+} from './transport/extension/peraProviderTypes.js'

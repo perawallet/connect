@@ -172,7 +172,14 @@
         "**/*.d.ts"
       ],
       "rules": {
-        "import/no-default-export": "error"
+        "import/no-default-export": "error",
+        "import/extensions": [
+          "error",
+          "always",
+          {
+            "ignorePackages": true
+          }
+        ]
       }
     },
     {

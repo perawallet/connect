@@ -3,10 +3,10 @@ import algosdk from 'algosdk'
 import {
     PERA_WALLET_CONNECT_MODAL_ID,
     removeModalWrapperFromDOM,
-} from '../../modal/peraWalletConnectModalUtils'
-import { PeraWalletConnectError } from '../PeraWalletConnectError'
-import { saveWalletDetailsToStorage } from '../storage/storageUtils'
-import { type NewTabConnectFlowTellerReducerParams } from './connectFlowModels'
+} from '../../modal/peraWalletConnectModalUtils.js'
+import { PeraWalletConnectError } from '../PeraWalletConnectError.js'
+import { saveWalletDetailsToStorage } from '../storage/storageUtils.js'
+import { type NewTabConnectFlowTellerReducerParams } from './connectFlowModels.js'
 
 function newTabConnectFlowTellerReducer({
     event,

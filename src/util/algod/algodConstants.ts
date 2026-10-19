@@ -1,4 +1,4 @@
-import { type NetworkToggle } from './algodTypes'
+import { type NetworkToggle } from './algodTypes.js'
 
 export const MAINNET_NODE_CHAIN_ID = 416_001
 export const TESTNET_NODE_CHAIN_ID = 416_002

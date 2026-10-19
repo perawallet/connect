@@ -2,7 +2,10 @@ import { describe, it, expect } from 'vitest'
 
 import algosdk from 'algosdk'
 
-import { createDefaultAlgodClient, getNetworkFromChainId } from '../algodUtils'
+import {
+    createDefaultAlgodClient,
+    getNetworkFromChainId,
+} from '../algodUtils.js'
 import {
     DEFAULT_ALGOD_PORT,
     DEFAULT_ALGOD_SERVERS,
@@ -11,7 +14,7 @@ import {
     TESTNET_NODE_CHAIN_ID,
     BETANET_NODE_CHAIN_ID,
     ALGORAND_NODE_CHAIN_ID,
-} from '../algodConstants'
+} from '../algodConstants.js'
 
 describe('algodUtils', () => {
     describe('default algod nodes', () => {

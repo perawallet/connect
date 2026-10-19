@@ -4,16 +4,16 @@ import {
     getWalletDetailsFromStorage,
     resetWalletDetailsFromStorage,
     saveWalletDetailsToStorage,
-} from '../util/storage/storageUtils'
-import { PERA_WALLET_LOCAL_STORAGE_KEYS } from '../util/storage/storageConstants'
-import { PERA_WALLET_CONNECT_FALLBACK_BRIDGE } from '../util/peraWalletConstants'
-import { PERA_WALLET_EXTENSION_CONNECT_EVENT } from '../modal/peraWalletConnectModalUtils'
-import { PERA_PROVIDER_ERROR_CODES } from '../transport/extension/peraProviderTypes'
+} from '../util/storage/storageUtils.js'
+import { PERA_WALLET_LOCAL_STORAGE_KEYS } from '../util/storage/storageConstants.js'
+import { PERA_WALLET_CONNECT_FALLBACK_BRIDGE } from '../util/peraWalletConstants.js'
+import { PERA_WALLET_EXTENSION_CONNECT_EVENT } from '../modal/peraWalletConnectModalUtils.js'
+import { PERA_PROVIDER_ERROR_CODES } from '../transport/extension/peraProviderTypes.js'
 import {
     installPeraProvider,
     makePeraProviderError,
     uninstallPeraProvider,
-} from './helpers/peraProviderStub'
+} from './helpers/peraProviderStub.js'
 
 const { FakeConnector, createSessionBehavior } = vi.hoisted(() => {
     const innerCreateSessionBehavior = {
@@ -72,7 +72,7 @@ vi.mock('@perawallet/walletconnect', () => ({ default: FakeConnector }))
 
 const runWebConnectFlowMock = vi.fn((_args: any) => vi.fn())
 
-vi.mock('../util/connect/connectFlow', () => ({
+vi.mock('../util/connect/connectFlow.js', () => ({
     runWebConnectFlow: (args: any) => runWebConnectFlowMock(args),
 }))
 
@@ -88,11 +88,11 @@ const { configState } = vi.hoisted(() => ({
     },
 }))
 
-vi.mock('../util/api/peraWalletConnectApi', () => ({
+vi.mock('../util/api/peraWalletConnectApi.js', () => ({
     getPeraConnectConfig: () => Promise.resolve(configState),
 }))
 
-const { PeraWalletConnect } = await import('../PeraWalletConnect')
+const { PeraWalletConnect } = await import('../PeraWalletConnect.js')
 
 // FakeConnector's createSession/`connect()`'s internal awaited config/webview
 // promises all resolve on the microtask queue; a real macrotask tick flushes

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
     getPeraConnectConfig,
     fetchPeraConnectConfig,
-} from '../peraWalletConnectApi'
+} from '../peraWalletConnectApi.js'
 
 function stubFetchResolving(body: unknown) {
     const fetchMock = vi.fn(() =>

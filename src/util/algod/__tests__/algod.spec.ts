@@ -1,7 +1,7 @@
 import algosdk from 'algosdk'
 import { describe, expect, it } from 'vitest'
 
-import { AlgodClientPool } from '../algod'
+import { AlgodClientPool } from '../algod.js'
 
 describe('AlgodClientPool', () => {
     it('hands out the supplied client for its network', () => {

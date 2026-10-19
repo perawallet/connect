@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 
-import { getMetaInfo, getFavicons } from '../domUtils'
+import { getMetaInfo, getFavicons } from '../domUtils.js'
 
 function addLink(rel: string, href: string) {
     const link = document.createElement('link')

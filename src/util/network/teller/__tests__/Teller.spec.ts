@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { Teller } from '../Teller'
+import { Teller } from '../Teller.js'
 
 interface TestMessage {
     type: string

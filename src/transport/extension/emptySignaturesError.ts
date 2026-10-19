@@ -1,8 +1,8 @@
 import {
     PERA_PROVIDER_ERROR_CODES,
     isPeraProviderError,
-} from './peraProviderTypes'
-import { PeraWalletConnectError } from '../../util/PeraWalletConnectError'
+} from './peraProviderTypes.js'
+import { PeraWalletConnectError } from '../../util/PeraWalletConnectError.js'
 
 /**
  * Kept apart from `mapProviderError`: `PeraWalletConnect.getEmptySignatures()`

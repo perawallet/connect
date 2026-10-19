@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import { MobileTransport, requestEmptySignatures } from '../MobileTransport'
-import { ScopeType } from '../../util/model/peraWalletModels'
+import { MobileTransport, requestEmptySignatures } from '../MobileTransport.js'
+import { ScopeType } from '../../util/model/peraWalletModels.js'
 import {
     PERA_WALLET_REDIRECT_MODAL_ID,
     PERA_WALLET_SIGN_TXN_TOAST_ID,
-} from '../../modal/peraWalletConnectModalUtils'
+} from '../../modal/peraWalletConnectModalUtils.js'
 
 const account = algosdk.generateAccount()
 

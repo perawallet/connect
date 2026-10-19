@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import { PeraWalletConnect } from '../PeraWalletConnect'
+import { PeraWalletConnect } from '../PeraWalletConnect.js'
 import {
     MAINNET_NODE_CHAIN_ID,
     TESTNET_NODE_CHAIN_ID,
-} from '../util/algod/algodConstants'
+} from '../util/algod/algodConstants.js'
 
-vi.mock('../util/api/peraWalletConnectApi', () => ({
+vi.mock('../util/api/peraWalletConnectApi.js', () => ({
     getPeraConnectConfig: () =>
         Promise.resolve({
             isWebWalletAvailable: false,

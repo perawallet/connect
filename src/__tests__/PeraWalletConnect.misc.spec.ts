@@ -2,15 +2,15 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 import nacl from 'tweetnacl'
 
-import { PeraWalletConnect } from '../PeraWalletConnect'
-import { concatArrays } from '../util/array/arrayUtils'
-import { PERA_WALLET_SIGNATURE_PREFIX } from '../util/peraWalletConstants'
+import { PeraWalletConnect } from '../PeraWalletConnect.js'
+import { concatArrays } from '../util/array/arrayUtils.js'
+import { PERA_WALLET_SIGNATURE_PREFIX } from '../util/peraWalletConstants.js'
 import {
     saveWalletDetailsToStorage,
     resetWalletDetailsFromStorage,
-} from '../util/storage/storageUtils'
+} from '../util/storage/storageUtils.js'
 
-vi.mock('../util/api/peraWalletConnectApi', () => ({
+vi.mock('../util/api/peraWalletConnectApi.js', () => ({
     getPeraConnectConfig: () =>
         Promise.resolve({
             isWebWalletAvailable: false,
@@ -25,7 +25,7 @@ vi.mock('../util/api/peraWalletConnectApi', () => ({
 
 const getPublicSettingsMock = vi.fn()
 
-vi.mock('../util/webview-api/webviewApi', () => ({
+vi.mock('../util/webview-api/webviewApi.js', () => ({
     getPublicSettings: () => getPublicSettingsMock(),
 }))
 

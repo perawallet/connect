@@ -7,7 +7,7 @@ import {
     filterEmptySignatures,
     resolveEmptySignaturesNetwork,
     withTimeout,
-} from '../emptySignatures'
+} from '../emptySignatures.js'
 
 const ACCOUNT = algosdk.generateAccount().addr.toString()
 const OTHER = algosdk.generateAccount().addr.toString()

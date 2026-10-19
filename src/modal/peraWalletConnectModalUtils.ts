@@ -1,4 +1,4 @@
-import { generatePeraWalletConnectDeepLink } from '../util/peraWalletUtils'
+import { generatePeraWalletConnectDeepLink } from '../util/peraWalletUtils.js'
 
 export interface PeraWalletModalConfig {
     isWebWalletAvailable: boolean
