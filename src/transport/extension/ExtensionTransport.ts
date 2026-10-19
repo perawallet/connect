@@ -1,4 +1,3 @@
-import algosdk from 'algosdk'
 import {
     type WalletTransport,
     type ConnectOptions,
@@ -36,6 +35,7 @@ import {
     resetWalletDetailsFromStorage,
     getWalletPlatformFromStorage,
 } from '../../util/storage/storageUtils.js'
+import { bytesToBase64 } from '../../util/encoding/encodingUtils.js'
 
 const MAX_NAME_LENGTH = 100
 const MAX_DESCRIPTION_LENGTH = 300
@@ -306,7 +306,7 @@ export class ExtensionTransport implements WalletTransport {
         const payload = {
             data: data.map(item => ({
                 signer,
-                data: algosdk.bytesToBase64(item.data),
+                data: bytesToBase64(item.data),
                 message: item.message,
             })),
         }

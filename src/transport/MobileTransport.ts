@@ -1,5 +1,4 @@
 import type WalletConnect from '@perawallet/walletconnect'
-import algosdk from 'algosdk'
 
 import { type WalletTransport } from './WalletTransport.js'
 import {
@@ -33,6 +32,7 @@ import {
 } from '../modal/peraWalletConnectModalUtils.js'
 import { isMobile } from '../util/device/deviceUtils.js'
 import { getErrorMessage } from '../util/error/errorUtils.js'
+import { bytesToBase64 } from '../util/encoding/encodingUtils.js'
 
 // Only the request method is needed, which keeps test doubles small.
 type Connector = Pick<WalletConnect, 'sendCustomRequest'>
@@ -156,7 +156,7 @@ export class MobileTransport implements WalletTransport {
         const request = formatJsonRpcRequest(
             'algo_signData',
             data.map(item => ({
-                data: algosdk.bytesToBase64(item.data),
+                data: bytesToBase64(item.data),
                 message: item.message,
                 signer,
                 chainId,

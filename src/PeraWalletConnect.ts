@@ -817,9 +817,14 @@ class PeraWalletConnect {
     }
 
     // A session that cannot be restored is torn down so the next connect()
-    // starts clean.
+    // starts clean. disconnect() reads the same storage, so when that storage
+    // is what failed, clearing it directly is the only way out.
     private async failReconnect(error: unknown) {
-        await this.disconnect()
+        try {
+            await this.disconnect()
+        } catch {
+            await resetWalletDetailsFromStorage()
+        }
 
         return new PeraWalletConnectError(
             { type: 'SESSION_RECONNECT', detail: error },

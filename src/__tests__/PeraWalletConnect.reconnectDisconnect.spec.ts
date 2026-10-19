@@ -47,6 +47,19 @@ describe('PeraWalletConnect.reconnectSession()', () => {
         await expect(pera.reconnectSession()).resolves.toEqual([])
     })
 
+    it('clears corrupted wallet details and rejects with SESSION_RECONNECT', async () => {
+        localStorage.setItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET, '{not json')
+
+        const pera = new PeraWalletConnect()
+
+        await expect(pera.reconnectSession()).rejects.toMatchObject({
+            data: { type: 'SESSION_RECONNECT' },
+        })
+        expect(
+            localStorage.getItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET),
+        ).toBeNull()
+    })
+
     it('web: resolves stored accounts when the web wallet is available', async () => {
         configState.isWebWalletAvailable = true
         saveWalletDetailsToStorage(['ADDR'], 'pera-wallet-web')

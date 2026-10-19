@@ -6,6 +6,7 @@ import {
     type PeraWalletArc60SignDataResponse,
     type SignMetadata,
 } from '../util/model/peraWalletModels.js'
+import { bytesToBase64 } from '../util/encoding/encodingUtils.js'
 
 type Arc60WirePayload = Pick<
     PeraWalletArc60SignData,
@@ -48,7 +49,7 @@ function buildArc60WireParams(
         data: dataBase64,
         signer: algosdk.encodeAddress(payload.signer),
         domain: payload.domain,
-        authenticatorData: algosdk.bytesToBase64(payload.authenticatorData),
+        authenticatorData: bytesToBase64(payload.authenticatorData),
         metadata: {
             scope: metadata.scope,
             encoding: 'base64',
