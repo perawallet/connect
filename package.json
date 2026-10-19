@@ -27,7 +27,7 @@
   ],
   "sideEffects": true,
   "scripts": {
-    "setup": "git config core.hooksPath .githooks",
+    "setup:hooks": "git config core.hooksPath .githooks",
     "prepare": "git config core.hooksPath .githooks || true",
     "dev": "vite build --watch",
     "build": "vite build && tsc -p tsconfig.build.json",

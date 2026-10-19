@@ -1,0 +1,131 @@
+name: CI / Pre-Merge
+
+on:
+  pull_request:
+    branches: [main]
+
+# Least-privilege default. Jobs that need more override it locally.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-pre-merge-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, typecheck & test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ".tool-versions"
+          cache: pnpm
+
+      # A stale lockfile fails `--frozen-lockfile` with a cryptic error; say
+      # what to do instead.
+      - name: Lockfile drift check
+        run: |
+          if ! pnpm install --lockfile-only --frozen-lockfile; then
+            echo "::error::pnpm-lock.yaml is out of date with package.json."
+            echo "Run 'pnpm install' locally and commit the updated lockfile."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type-aware lint
+        run: pnpm lint:types
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test:coverage
+
+      - name: Build
+        run: pnpm build
+
+      # The published shape: exports map, files list and type resolution
+      # under every moduleResolution a consumer might use.
+      - name: Check package
+        run: pnpm check:package
+
+  audit:
+    name: Audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ".tool-versions"
+
+      # Runtime advisories ship to every dApp that installs the SDK, so they
+      # block; dev-only ones are reported.
+      - name: pnpm audit (runtime)
+        run: pnpm audit --prod --audit-level=moderate
+
+      - name: pnpm audit (all, informational)
+        if: always()
+        run: pnpm audit --audit-level=low || true
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      # The gitleaks CLI is free and Apache-2.0; only the gitleaks-action
+      # wrapper needs a paid licence for organisations, so install the binary
+      # directly. Pinned by version and verified against the release checksum.
+      GITLEAKS_VERSION: "8.30.1"
+      GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Whole history: a secret is just as published if it was committed,
+          # reverted, and only the revert landed in this PR.
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        # Outside the checkout: `pnpm publish` packs the working directory, so a
+        # binary downloaded there could ship to every consumer of the package.
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -sSfL \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            -o gitleaks.tar.gz
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks version
+
+      - name: Scan history for secrets
+        run: ${{ runner.temp }}/gitleaks git --no-banner --redact .

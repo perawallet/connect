@@ -1,117 +1,72 @@
-### Contributing
+# Contributing to Pera Connect
 
-To contribute to the codebase, you will need to fork the repository.
+## Getting started
 
-The following steps will get you setup to contribute changes to this repo:
-
-- Fork the repo and create your branch from `main`.
-- Install depencencies and build.
-
-We use [pnpm](https://pnpm.io) to manage installation of dependencies and running various scripts. To get everything installed, make sure you have pnpm and run `pnpm install` from the root of the repository.
-
-#### Reporting new issues
-
-When opening a new issue, always make sure to fill out the issue template.
-
-- One issue, one bug: Please report a single bug per issue.
-- Provide reproduction steps: List all the steps necessary to reproduce the issue. The person reading your bug report should be able to follow these steps to reproduce your issue with minimal effort.
-
-#### Development
-
-##### Building
-
-Running `pnpm run build` from the root directory will run the build command for package.
-
-##### Secrets
-
-Never commit a credential. This package is published to npm, so anything in the
-source ends up in a bundle that anyone can read, in git history that cannot be
-rewritten away, and in released tarballs that cannot be recalled. Read values
-from the environment instead.
-
-Two automated checks back this up:
-
-- **Locally**, a `pre-commit` hook scans staged changes with
-  [gitleaks](https://github.com/gitleaks/gitleaks). `pnpm install` enables it by
-  pointing `core.hooksPath` at `.githooks/`. If gitleaks is not installed the
-  hook warns and lets the commit through, so install it —
-  `brew install gitleaks` on macOS.
-- **In CI**, `pr-check` scans the branch history and the release workflow scans
-  the built bundle before publishing. These fail the build; they are the
-  enforcement point, not the hook.
-
-If a scan flags something that is genuinely not a secret, mark it at the source
-with a `// gitleaks:allow` comment on the line so the reason shows up in review.
-Only add a fingerprint to `.gitleaksignore` for a secret that is already public
-_and_ has been revoked — never to silence a live credential.
-
-If a real credential does get committed, removing it in a later commit does not
-un-expose it. It has to be rotated at the provider.
-
-These scans are a safety net, not a guarantee. gitleaks' generic rule keys off
-context — a long random string next to a word like `token`, `key` or `secret`.
-A credential assigned to an unsuggestive name can slip past it. Do not treat a
-green scan as permission to commit something you know is sensitive.
-
-##### Branch Organization
-
-- `main` Branch: the single trunk for all development. Both stable and beta releases are cut from `main`.
-
-##### Feature Branches
-
-When starting to work on a new feature development or a bug fix, you must branch out from `main`. The name of the branch should reflect its purpose.
-
-##### Releasing
-
-`@perawallet/connect` is published from `main` and releases are triggered by pushing a git tag. The
-[release workflow](.github/workflows/release.yml) determines the npm dist-tag from the version:
-a prerelease version (containing a `-`) publishes under `beta`, a clean version publishes under `latest`.
-
-- **Cut a beta:** `npm version prerelease --preid beta` (e.g. `1.6.0-beta.0` → `1.6.0-beta.1` → …)
-  then `git push --follow-tags`. Published to `@perawallet/connect@beta`.
-- **Promote to stable:** `npm version 1.6.0` then `git push --follow-tags`. Published to
-  `@perawallet/connect@latest`.
-
-Consumers install stable with `npm i @perawallet/connect` and prereleases with
-`npm i @perawallet/connect@beta`.
-
-##### Commit Messages
-
-To standardize our commit messages, we follow the convention described on Conventional Commits.
-
-```ssh
-feat(connect-modal): change typography of connect modal.
-^--^^----^  ^----------------------------------^
-|   |       |
-|   |       +-> Summary in present tense.
-|   |
-|   +-> The place that this change affected.
-|
-+-------> Type
+```sh
+pnpm install
+pnpm run setup:hooks   # points git at .githooks/ (secret scan, commit message, pre-push checks)
 ```
 
-##### Pull Requests
+Node comes from `.tool-versions` and pnpm from the `packageManager` field (`corepack enable` picks it up). Read [CLAUDE.md](CLAUDE.md) for how the code is laid out and the rules reviews come back to.
 
-When the work on a feature/bug-fix branch is completed, a pull request (PR) should be opened to `main`.
+| Command              | Does                                                    |
+| -------------------- | ------------------------------------------------------- |
+| `pnpm dev`           | Rebuilds `dist/` on change                              |
+| `pnpm test`          | Unit tests (`pnpm vitest run <path>` for one area)      |
+| `pnpm lint`          | oxlint; `pnpm lint:types` adds the type-aware rules     |
+| `pnpm format`        | oxfmt                                                   |
+| `pnpm typecheck`     | `tsc --noEmit`                                          |
+| `pnpm build`         | Bundle with Vite, declarations with `tsc`               |
+| `pnpm check:package` | publint and arethetypeswrong against the packed tarball |
+| `pnpm verify`        | Everything CI runs                                      |
 
-##### PR Titles
+### Trying a change in a dApp
 
-A similar convention with the commit messages applies to PR titles. Avoid giving too much detail on the PR titles, maximum of 4-5 words would be enough to explain the purpose of the PR.
-
-```ssh
-<type>(scope): <pr summary>
-```
-
-##### PR Descriptions
-
-Include the purpose of the PR, the changes you made, and the expected behavior to PR descriptions. Please fill the PR template, you can feel free to add more sections.
-
-##### Work on local
-
-You can work on your local project with this package. All you have to do is replace the version part of @perawallet/connect in the package.json file with "file:path/connect" like this.
+Point the dApp at your checkout and run `pnpm dev` here:
 
 ```json
 "@perawallet/connect": "file:../connect"
 ```
 
-After doing this, you can run `pnpm run dev` and in this way, you can see the changes you have made to the package simultaneously.
+## Branching
+
+`main` is the only long-lived branch; stable and beta releases are both cut from it. Branch off `main` as `<your-name>/<feature-or-fix>`:
+
+```
+john/fix-extension-reconnect
+sarah/arc60-rekeyed-signer
+```
+
+## Commits
+
+[Conventional Commits](https://www.conventionalcommits.org/), enforced by the `commit-msg` hook:
+
+```
+feat(extension): get empty signatures from window.pera
+fix(mobile): keep the stored session when the bridge is unreachable
+docs: document the WalletConnect v1 transport
+```
+
+PR titles follow the same format. Fill in the PR template and squash-merge.
+
+## Secrets
+
+Never commit a credential. This package is published to npm, so anything in the source ends up in a bundle anyone can read, in git history that cannot be rewritten away, and in tarballs that cannot be recalled. Read values from the environment instead.
+
+- **Locally**, the `pre-commit` hook scans staged changes with [gitleaks](https://github.com/gitleaks/gitleaks). Without gitleaks installed it warns and lets the commit through, so install it (`brew install gitleaks` on macOS).
+- **In CI**, pre-merge scans the branch history and the release workflow scans the built bundle before publishing. These are the enforcement point, not the hook.
+
+If a scan flags something that is not a secret, mark the line with a `// gitleaks:allow` comment so the reason shows in review. Only add a fingerprint to `.gitleaksignore` for a secret that is already public _and_ revoked. A committed credential stays exposed after a later commit removes it; it has to be rotated at the provider.
+
+gitleaks keys off context (a long random string next to `token`, `key` or `secret`), so a credential under an unsuggestive name can slip past it. A green scan is a safety net, not permission.
+
+## Releasing
+
+Releases are published from `main` by pushing a tag; the [release workflow](.github/workflows/release-publish.yml) runs the pre-merge checks again, scans the bundle and publishes with npm provenance. A version containing `-` goes to the `beta` dist-tag, anything else to `latest`.
+
+- **Beta:** `npm version prerelease --preid beta` (`1.9.0-beta.0` → `1.9.0-beta.1` → …), then `git push --follow-tags`.
+- **Stable:** `npm version 1.9.0`, then `git push --follow-tags`.
+
+## Reporting issues
+
+One bug per issue, with the steps to reproduce it, the browser, and which wallet (Pera Mobile, Pera Web or the extension) was involved.

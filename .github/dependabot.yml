@@ -1,7 +1,10 @@
 version: 2
-
-# Weekly updates, one PR per dependency. The 7-day cooldown skips brand-new releases; security updates bypass it.
 updates:
+  # Grouped by risk so a week's bumps arrive as a few PRs instead of one per
+  # package. The 7-day cooldown mirrors pnpm's minimumReleaseAge, so Dependabot
+  # stops proposing versions the install gate would reject; keep its exclude
+  # list in sync with minimumReleaseAgeExclude in pnpm-workspace.yaml. Security
+  # updates bypass the cooldown.
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -10,9 +13,48 @@ updates:
       time: "09:00"
       timezone: Europe/London
     open-pull-requests-limit: 10
+    versioning-strategy: increase-if-necessary
     cooldown:
       default-days: 7
+      include:
+        - "*"
+      exclude:
+        - "@perawallet/walletconnect"
+    labels:
+      - dependencies
+    groups:
+      types:
+        patterns:
+          - "@types/*"
+      vite-vitest:
+        patterns:
+          - vite
+          - vitest
+          - "@vitest/*"
+          - jsdom
+      oxc:
+        patterns:
+          - oxlint
+          - oxlint-*
+          - oxfmt
+      prod-minor-patch:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+      dev-minor-patch:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # @types/node tracks the Node runtime pinned in .tool-versions; a major
+      # ahead of it only types APIs CI does not have.
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
 
+  # Actions are pinned by SHA; Dependabot rewrites the SHA and the trailing
+  # version comment, so the bump stays readable in review.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -23,3 +65,16 @@ updates:
     open-pull-requests-limit: 5
     cooldown:
       default-days: 7
+    labels:
+      - dependencies
+      - ci
+    groups:
+      actions:
+        patterns:
+          - "*"
+    ignore:
+      # pnpm/action-setup v6 ignores both the `version:` input and the
+      # `packageManager` field and installs pnpm 11, which rewrites pnpm 10
+      # lockfiles. Stay on v5 until that is fixed.
+      - dependency-name: pnpm/action-setup
+        update-types: [version-update:semver-major]

@@ -1,4 +1,4 @@
-name: "🚀 release"
+name: Release / Publish
 
 on:
   push:
@@ -10,9 +10,10 @@ permissions:
   contents: read
 
 jobs:
-  release:
-    name: 🚀 release
-    runs-on: ubuntu-latest
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     permissions:
       # OIDC token for npm trusted-publisher provenance.
       id-token: write
@@ -24,17 +25,17 @@ jobs:
       GITLEAKS_VERSION: "8.30.1"
       GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
     steps:
-      - name: Setup repo
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Setup pnpm
+      - name: Install pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: ".tool-versions"
           registry-url: https://registry.npmjs.org
@@ -43,12 +44,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint & test
-        run: pnpm run eslint && pnpm test
+      # Same gates as pre-merge, so a tag pushed past a red main cannot publish.
+      - name: Lint
+        run: pnpm lint && pnpm lint:types && pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test:coverage
 
       - name: Install gitleaks
         # Outside the checkout: `pnpm publish` packs the working directory, so a
-        # binary downloaded there ships to every consumer of the package.
+        # binary downloaded there would ship to every consumer of the package.
         working-directory: ${{ runner.temp }}
         run: |
           set -euo pipefail
@@ -61,13 +69,16 @@ jobs:
       - name: Scan history for secrets
         run: ${{ runner.temp }}/gitleaks git --no-banner --redact .
 
-      - name: Build app
-        run: pnpm run build:release
+      - name: Build
+        run: pnpm build
 
       # The last gate before npm. Source-level scanning can miss a secret that
       # only a build step inlines, and a published tarball cannot be recalled.
       - name: Scan built bundle for secrets
         run: ${{ runner.temp }}/gitleaks dir --no-banner --redact dist
+
+      - name: Check package
+        run: pnpm check:package
 
       - name: Audit dependencies
         run: pnpm audit --prod --audit-level=moderate
@@ -87,13 +98,5 @@ jobs:
             echo "dist_tag=latest" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: 🚀 publish
+      - name: Publish
         run: pnpm publish --access public --tag ${{ steps.channel.outputs.dist_tag }} --provenance --no-git-checks
-
-      # TODO: enable GitHub Releases once the action is pinned to a commit SHA.
-      # Requires bumping the job permission `contents: read` -> `contents: write`.
-      # - name: Create GitHub Release
-      #   uses: softprops/action-gh-release@<PIN-TO-SHA> # v2
-      #   with:
-      #     generate_release_notes: true
-      #     prerelease: ${{ contains(github.ref_name, '-') }}

@@ -1,4 +1,4 @@
-name: CodeQL
+name: Security / CodeQL
 
 # Taint-tracking static analysis (XSS, injection, unsafe deserialisation, workflow injection) that linters do not do.
 on:
