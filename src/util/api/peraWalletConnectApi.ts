@@ -4,73 +4,72 @@ import { type PeraWalletConfig } from './peraWalletConnectApiTypes'
 
 const PERA_CONNECT_CONFIG_URL = 'https://wc.perawallet.app/config.json'
 
-/**
- * @returns {object} {web_wallet: boolean, web_wallet_url: string, use_sound: boolean, display_new_badge: boolean, servers: string[], promote_mobile: boolean}
- */
-function fetchPeraConnectConfig() {
-    const configURL = PERA_CONNECT_CONFIG_URL
-
-    return fetcher<{
-        web_wallet: boolean | undefined
-        web_wallet_url: string | undefined
-        use_sound: boolean | undefined
-        display_new_badge: boolean | undefined
-        servers: string[] | undefined
-        silent: boolean | undefined
-        promote_mobile: boolean | undefined
-    }>(configURL, { cache: 'no-store' })
+interface PeraConnectConfigResponse {
+    web_wallet?: boolean
+    web_wallet_url?: string
+    use_sound?: boolean
+    display_new_badge?: boolean
+    /** WalletConnect bridges; one is picked at random to spread the load. */
+    servers?: string[]
+    silent?: boolean
+    promote_mobile?: boolean
 }
 
-/**
- * @returns {object} {bridgeURL: string, webWalletURL: string, isWebWalletAvailable: boolean, shouldDisplayNewBadge: boolean, shouldUseSound: boolean}
- */
-async function getPeraConnectConfig() {
-    let peraWalletConfig: PeraWalletConfig = {
-        bridgeURL: '',
-        webWalletURL: '',
-        isWebWalletAvailable: false,
-        shouldDisplayNewBadge: false,
-        shouldUseSound: true,
-        silent: false,
-        promoteMobile: false,
-    }
+const DEFAULT_PERA_CONNECT_CONFIG: Readonly<PeraWalletConfig> = {
+    bridgeURL: '',
+    webWalletURL: '',
+    isWebWalletAvailable: false,
+    shouldDisplayNewBadge: false,
+    shouldUseSound: true,
+    silent: false,
+    promoteMobile: false,
+}
+
+function fetchPeraConnectConfig() {
+    return fetcher<PeraConnectConfigResponse>(PERA_CONNECT_CONFIG_URL, {
+        cache: 'no-store',
+    })
+}
+
+function valueOrDefault<T>(value: T | undefined, fallback: T): T {
+    return value === undefined ? fallback : value
+}
+
+// Never rejects: an unreachable or malformed config falls back to the defaults
+// so connecting still works.
+async function getPeraConnectConfig(): Promise<PeraWalletConfig> {
+    const defaults = DEFAULT_PERA_CONNECT_CONFIG
 
     try {
         const response = await fetchPeraConnectConfig()
 
-        if (
-            typeof response.web_wallet !== 'undefined' &&
-            response.web_wallet_url
-        ) {
-            peraWalletConfig.isWebWalletAvailable = response.web_wallet!
-        }
-
-        if (typeof response.display_new_badge !== 'undefined') {
-            peraWalletConfig.shouldDisplayNewBadge = response.display_new_badge!
-        }
-
-        if (typeof response.use_sound !== 'undefined') {
-            peraWalletConfig.shouldUseSound = response.use_sound!
-        }
-
-        if (typeof response.silent !== 'undefined') {
-            peraWalletConfig.silent = response.silent!
-        }
-
-        if (typeof response.promote_mobile !== 'undefined') {
-            peraWalletConfig.promoteMobile = response.promote_mobile
-        }
-
-        peraWalletConfig = {
-            ...peraWalletConfig,
+        return {
             bridgeURL: shuffleArray(response.servers || [])[0] || '',
             webWalletURL: response.web_wallet_url || '',
+            // Pera Web is only offered when the config also says where it is.
+            isWebWalletAvailable: response.web_wallet_url
+                ? valueOrDefault(
+                      response.web_wallet,
+                      defaults.isWebWalletAvailable,
+                  )
+                : defaults.isWebWalletAvailable,
+            shouldDisplayNewBadge: valueOrDefault(
+                response.display_new_badge,
+                defaults.shouldDisplayNewBadge,
+            ),
+            shouldUseSound: valueOrDefault(
+                response.use_sound,
+                defaults.shouldUseSound,
+            ),
+            silent: valueOrDefault(response.silent, defaults.silent),
+            promoteMobile: valueOrDefault(
+                response.promote_mobile,
+                defaults.promoteMobile,
+            ),
         }
     } catch {
-        // Fall back to the default config on any fetch/parse failure.
+        return { ...defaults }
     }
-
-    return peraWalletConfig
 }
 
 export { getPeraConnectConfig, fetchPeraConnectConfig }

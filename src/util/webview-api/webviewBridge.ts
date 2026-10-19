@@ -1,16 +1,10 @@
-/* eslint-disable max-lines */
 /**
  * Unified Webview Bridge
  * Handles communication with both Android and iOS platforms using JSON-RPC 2.0
  * Combines JSON-RPC utilities, error handling, platform detection, message listener, and bridge functions
  */
 
-// Reference global types
-// eslint-disable-next-line spaced-comment, @typescript-eslint/triple-slash-reference
-/// <reference path="./webviewBridgeTypes.d.ts" />
-
 import {
-    type Platform,
     type JsonRpcRequest,
     type JsonRpcNotification,
     type JsonRpcResponse,
@@ -38,15 +32,12 @@ let requestIdCounter = 0
  */
 function generateRequestId(): number {
     const timestamp = Date.now()
-    // eslint-disable-next-line no-plusplus
     const counter = requestIdCounter++
 
     // Use last 8 digits of timestamp + 4-digit counter
     // This gives us: YYYYMMDDHHMMSS + 0000-9999 counter
     // Example: 12345678 + 0001 = 123456780001
-    // eslint-disable-next-line no-magic-numbers
     const timestampPart = timestamp.toString().slice(-8)
-    // eslint-disable-next-line no-magic-numbers
     const counterPart = counter.toString().padStart(4, '0')
 
     return parseInt(`${timestampPart}${counterPart}`, 10)
@@ -187,27 +178,6 @@ function createJsonRpcError(error: JsonRpcError): JsonRpcErrorClass {
             return new JsonRpcErrorClass(error)
         }
     }
-}
-
-/**
- * Detect the current platform
- * Reserved for future use
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function detectPlatform(): Platform {
-    if (typeof window === 'undefined') {
-        return 'unknown'
-    }
-
-    if (window.peraMobileInterface) {
-        return 'android'
-    }
-
-    if (window.webkit?.messageHandlers) {
-        return 'ios'
-    }
-
-    return 'unknown'
 }
 
 /**
@@ -399,7 +369,6 @@ class MessageListener {
      * Register a one-time listener for a JSON-RPC response by ID
      * Returns a promise that resolves when the response is received
      */
-    // eslint-disable-next-line no-magic-numbers
     waitForResponse<T>(
         id: string | number,
         method: string,
@@ -520,7 +489,6 @@ function sendJsonRpcMessage(
  */
 export function callMobileMethodWithResponse<T>(
     methodName: MobileMethodName,
-    // eslint-disable-next-line no-magic-numbers
     timeoutMs = 5000,
     params?: unknown,
 ): Promise<T> {
@@ -540,19 +508,4 @@ export function callMobileMethodWithResponse<T>(
     sendJsonRpcMessage(request)
 
     return responsePromise
-}
-
-/**
- * Check if the mobile interface is available
- * With the unified handleRequest interface, method availability is handled by the mobile app
- */
-export function isMobileMethodAvailable(): boolean {
-    const androidInterface = getAndroidInterface()
-    const iosInterface = getIosInterface()
-
-    // Check if handleRequest exists (method availability is now handled by mobile app)
-    return Boolean(
-        androidInterface?.handleRequest ||
-        iosInterface?.handleRequest?.postMessage,
-    )
 }

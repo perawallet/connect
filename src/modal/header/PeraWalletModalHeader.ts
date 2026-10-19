@@ -8,6 +8,7 @@ import {
     PERA_WALLET_REDIRECT_MODAL_ID,
     removeModalWrapperFromDOM,
 } from '../peraWalletConnectModalUtils'
+import { appendTemplateWithStyles } from '../shadowDomUtils'
 
 const peraWalletModalHeader = document.createElement('template')
 
@@ -49,13 +50,10 @@ export class PeraWalletModalHeader extends HTMLElement {
         this.attachShadow({ mode: 'open' })
 
         if (this.shadowRoot) {
-            const styleSheet = document.createElement('style')
-
-            styleSheet.textContent = styles
-
-            this.shadowRoot.append(
-                peraWalletModalHeader.content.cloneNode(true),
-                styleSheet,
+            appendTemplateWithStyles(
+                this.shadowRoot,
+                peraWalletModalHeader,
+                styles,
             )
 
             this.onClose()

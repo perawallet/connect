@@ -146,7 +146,6 @@ describe('MobileTransport', () => {
             const connector = makeConnector([responseB64])
             const transport = makeTransport(connector)
 
-            // eslint-disable-next-line no-magic-numbers
             const signed = await transport.signData(
                 [{ data: new Uint8Array([9, 9]), message: 'hello' }],
                 account.addr.toString(),
@@ -171,7 +170,6 @@ describe('MobileTransport', () => {
             const connector = makeConnector([[3, 4]])
             const transport = makeTransport(connector)
 
-            // eslint-disable-next-line no-magic-numbers
             const signed = await transport.signData(
                 [{ data: new Uint8Array([1]), message: 'm' }],
                 account.addr.toString(),
@@ -185,7 +183,6 @@ describe('MobileTransport', () => {
             const transport = makeTransport(null)
 
             await expect(
-                // eslint-disable-next-line no-magic-numbers
                 transport.signData(
                     [{ data: new Uint8Array([1]), message: 'm' }],
                     account.addr.toString(),
@@ -203,7 +200,6 @@ describe('MobileTransport', () => {
             const transport = makeTransport(connector)
 
             await expect(
-                // eslint-disable-next-line no-magic-numbers
                 transport.signData(
                     [{ data: new Uint8Array([1]), message: 'm' }],
                     account.addr.toString(),
@@ -222,7 +218,6 @@ describe('MobileTransport', () => {
             const transport = makeTransport(connector)
 
             await expect(
-                // eslint-disable-next-line no-magic-numbers
                 transport.signData(
                     [{ data: new Uint8Array([1]), message: 'm' }],
                     account.addr.toString(),

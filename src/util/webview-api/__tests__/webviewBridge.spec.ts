@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
-import {
-    detectPlatform,
-    isMobileMethodAvailable,
-    callMobileMethodWithResponse,
-} from '../webviewBridge'
+import { callMobileMethodWithResponse } from '../webviewBridge'
 
 type MutableWindow = typeof window & {
     peraMobileInterface?: { handleRequest?: (message: string) => void }
@@ -45,42 +41,6 @@ describe('webviewBridge', () => {
         vi.useRealTimers()
     })
 
-    describe('detectPlatform', () => {
-        it("returns 'unknown' when no mobile interface is present", () => {
-            expect(detectPlatform()).toBe('unknown')
-        })
-
-        it("returns 'android' when the Android interface is present", () => {
-            setAndroidInterface()
-
-            expect(detectPlatform()).toBe('android')
-        })
-
-        it("returns 'ios' when the iOS message handlers are present", () => {
-            setIosInterface()
-
-            expect(detectPlatform()).toBe('ios')
-        })
-    })
-
-    describe('isMobileMethodAvailable', () => {
-        it('is true when the Android handleRequest exists', () => {
-            setAndroidInterface()
-
-            expect(isMobileMethodAvailable()).toBe(true)
-        })
-
-        it('is true when the iOS postMessage handler exists', () => {
-            setIosInterface()
-
-            expect(isMobileMethodAvailable()).toBe(true)
-        })
-
-        it('is false when no interface is present', () => {
-            expect(isMobileMethodAvailable()).toBe(false)
-        })
-    })
-
     describe('callMobileMethodWithResponse', () => {
         it('sends a JSON-RPC 2.0 request through the Android interface', () => {
             const handleRequest = setAndroidInterface()
@@ -99,6 +59,18 @@ describe('webviewBridge', () => {
                 params: { foo: 'bar' },
             })
             expect(typeof sent.id).toBe('number')
+        })
+
+        it('sends the request through the iOS message handler', () => {
+            const postMessage = setIosInterface()
+
+            void callMobileMethodWithResponse('getPublicSettings', 5000)
+
+            expect(postMessage).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(postMessage.mock.calls[0][0])).toMatchObject({
+                jsonrpc: '2.0',
+                method: 'getPublicSettings',
+            })
         })
 
         it('resolves with an object result matched by request id', async () => {

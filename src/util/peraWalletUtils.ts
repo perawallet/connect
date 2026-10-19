@@ -12,11 +12,6 @@ function generatePeraWalletAppDeepLink(shouldAddBrowserName = true): string {
     return appDeepLink
 }
 
-/**
- * @param {string} uri WalletConnect uri
- * @param {Object} params Optional parameters
- * @returns {string} Pera Wallet deeplink
- */
 function generatePeraWalletConnectDeepLink(
     uri: string,
     params?: {
@@ -26,7 +21,7 @@ function generatePeraWalletConnectDeepLink(
 ): string {
     let appDeepLink = generatePeraWalletAppDeepLink(false)
 
-    // Add `wc` suffix to the deeplink if it doesn't exist
+    // iOS registers the WalletConnect handler under its own scheme.
     if (isIOS() && !appDeepLink.includes('-wc')) {
         appDeepLink = appDeepLink.replace('://', '-wc://')
     }
@@ -46,6 +41,7 @@ function generatePeraWalletConnectDeepLink(
         deepLink = `${deepLink}&singleAccount=true`
     }
 
+    // Values read back from modal attributes stringify a missing account.
     if (params?.selectedAccount && params.selectedAccount !== 'undefined') {
         deepLink = `${deepLink}&selectedAccount=${params.selectedAccount}`
     }

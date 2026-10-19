@@ -12,7 +12,7 @@ describe('fetcher', () => {
         const payload = { foo: 'bar' }
         const json = vi.fn(() => Promise.resolve(payload))
         const fetchMock = vi.fn(() =>
-            Promise.resolve({ json } as unknown as Response),
+            Promise.resolve({ ok: true, json } as unknown as Response),
         )
 
         vi.stubGlobal('fetch', fetchMock)
@@ -28,6 +28,7 @@ describe('fetcher', () => {
     it('passes the url and config through to fetch, defaulting config to {}', async () => {
         const fetchMock = vi.fn(() =>
             Promise.resolve({
+                ok: true,
                 json: () => Promise.resolve({}),
             } as unknown as Response),
         )
@@ -47,5 +48,25 @@ describe('fetcher', () => {
             'https://api.example.com/b',
             config,
         )
+    })
+
+    it('rejects on an HTTP error status instead of parsing the body', async () => {
+        const json = vi.fn(() => Promise.resolve({ error: 'oops' }))
+
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(() =>
+                Promise.resolve({
+                    ok: false,
+                    status: 503,
+                    json,
+                } as unknown as Response),
+            ),
+        )
+
+        await expect(fetcher('https://api.example.com/data')).rejects.toThrow(
+            '503',
+        )
+        expect(json).not.toHaveBeenCalled()
     })
 })

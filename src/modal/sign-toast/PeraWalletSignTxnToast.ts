@@ -7,7 +7,8 @@ import {
     PERA_WALLET_SIGN_TXN_TOAST_ID,
     removeModalWrapperFromDOM,
 } from '../peraWalletConnectModalUtils'
-import { SIGN_TXN_ANIMATION_URL } from './util/peraWalletSignTxnToastContants'
+import { SIGN_TXN_ANIMATION_URL } from './util/peraWalletSignTxnToastConstants'
+import { appendTemplateWithStyles } from '../shadowDomUtils'
 
 const peraWalletSignTxnToastTemplate = document.createElement('template')
 
@@ -35,13 +36,10 @@ export class PeraWalletSignTxnToast extends HTMLElement {
         this.attachShadow({ mode: 'open' })
 
         if (this.shadowRoot) {
-            const styleSheet = document.createElement('style')
-
-            styleSheet.textContent = styles
-
-            this.shadowRoot.append(
-                peraWalletSignTxnToastTemplate.content.cloneNode(true),
-                styleSheet,
+            appendTemplateWithStyles(
+                this.shadowRoot,
+                peraWalletSignTxnToastTemplate,
+                styles,
             )
 
             const closeButton = this.shadowRoot.getElementById(

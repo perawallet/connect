@@ -33,7 +33,6 @@ export interface PublicSettings {
  * Standard error codes as per JSON-RPC 2.0 specification
  */
 export enum JsonRpcErrorCode {
-    /* eslint-disable no-magic-numbers */
     ParseError = -32_700,
     InvalidRequest = -32_600,
     MethodNotFound = -32_601,
@@ -41,7 +40,6 @@ export enum JsonRpcErrorCode {
     InternalError = -32_603,
     ServerErrorStart = -32_000,
     ServerErrorEnd = -32_099,
-    /* eslint-enable no-magic-numbers */
 }
 
 /**

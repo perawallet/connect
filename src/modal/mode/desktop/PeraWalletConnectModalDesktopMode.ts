@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import QrIcon from '../../../asset/icon/Qr.svg'
 import ArrowRight from '../../../asset/icon/Right.svg'
 import ArrowLeft from '../../../asset/icon/Left.svg'
@@ -412,13 +411,11 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
             URI = `${URI}&singleAccount=true`
         }
 
-        /* eslint-disable no-magic-numbers */
         let size = isWebWalletAvailable === 'false' ? 250 : 205
 
         if (isCompactMode) {
             size = 190
         }
-        /* eslint-enable no-magic-numbers */
 
         if (URI) {
             const qrCode = new QRCodeStyling({

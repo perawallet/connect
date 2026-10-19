@@ -7,7 +7,6 @@ import { PeraWalletRedirectModal } from './modal/redirect/PeraWalletRedirectModa
 import { PeraWalletConnectModalInformationSection } from './modal/section/information/PeraWalletConnectModalInformationSection'
 import { PeraWalletConnectModalPendingMessageSection } from './modal/section/pending-message/PeraWalletConnectModalPendingMessage'
 import { PeraWalletSignTxnToast } from './modal/sign-toast/PeraWalletSignTxnToast'
-import { PeraWalletSignTxnModal } from './modal/sign-txn/PeraWalletSignTxnModal'
 import { loadModalFont } from './ui/styles/loadModalFont'
 import { setupDynamicVhValue } from './util/screen/screenSizeUtils'
 
@@ -22,7 +21,6 @@ const CUSTOM_ELEMENTS: Record<string, CustomElementConstructor> = {
     'pera-wallet-connect-modal-pending-message-section':
         PeraWalletConnectModalPendingMessageSection,
     'pera-wallet-sign-txn-toast': PeraWalletSignTxnToast,
-    'pera-wallet-sign-txn-modal': PeraWalletSignTxnModal,
     'pera-wallet-download-qr-code': PeraWalletDownloadQRCode,
 }
 

@@ -8,6 +8,7 @@ import {
 function stubFetchResolving(body: unknown) {
     const fetchMock = vi.fn(() =>
         Promise.resolve({
+            ok: true,
             json: () => Promise.resolve(body),
         } as unknown as Response),
     )

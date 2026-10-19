@@ -72,8 +72,6 @@ function runWebSignTransactionFlow({
 
                     clearInterval(checkTabIsAliveInterval)
                 }
-
-                // eslint-disable-next-line no-magic-numbers
             }, 2000)
 
             appTellerManager.setupListener({

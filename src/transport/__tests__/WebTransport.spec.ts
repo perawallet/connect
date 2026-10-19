@@ -59,7 +59,6 @@ describe('WebTransport', () => {
         const signed = await transport.signData(
             [{ data: new Uint8Array([1]), message: 'm' }],
             'SIGNER_ADDRESS',
-            // eslint-disable-next-line no-magic-numbers
             4160,
         )
 
@@ -69,7 +68,6 @@ describe('WebTransport', () => {
                 method: 'SIGN_DATA',
                 webWalletURL: 'https://web.perawallet.app',
                 signer: 'SIGNER_ADDRESS',
-                // eslint-disable-next-line no-magic-numbers
                 chainId: 4160,
                 signTxnRequestParams: [
                     { data: new Uint8Array([1]), message: 'm' },
@@ -86,7 +84,6 @@ describe('WebTransport', () => {
         const transport = makeTransport()
 
         await expect(
-            // eslint-disable-next-line no-magic-numbers
             transport.signData(
                 [{ data: new Uint8Array([1]), message: 'm' }],
                 'SIGNER',

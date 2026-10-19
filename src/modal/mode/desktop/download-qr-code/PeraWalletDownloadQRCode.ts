@@ -4,6 +4,7 @@ import QRCodeStyling from 'qr-code-styling'
 
 import styles from './_pera-wallet-download-qr-code.scss?inline'
 import { PERA_DOWNLOAD_URL } from '../../../../util/peraWalletConstants'
+import { appendTemplateWithStyles } from '../../../shadowDomUtils'
 
 const peraWalletDownloadQRCode = document.createElement('template')
 
@@ -17,13 +18,10 @@ export class PeraWalletDownloadQRCode extends HTMLElement {
         this.attachShadow({ mode: 'open' })
 
         if (this.shadowRoot) {
-            const styleSheet = document.createElement('style')
-
-            styleSheet.textContent = styles
-
-            this.shadowRoot.append(
-                peraWalletDownloadQRCode.content.cloneNode(true),
-                styleSheet,
+            appendTemplateWithStyles(
+                this.shadowRoot,
+                peraWalletDownloadQRCode,
+                styles,
             )
         }
     }

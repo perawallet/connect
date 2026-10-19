@@ -59,7 +59,6 @@ describe('PeraWalletConnect constructor', () => {
     })
 
     it('honors every overridable option', () => {
-        // eslint-disable-next-line no-magic-numbers
         const pera = new PeraWalletConnect({
             bridge: 'https://custom-bridge.test',
             shouldShowSignTxnToast: false,
@@ -72,7 +71,6 @@ describe('PeraWalletConnect constructor', () => {
 
         expect(pera.bridge).toBe('https://custom-bridge.test')
         expect(pera.shouldShowSignTxnToast).toBe(false)
-        // eslint-disable-next-line no-magic-numbers
         expect(pera.chainId).toBe(416_001)
         expect(pera.compactMode).toBe(true)
         expect(pera.singleAccount).toBe(true)

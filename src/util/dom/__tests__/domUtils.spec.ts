@@ -1,10 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 
-import {
-    getMetaInfo,
-    getFavicons,
-    waitForElementCreatedAtShadowDOM,
-} from '../domUtils'
+import { getMetaInfo, getFavicons } from '../domUtils'
 
 function addLink(rel: string, href: string) {
     const link = document.createElement('link')
@@ -79,25 +75,6 @@ describe('domUtils', () => {
 
             expect(info.title).toBe('Meta Title')
             expect(info.description).toBe('Meta description')
-        })
-    })
-
-    describe('waitForElementCreatedAtShadowDOM', () => {
-        it('resolves immediately when the element already exists in the shadow root', async () => {
-            const host = document.createElement('div')
-            const shadow = host.attachShadow({ mode: 'open' })
-            const target = document.createElement('span')
-
-            target.className = 'ready'
-            shadow.appendChild(target)
-            document.body.appendChild(host)
-
-            const resolved = await waitForElementCreatedAtShadowDOM(
-                host,
-                'ready',
-            )
-
-            expect(resolved).toBe(target)
         })
     })
 })

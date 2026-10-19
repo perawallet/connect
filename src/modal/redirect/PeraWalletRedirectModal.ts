@@ -7,6 +7,7 @@ import {
     removeModalWrapperFromDOM,
 } from '../peraWalletConnectModalUtils'
 import styles from './_pera-wallet-redirect-modal.scss?inline'
+import { appendTemplateWithStyles } from '../shadowDomUtils'
 
 const peraWalletRedirectModalTemplate = document.createElement('template')
 
@@ -58,13 +59,10 @@ export class PeraWalletRedirectModal extends HTMLElement {
         this.attachShadow({ mode: 'open' })
 
         if (this.shadowRoot) {
-            const styleSheet = document.createElement('style')
-
-            styleSheet.textContent = styles
-
-            this.shadowRoot.append(
-                peraWalletRedirectModalTemplate.content.cloneNode(true),
-                styleSheet,
+            appendTemplateWithStyles(
+                this.shadowRoot,
+                peraWalletRedirectModalTemplate,
+                styles,
             )
 
             const downloadPeraLink = this.shadowRoot?.getElementById(

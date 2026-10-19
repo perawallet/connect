@@ -1,5 +1,6 @@
 import { generatePeraWalletConnectDeepLink } from '../../../util/peraWalletUtils'
 import styles from './_pera-wallet-modal-touch-screen-mode.scss?inline'
+import { appendTemplateWithStyles } from '../../shadowDomUtils'
 
 const peraWalletModalTouchScreenMode = document.createElement('template')
 
@@ -44,13 +45,10 @@ export class PeraWalletModalTouchScreenMode extends HTMLElement {
         peraWalletModalTouchScreenMode.innerHTML = touchScreenDefaultMode
 
         if (this.shadowRoot) {
-            const styleSheet = document.createElement('style')
-
-            styleSheet.textContent = styles
-
-            this.shadowRoot.append(
-                peraWalletModalTouchScreenMode.content.cloneNode(true),
-                styleSheet,
+            appendTemplateWithStyles(
+                this.shadowRoot,
+                peraWalletModalTouchScreenMode,
+                styles,
             )
 
             const launchPeraLink = this.shadowRoot?.getElementById(

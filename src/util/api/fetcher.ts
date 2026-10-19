@@ -1,14 +1,11 @@
-/**
- * Wrapper function for browser's fetch API.
- *
- * @param {string} url API URL
- * @param {RequestInit} config RequestInit object
- * @returns {any}
- */
-function fetcher<T>(url: string, config: RequestInit = {}): Promise<T> {
-    return fetch(url, config)
-        .then(response => response.json())
-        .then(data => data as T)
+async function fetcher<T>(url: string, config: RequestInit = {}): Promise<T> {
+    const response = await fetch(url, config)
+
+    if (!response.ok) {
+        throw new Error(`${url} answered ${response.status}`)
+    }
+
+    return (await response.json()) as T
 }
 
 export { fetcher }

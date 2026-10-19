@@ -52,7 +52,6 @@ describe('PeraWalletRedirectModal', () => {
 
     afterEach(() => {
         document.body.innerHTML = ''
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (document as any).visibilityState
         vi.clearAllMocks()
         vi.restoreAllMocks()

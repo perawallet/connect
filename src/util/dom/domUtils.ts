@@ -78,32 +78,6 @@ function getFavicons() {
     return icons
 }
 
-function waitForElementCreatedAtShadowDOM(
-    element: Element,
-    className: string,
-): Promise<Element> {
-    // eslint-disable-next-line consistent-return
-    return new Promise<Element>(resolve => {
-        const waitedElement = element.shadowRoot?.querySelector(`.${className}`)
-
-        if (waitedElement) {
-            return resolve(waitedElement)
-        }
-
-        const observer = new MutationObserver(() => {
-            if (waitedElement) {
-                resolve(waitedElement)
-                observer.disconnect()
-            }
-        })
-
-        observer.observe(element, {
-            childList: true,
-            subtree: true,
-        })
-    })
-}
-
 /**
  * Navigates the current tab to the given URL. For custom-scheme deep links this
  * launches the app without unloading the page, unlike window.open(url, "_blank"),
@@ -181,10 +155,4 @@ function waitForTabOpening(url: string): Promise<Window | null> {
     })
 }
 
-export {
-    getMetaInfo,
-    getFavicons,
-    waitForElementCreatedAtShadowDOM,
-    openDeepLinkInCurrentTab,
-    waitForTabOpening,
-}
+export { getMetaInfo, getFavicons, openDeepLinkInCurrentTab, waitForTabOpening }

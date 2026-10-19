@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
 import {

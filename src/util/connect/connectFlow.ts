@@ -58,8 +58,6 @@ function runWebConnectFlow({
                     clearInterval(checkTabIsAliveInterval)
                     closeWebConnectFlow()
                 }
-
-                // eslint-disable-next-line no-magic-numbers
             }, 2000)
 
             appTellerManager.setupListener({
