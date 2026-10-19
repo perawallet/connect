@@ -77,6 +77,28 @@ describe("buildArc60WireParams", () => {
     expect(withOptional.requestId).toBe("req-1");
     expect(withOptional.hdPath).toBe("m/44'/283'/0'/0/0");
   });
+
+  // ARC-60 schemes (algorandfoundation/ARCs#494), as use-wallet 5.1 and Lute send them.
+  describe("scheme", () => {
+    const metadata = {scope: ScopeType.AUTH, encoding: "base64"};
+    const falconKey = new Uint8Array(1793).fill(5);
+
+    it("sends a non-ed25519 signer as base64 of its key, with the scheme", () => {
+      const params = buildArc60WireParams(
+        makePayload({signer: falconKey, scheme: "falcon-1024-det"}),
+        metadata
+      );
+
+      expect(params.signer).toBe(Buffer.from(falconKey).toString("base64"));
+      expect(params.scheme).toBe("falcon-1024-det");
+    });
+
+    it("sends an explicit ed25519 request exactly like one without a scheme", () => {
+      expect(buildArc60WireParams(makePayload({scheme: "ed25519"}), metadata)).toEqual(
+        buildArc60WireParams(makePayload(), metadata)
+      );
+    });
+  });
 });
 
 describe("buildArc60SignDataResponse", () => {
@@ -110,5 +132,14 @@ describe("buildArc60SignDataResponse", () => {
 
     expect(withOptional.requestId).toBe("req-1");
     expect(withOptional.hdPath).toBe("m/44'/283'/0'/0/0");
+  });
+
+  it("passes the scheme through when present", () => {
+    const response = buildArc60SignDataResponse(
+      makePayload({scheme: "falcon-1024-det"}),
+      new Uint8Array([1])
+    );
+
+    expect(response.scheme).toBe("falcon-1024-det");
   });
 });

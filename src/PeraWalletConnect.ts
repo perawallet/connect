@@ -64,7 +64,11 @@ import {
 } from "./util/emptySignatures";
 import {WebTransport} from "./transport/WebTransport";
 import {ConnectOptions} from "./transport/WalletTransport";
-import {buildArc60SignDataResponse, decodeArc60SignedData} from "./transport/arc60Wire";
+import {
+  buildArc60SignDataResponse,
+  decodeArc60SignedData,
+  isEd25519Scheme
+} from "./transport/arc60Wire";
 
 interface PeraWalletConnectOptions {
   bridge?: string;
@@ -1037,6 +1041,8 @@ class PeraWalletConnect {
 
   /**
    * Resolves who has to sign an ARC-60 (SIWA) request for `accountAddress`.
+   * ed25519 only: a Falcon account's key isn't in its address, so its `signer`
+   * comes from its empty signature (`pqsig.pk`) instead.
    *
    * An ARC-60 signature verifies against `signer`'s own key and the wallet
    * never substitutes another key, so a rekeyed account must be signed for by
@@ -1207,8 +1213,11 @@ class PeraWalletConnect {
    * Sends `algo_signData` with a single object as `params` so the Pera mobile
    * wallet routes it to the ARC-60 handler instead of the legacy
    * arbitrary-data handler. The signature returned is
-   * `ed25519(sha256(data) || sha256(authenticatorData))` per ARC-60, not a
-   * raw signature over `data`.
+   * `sign(sha256(data) || sha256(authenticatorData))` per ARC-60, not a raw
+   * signature over `data`, with the key and scheme of `payload`: ed25519 when
+   * `payload.scheme` is omitted. `verifySignature` handles ed25519 only, and
+   * throws `SIGN_DATA_VERIFICATION_UNSUPPORTED` for any other scheme before
+   * the wallet is asked.
    *
    * Resolves with the full ARC-60 `SignDataResponse` shape (signed payload,
    * signer public key, domain, authenticatorData and signature) so responses
@@ -1250,16 +1259,23 @@ class PeraWalletConnect {
 
     this.assertArc60DomainMatchesOrigin(payload.domain);
 
+    // Checked before the wallet prompts, since the answer couldn't be verified.
+    if (verifySignature && !isEd25519Scheme(payload.scheme)) {
+      throw new PeraWalletConnectError(
+        {type: "SIGN_DATA_VERIFICATION_UNSUPPORTED"},
+        `connect can only verify ed25519 signatures, not ${payload.scheme}. Verify the signature in the dApp instead.`
+      );
+    }
+
     const transport = this.getTransport();
     const response = await transport.signArc60Data(payload, metadata);
-    const effectiveSigner = algosdk.encodeAddress(payload.signer);
 
     if (verifySignature) {
       const ok = await this.verifyArc60Signature(
         decodeArc60SignedData(payload.data, metadata.encoding),
         payload.authenticatorData,
         response.signature,
-        effectiveSigner
+        algosdk.encodeAddress(payload.signer)
       );
 
       if (!ok) {

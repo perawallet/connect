@@ -224,6 +224,30 @@ describe("ExtensionTransport signing", () => {
       expect(Array.from(response.signature)).toEqual([9, 9]);
     });
 
+    it("sends a Falcon request's scheme and base64 key, and returns them as asked", async () => {
+      provider.signData.mockResolvedValue([Buffer.from([9, 9]).toString("base64")]);
+      const transport = new ExtensionTransport(provider, {});
+      const falconKey = new Uint8Array(1793).fill(5);
+
+      const response = await transport.signArc60Data(
+        {
+          data: "AA==",
+          signer: falconKey,
+          domain: window.location.origin,
+          authenticatorData: new Uint8Array(37),
+          scheme: "falcon-1024-det"
+        },
+        metadata
+      );
+
+      const wire = provider.signData.mock.calls[0][0];
+
+      expect(wire.signer).toBe(Buffer.from(falconKey).toString("base64"));
+      expect(wire.scheme).toBe("falcon-1024-det");
+      expect(response.signer).toEqual(falconKey);
+      expect(response.scheme).toBe("falcon-1024-det");
+    });
+
     it("rejects with SIGN_DATA when the wallet returns no signature", async () => {
       provider.signData.mockResolvedValue([]);
       const transport = new ExtensionTransport(provider, {});

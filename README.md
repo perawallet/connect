@@ -342,6 +342,55 @@ if (isValid) {
 
 Signs an ARC-60 payload (for example a Sign-In With Algorand request) with the Pera mobile wallet or the Pera extension. `payload.signer` is the public key that must sign, `payload.domain` must match your page origin, and `metadata` is `{scope: ScopeType.AUTH, encoding: "base64"}`. With `verifySignature: true` the returned signature is checked against `payload.signer` before resolving. For rekeyed accounts see `resolveArc60Signer` below.
 
+`payload.scheme` names the signing scheme, as proposed for ARC-60 in [algorandfoundation/ARCs#494](https://github.com/algorandfoundation/ARCs/pull/494). Leave it out for ed25519, which is what every request used before schemes existed. Those requests go to the wallet unchanged.
+
+##### Falcon-1024 accounts
+
+Pera's quantum accounts sign with `scheme: "falcon-1024-det"`, the same way as [use-wallet](https://github.com/TxnLab/use-wallet/pull/473) and [Lute](https://github.com/GalaxyPay/lute-connect#falcon-1024-accounts):
+
+- A Falcon address is a hash of its public key, so `signer` must be the key itself. Take it from the account's [empty signature](#perawalletconnectgetemptysignaturesnetwork-peranetwork-promiserecordstring-string) (`pqsig.pk`).
+- The SIWA payload's `type` must also be `"falcon-1024-det"`. The wallet rejects a scheme that doesn't match it, or that the account can't sign with.
+- connect sends the key as base64, with the scheme beside it. Pera versions that can't sign Falcon ARC-60 yet reject the request.
+- The response keeps your `signer` and `scheme`, and `signature` is a compressed Falcon signature.
+- connect can only verify ed25519 signatures. With `verifySignature: true`, a Falcon request throws `SIGN_DATA_VERIFICATION_UNSUPPORTED` before the wallet is asked. Verify it in your app instead.
+
+```typescript
+import algosdk from "algosdk"; // 3.7 or later, for post-quantum accounts
+import {verifyCompressed} from "falcon-1024";
+
+const emptySignatures = await peraWallet.getEmptySignatures("testnet");
+const signer = algosdk
+  .msgpackRawDecodeAsMap(Buffer.from(emptySignatures[accountAddress], "base64"))
+  .get("pqsig")
+  ?.get("pk"); // undefined for an account that isn't Falcon
+
+// The other SIWA fields as in the resolveArc60Signer example below.
+const siwa = {...siwaFields, account_address: accountAddress, type: "falcon-1024-det"};
+const data = new TextEncoder().encode(JSON.stringify(siwa, Object.keys(siwa).sort()));
+const sha256 = async (bytes: Uint8Array) =>
+  new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+const authenticatorData = await sha256(new TextEncoder().encode(siwa.domain));
+
+const response = await peraWallet.signArc60Data(
+  {
+    data: Buffer.from(data).toString("base64"),
+    signer,
+    domain: siwa.domain,
+    authenticatorData,
+    scheme: "falcon-1024-det"
+  },
+  {scope: ScopeType.AUTH, encoding: "base64"}
+);
+
+// The key must hash to the account (or its auth address), and the signature
+// must cover sha256(data) || sha256(authenticatorData).
+const {address} = algosdk.addressFromPQKey(algosdk.FALCON_1024_SCHEME, response.signer);
+const signedBytes = new Uint8Array([...(await sha256(data)), ...(await sha256(authenticatorData))]);
+const ok =
+  address.toString() === accountAddress &&
+  verifyCompressed(response.signer, response.signature, signedBytes);
+```
+
 #### `PeraWalletConnect.resolveArc60Signer(accountAddress: string, network?: PeraWalletNetwork): Promise<PeraWalletArc60SignerResolution>`
 
 Resolves who has to sign an ARC-60 request for `accountAddress`. An ARC-60 signature is verified against the `signer` public key, and Pera never substitutes another key. If the account is rekeyed, its own key no longer controls it, so the request must name the on-chain **auth address** as `signer` while the SIWA payload keeps the account as `account_address`. Pera refuses a rekeyed account that names itself as `signer`, and it can only sign when the user's wallet holds the auth address as a key-bearing or Ledger account (a watch-only or multisig auth address cannot sign ARC-60).
@@ -353,6 +402,8 @@ Rekeys are per network, and the wallet checks them on the network it is currentl
 - Betanet sessions (`416003`) and values other than `"mainnet"` / `"testnet"` throw `SIGN_DATA_NETWORK_UNSUPPORTED`.
 
 **Returns:** `{accountAddress, signerAddress, signer, isRekeyed, network}`. `signer` is `signerAddress` as a public key, ready for `PeraWalletArc60SignData.signer`.
+
+It resolves ed25519 signers only. A Falcon account's key can't be read from its address, so see [Falcon-1024 accounts](#falcon-1024-accounts) instead.
 
 **Throws:** `SIGN_DATA_INVALID_ADDRESS` for a malformed address, the network errors above, and `SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED` when the account lookup fails (the cause is in `error.data.detail`), instead of assuming the account is not rekeyed.
 
