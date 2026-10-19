@@ -139,7 +139,9 @@ export interface PeraWalletArc60SignData {
     data: string
 
     /**
-     * Algorand address that should sign the payload.
+     * Public key that signs the payload: the 32-byte ed25519 key, or with
+     * `scheme`, the key in that scheme's format. Goes on the wire as an Algorand
+     * address for ed25519 and as base64 for any other scheme.
      */
     signer: Uint8Array
 
@@ -163,6 +165,13 @@ export interface PeraWalletArc60SignData {
      * Optional BIP44 derivation path.
      */
     hdPath?: string
+
+    /**
+     * ARC-60 signing scheme (algorandfoundation/ARCs#494), such as
+     * `"falcon-1024-det"`. Omitted means ed25519. The wallet rejects a scheme it
+     * doesn't support or that doesn't match the account.
+     */
+    scheme?: string
 }
 
 /**
@@ -172,7 +181,9 @@ export interface PeraWalletArc60SignData {
  */
 export interface PeraWalletArc60SignDataResponse extends PeraWalletArc60SignData {
     /**
-     * `ed25519(sha256(data) || sha256(authenticatorData))` per ARC-60.
+     * `sign(sha256(data) || sha256(authenticatorData))` per ARC-60, with the
+     * key and scheme of the request: ed25519 by default, a compressed Falcon
+     * signature for `"falcon-1024-det"`.
      */
     signature: Uint8Array
 }

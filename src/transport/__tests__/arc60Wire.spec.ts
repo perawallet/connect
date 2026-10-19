@@ -90,6 +90,37 @@ describe('buildArc60WireParams', () => {
     })
 })
 
+// ARC-60 schemes (algorandfoundation/ARCs#494), as use-wallet 5.1 and Lute send them.
+describe('buildArc60WireParams with a scheme', () => {
+    const metadata = { scope: ScopeType.AUTH, encoding: 'base64' }
+    const falconKey = new Uint8Array(1793).fill(5)
+
+    it('sends a non-ed25519 signer as base64 of its key, with the scheme', () => {
+        const params = buildArc60WireParams(
+            makePayload({ signer: falconKey, scheme: 'falcon-1024-det' }),
+            metadata,
+        )
+
+        expect(params.signer).toBe(Buffer.from(falconKey).toString('base64'))
+        expect(params.scheme).toBe('falcon-1024-det')
+    })
+
+    it('sends an explicit ed25519 request exactly like one without a scheme', () => {
+        expect(
+            buildArc60WireParams(makePayload({ scheme: 'ed25519' }), metadata),
+        ).toEqual(buildArc60WireParams(makePayload(), metadata))
+    })
+
+    it('passes the scheme through to the response', () => {
+        const response = buildArc60SignDataResponse(
+            makePayload({ scheme: 'falcon-1024-det' }),
+            new Uint8Array([1]),
+        )
+
+        expect(response.scheme).toBe('falcon-1024-det')
+    })
+})
+
 describe('buildArc60SignDataResponse', () => {
     it('builds a response mirroring the payload plus the signature', () => {
         const payload = makePayload()
