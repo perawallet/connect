@@ -12,8 +12,8 @@ import ChevronRightIcon from "../../../asset/icon/ChevronRight.svg";
 
 import QRCodeStyling from "qr-code-styling";
 
-import styles from "./_pera-wallet-connect-modal-desktop-mode.scss";
-import accordionStyles from "./accordion/_pera-wallet-accordion.scss";
+import styles from "./_pera-wallet-connect-modal-desktop-mode.scss?inline";
+import accordionStyles from "./accordion/_pera-wallet-accordion.scss?inline";
 import {PERA_WALLET_EXTENSION_CONNECT_EVENT} from "../../peraWalletConnectModalUtils";
 
 const peraWalletConnectModalDesktopMode = document.createElement("template");
@@ -346,7 +346,7 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
 
   webWalletConnect() {
     if (this.getAttribute("is-web-wallet-avaliable") === "true") {
-      // @ts-ignore ts-2339
+      // @ts-expect-error ts-2339
       window.onWebWalletConnect();
     }
   }

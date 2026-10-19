@@ -355,7 +355,7 @@ describe("PeraWalletConnect.connect()", () => {
 
     it("calls window.pera.connect() synchronously from the button click and resolves with its accounts", async () => {
       const provider = installPeraProvider(["EXT_ADDR"]);
-      const pera = new PeraWalletConnect({chainId: 416002});
+      const pera = new PeraWalletConnect({chainId: 416_002});
 
       const connectPromise = pera.connect();
 
@@ -441,7 +441,7 @@ describe("PeraWalletConnect.connect()", () => {
       provider.connect.mockRejectedValue(
         makePeraProviderError(PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED)
       );
-      const pera = new PeraWalletConnect({chainId: 416001});
+      const pera = new PeraWalletConnect({chainId: 416_001});
 
       const connectPromise = pera.connect();
 

@@ -12,23 +12,27 @@ export function mapEmptySignaturesError(error: unknown): PeraWalletConnectError 
 
   if (isPeraProviderError(error)) {
     switch (error.code) {
-      case PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED:
+      case PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED: {
         return new PeraWalletConnectError(
           {type: "SESSION_DISCONNECTED", detail: error},
           message
         );
-      case PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED:
+      }
+      case PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED: {
         return new PeraWalletConnectError(
           {type: "EMPTY_SIGNATURES_NETWORK_MISMATCH", detail: error},
           message
         );
-      case PERA_PROVIDER_ERROR_CODES.TIMED_OUT:
+      }
+      case PERA_PROVIDER_ERROR_CODES.TIMED_OUT: {
         return new PeraWalletConnectError(
           {type: "EMPTY_SIGNATURES_TIMEOUT", detail: error},
           message
         );
-      default:
+      }
+      default: {
         break;
+      }
     }
   }
 

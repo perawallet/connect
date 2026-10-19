@@ -4,9 +4,9 @@ import {
 } from "../../modal/peraWalletConnectModalUtils";
 import PeraWalletConnectError from "../PeraWalletConnectError";
 import {getMetaInfo, waitForTabOpening} from "../dom/domUtils";
-import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
+import appTellerManager, {type PeraTeller} from "../network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "../peraWalletConstants";
-import {RunWebConnectFlowTypes} from "./connectFlowModels";
+import {type RunWebConnectFlowTypes} from "./connectFlowModels";
 import {newTabConnectFlowTellerReducer} from "./connectFlowReducers";
 
 function runWebConnectFlow({

@@ -2,8 +2,7 @@ import {describe, it, expect, vi, afterEach, beforeEach} from "vitest";
 import algosdk from "algosdk";
 
 import {ExtensionTransport, getPeraNetworkFromChainId} from "../ExtensionTransport";
-import {PERA_PROVIDER_ERROR_CODES, PeraProvider} from "../peraProviderTypes";
-import {ScopeType} from "../../../util/model/peraWalletModels";
+import {PERA_PROVIDER_ERROR_CODES, type PeraProvider} from "../peraProviderTypes";
 import {
   saveWalletDetailsToStorage,
   getWalletDetailsFromStorage,
@@ -61,9 +60,9 @@ function makeProvider(): StubProvider {
 
 describe("getPeraNetworkFromChainId", () => {
   it("maps the specific chain ids and leaves all-networks unset", () => {
-    expect(getPeraNetworkFromChainId(416001)).toBe("mainnet");
-    expect(getPeraNetworkFromChainId(416002)).toBe("testnet");
-    expect(getPeraNetworkFromChainId(416003)).toBe("betanet");
+    expect(getPeraNetworkFromChainId(416_001)).toBe("mainnet");
+    expect(getPeraNetworkFromChainId(416_002)).toBe("testnet");
+    expect(getPeraNetworkFromChainId(416_003)).toBe("betanet");
     expect(getPeraNetworkFromChainId(4160)).toBeUndefined();
     expect(getPeraNetworkFromChainId(undefined)).toBeUndefined();
   });
@@ -80,7 +79,7 @@ describe("ExtensionTransport", () => {
 
   describe("connect()", () => {
     it("calls the provider synchronously (inside the user gesture) and returns addresses", async () => {
-      const transport = new ExtensionTransport(provider, {chainId: 416002});
+      const transport = new ExtensionTransport(provider, {chainId: 416_002});
 
       const promise = transport.connect();
 
@@ -93,7 +92,7 @@ describe("ExtensionTransport", () => {
 
     it("passes the dApp metadata and the pinned network", async () => {
       document.title = "My dApp";
-      const transport = new ExtensionTransport(provider, {chainId: 416001});
+      const transport = new ExtensionTransport(provider, {chainId: 416_001});
 
       await transport.connect();
 
@@ -140,7 +139,7 @@ describe("ExtensionTransport", () => {
       provider.connect.mockRejectedValue(
         providerError(PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED)
       );
-      const transport = new ExtensionTransport(provider, {chainId: 416001});
+      const transport = new ExtensionTransport(provider, {chainId: 416_001});
 
       await expect(transport.connect()).rejects.toMatchObject({
         data: {type: "CONNECT_NETWORK_MISMATCH"}
@@ -173,7 +172,7 @@ describe("ExtensionTransport", () => {
 
   describe("reconnect()", () => {
     it("resolves the stored accounts when the origin is already approved", async () => {
-      const transport = new ExtensionTransport(provider, {chainId: 416002});
+      const transport = new ExtensionTransport(provider, {chainId: 416_002});
 
       await expect(transport.reconnect()).resolves.toEqual([ADDRESS]);
       expect(getWalletDetailsFromStorage()?.type).toBe("pera-wallet-extension");
@@ -299,7 +298,7 @@ describe("ExtensionTransport", () => {
 
       expect(provider.on).toHaveBeenCalledWith("disconnect", expect.any(Function));
       expect(
-        provider.on.mock.calls.filter(([event]: [string]) => event === "disconnect")
+        provider.on.mock.calls.filter(([event]: unknown[]) => event === "disconnect")
       ).toHaveLength(1);
 
       provider.emit("disconnect");

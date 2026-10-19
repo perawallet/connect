@@ -33,7 +33,7 @@ function detectBrowser() {
   } else if (userAgent.match(/OPX/i)) {
     browserName = "Opera GX";
   }
-  // @ts-ignore brave object exists on Brave
+  // @ts-expect-error brave object exists on Brave
   else if (navigator.brave) {
     browserName = "Brave";
   } else {

@@ -1,6 +1,6 @@
 import algosdk from "algosdk";
 
-import {AlgorandNodeProviderType, NetworkToggle} from "./algodTypes";
+import {type AlgorandNodeProviderType, type NetworkToggle} from "./algodTypes";
 import {getAlgosdkCredentialsForNetwork} from "./algodUtils";
 
 class AlgodManager {

@@ -2,7 +2,7 @@ import {describe, it, expect, vi, beforeEach, afterEach} from "vitest";
 
 import appTellerManager from "../../network/teller/appTellerManager";
 import {waitForTabOpening} from "../../dom/domUtils";
-import {RunSignTransactionFlowParams} from "../signTransactionFlowModels";
+import {type RunSignTransactionFlowParams} from "../signTransactionFlowModels";
 import {runWebSignTransactionFlow} from "../signTransactionFlow";
 
 vi.mock("../../dom/domUtils", () => ({
@@ -74,13 +74,13 @@ describe("runWebSignTransactionFlow", () => {
 
     waitForTabOpeningMock.mockResolvedValue(tab);
 
-    invoke({method: "SIGN_DATA", signer: "ADDR_1", chainId: 416001});
+    invoke({method: "SIGN_DATA", signer: "ADDR_1", chainId: 416_001});
     await vi.advanceTimersByTimeAsync(0);
 
     expect(sendMessageMock.mock.calls[0][0].message).toMatchObject({
       type: "SIGN_DATA",
       signer: "ADDR_1",
-      chainId: 416001
+      chainId: 416_001
     });
   });
 

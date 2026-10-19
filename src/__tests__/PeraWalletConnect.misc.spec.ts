@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, afterEach} from "vitest";
 import algosdk from "algosdk";
-import {sign_detached} from "tweetnacl-ts";
+import nacl from "tweetnacl";
 
 import PeraWalletConnect from "../PeraWalletConnect";
 import {concatArrays} from "../util/array/arrayUtils";
@@ -62,7 +62,7 @@ describe("PeraWalletConnect constructor", () => {
     const pera = new PeraWalletConnect({
       bridge: "https://custom-bridge.test",
       shouldShowSignTxnToast: false,
-      chainId: 416001,
+      chainId: 416_001,
       compactMode: true,
       singleAccount: true,
       shouldPreferExtension: false,
@@ -72,7 +72,7 @@ describe("PeraWalletConnect constructor", () => {
     expect(pera.bridge).toBe("https://custom-bridge.test");
     expect(pera.shouldShowSignTxnToast).toBe(false);
     // eslint-disable-next-line no-magic-numbers
-    expect(pera.chainId).toBe(416001);
+    expect(pera.chainId).toBe(416_001);
     expect(pera.compactMode).toBe(true);
     expect(pera.singleAccount).toBe(true);
     expect(pera.shouldPreferExtension).toBe(false);
@@ -145,7 +145,7 @@ describe("PeraWalletConnect.verifySignature", () => {
   it("verifies a signature produced over the MX-prefixed data", () => {
     const account = algosdk.generateAccount();
     const data = new Uint8Array([1, 2, 3]);
-    const signature = sign_detached(
+    const signature = nacl.sign.detached(
       concatArrays(new Uint8Array(PERA_WALLET_SIGNATURE_PREFIX), data),
       account.sk
     );
@@ -158,7 +158,7 @@ describe("PeraWalletConnect.verifySignature", () => {
   it("rejects a signature over the wrong data", () => {
     const account = algosdk.generateAccount();
     const data = new Uint8Array([1, 2, 3]);
-    const signature = sign_detached(
+    const signature = nacl.sign.detached(
       concatArrays(
         new Uint8Array(PERA_WALLET_SIGNATURE_PREFIX),
         new Uint8Array([9, 9, 9])
@@ -193,7 +193,7 @@ describe("PeraWalletConnect.verifyArc60Signature", () => {
       await crypto.subtle.digest("SHA-256", Buffer.from(authenticatorData))
     );
 
-    return sign_detached(concatArrays(dataHash, authHash), account.sk);
+    return nacl.sign.detached(concatArrays(dataHash, authHash), account.sk);
   }
 
   it("verifies a valid ARC-60 signature", async () => {

@@ -47,16 +47,11 @@ interface PeraWalletConnectErrorData {
 class PeraWalletConnectError extends Error {
   data: PeraWalletConnectErrorData;
 
-  constructor(data: PeraWalletConnectErrorData, message: string, ...args: any[]) {
-    super(...args);
-
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, PeraWalletConnectError);
-    }
+  constructor(data: PeraWalletConnectErrorData, message: string, options?: ErrorOptions) {
+    super(message, options);
 
     this.name = "PeraWalletConnectError";
     this.data = data;
-    this.message = message;
   }
 }
 

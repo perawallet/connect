@@ -2,7 +2,7 @@ import {
   PERA_WALLET_MODAL_CLASSNAME,
   PERA_WALLET_SIGN_TXN_MODAL_ID
 } from "../peraWalletConnectModalUtils";
-import styles from "./_pera-wallet-sign-txn-modal.scss";
+import styles from "./_pera-wallet-sign-txn-modal.scss?inline";
 
 const peraWalletSignTxnModal = document.createElement("template");
 

@@ -1,10 +1,10 @@
-import {AlgorandChainIDs, PeraWalletPlatformType} from "../util/peraWalletTypes";
+import {type AlgorandChainIDs, type PeraWalletPlatformType} from "../util/peraWalletTypes";
 import {
-  PeraWalletArbitraryData,
-  PeraWalletArc60SignData,
-  PeraWalletArc60SignDataResponse,
-  PeraWalletTransaction,
-  SignMetadata
+  type PeraWalletArbitraryData,
+  type PeraWalletArc60SignData,
+  type PeraWalletArc60SignDataResponse,
+  type PeraWalletTransaction,
+  type SignMetadata
 } from "../util/model/peraWalletModels";
 
 export type ConnectOptions = {selectedAccount?: string};

@@ -8,7 +8,7 @@ import {
   PERA_WALLET_CONNECT_MODAL_ID,
   removeModalWrapperFromDOM
 } from "../../peraWalletConnectModalUtils";
-import styles from "./_pera-wallet-connect-modal-pending-message.scss";
+import styles from "./_pera-wallet-connect-modal-pending-message.scss?inline";
 import {isIOS} from "../../../util/device/deviceUtils";
 import {
   CONNECT_AUDIO_URL,

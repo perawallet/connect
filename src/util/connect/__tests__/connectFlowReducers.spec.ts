@@ -3,7 +3,7 @@ import algosdk from "algosdk";
 
 import PeraWalletConnectError from "../../PeraWalletConnectError";
 import {newTabConnectFlowTellerReducer} from "../connectFlowReducers";
-import {NewTabConnectFlowTellerReducerParams} from "../connectFlowModels";
+import {type NewTabConnectFlowTellerReducerParams} from "../connectFlowModels";
 
 const saveWalletDetailsToStorage = vi.fn();
 const removeModalWrapperFromDOM = vi.fn();

@@ -2,7 +2,7 @@ import {describe, it, expect, vi, beforeEach} from "vitest";
 
 import PeraWalletConnectError from "../../PeraWalletConnectError";
 import {newTabSignTransactionFlowTellerReducer} from "../signTransactionFlowReducers";
-import {NewTabSignTransactionFlowTellerReducerParams} from "../signTransactionFlowModels";
+import {type NewTabSignTransactionFlowTellerReducerParams} from "../signTransactionFlowModels";
 
 const resetWalletDetailsFromStorage = vi.fn(() => Promise.resolve(undefined));
 

@@ -3,7 +3,7 @@ import {
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_MODAL_CLASSNAME
 } from "./peraWalletConnectModalUtils";
-import styles from "./_pera-wallet-modal.scss";
+import styles from "./_pera-wallet-modal.scss?inline";
 
 const peraWalletConnectModal = document.createElement("template");
 let peraWalletConnectModalClassNames = isMobile()

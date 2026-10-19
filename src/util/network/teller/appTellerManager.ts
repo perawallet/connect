@@ -1,8 +1,8 @@
 import {
-  PeraWalletArbitraryData,
-  PeraWalletTransaction
+  type PeraWalletArbitraryData,
+  type PeraWalletTransaction
 } from "../../model/peraWalletModels";
-import {AlgorandChainIDs} from "../../peraWalletTypes";
+import {type AlgorandChainIDs} from "../../peraWalletTypes";
 import Teller from "./Teller";
 
 export type PeraTeller =

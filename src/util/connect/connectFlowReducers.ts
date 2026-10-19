@@ -6,7 +6,7 @@ import {
 } from "../../modal/peraWalletConnectModalUtils";
 import PeraWalletConnectError from "../PeraWalletConnectError";
 import {saveWalletDetailsToStorage} from "../storage/storageUtils";
-import {NewTabConnectFlowTellerReducerParams} from "./connectFlowModels";
+import {type NewTabConnectFlowTellerReducerParams} from "./connectFlowModels";
 
 // =========== New Tab Connect Flow ===========
 function newTabConnectFlowTellerReducer({

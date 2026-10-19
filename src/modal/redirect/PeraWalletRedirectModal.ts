@@ -6,7 +6,7 @@ import {
   PERA_WALLET_REDIRECT_MODAL_ID,
   removeModalWrapperFromDOM
 } from "../peraWalletConnectModalUtils";
-import styles from "./_pera-wallet-redirect-modal.scss";
+import styles from "./_pera-wallet-redirect-modal.scss?inline";
 
 const peraWalletRedirectModalTemplate = document.createElement("template");
 

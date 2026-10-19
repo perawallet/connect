@@ -1,9 +1,10 @@
 import algosdk from "algosdk";
+import {Buffer} from "buffer";
 
 import {
-  PeraWalletArc60SignData,
-  PeraWalletArc60SignDataResponse,
-  SignMetadata
+  type PeraWalletArc60SignData,
+  type PeraWalletArc60SignDataResponse,
+  type SignMetadata
 } from "../util/model/peraWalletModels";
 
 type Arc60WirePayload = Pick<
@@ -25,7 +26,7 @@ function shouldConvertEncoding(encoding: SignMetadata["encoding"]) {
  */
 function decodeArc60SignedData(data: string, encoding: SignMetadata["encoding"]): Buffer {
   return shouldConvertEncoding(encoding)
-    ? Buffer.from(data, encoding as BufferEncoding)
+    ? Buffer.from(data, encoding)
     : Buffer.from(data, "base64");
 }
 
@@ -38,14 +39,14 @@ function buildArc60WireParams(
 ): Record<string, unknown> {
   // force encoding to base64 for future proofing
   const dataBase64 = shouldConvertEncoding(metadata.encoding)
-    ? Buffer.from(payload.data, metadata.encoding as BufferEncoding).toString("base64")
+    ? Buffer.from(payload.data, metadata.encoding).toString("base64")
     : payload.data;
 
   const wireParams: Record<string, unknown> = {
     data: dataBase64,
     signer: algosdk.encodeAddress(payload.signer),
     domain: payload.domain,
-    authenticatorData: Buffer.from(payload.authenticatorData).toString("base64"),
+    authenticatorData: algosdk.bytesToBase64(payload.authenticatorData),
     metadata: {
       scope: metadata.scope,
       encoding: "base64"

@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
-import {IWalletConnectSession} from "@perawallet/walletconnect";
+import {type IWalletConnectSession} from "@perawallet/walletconnect";
 
-import {PeraWalletDetails, PeraWalletPlatformType} from "../peraWalletTypes";
+import {type PeraWalletDetails, type PeraWalletPlatformType} from "../peraWalletTypes";
 import {
   PERA_WALLET_LOCAL_STORAGE_KEYS,
   LEGACY_WALLETCONNECT_STORAGE_KEY

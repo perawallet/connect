@@ -2,7 +2,7 @@ import PeraConnectIcon from "../../asset/icon/PeraConnect.svg";
 import CloseIcon from "../../asset/icon/Close.svg";
 import CloseIconDark from "../../asset/icon/Close--dark.svg";
 
-import styles from "./_pera-wallet-modal-header.scss";
+import styles from "./_pera-wallet-modal-header.scss?inline";
 import {isMobile} from "../../util/device/deviceUtils";
 import {
   PERA_WALLET_REDIRECT_MODAL_ID,
@@ -26,7 +26,7 @@ peraWalletModalHeader.innerHTML = `
               <div class="pera-wallet-modal-header__brand-text">
                 <span>Pera Connect</span>
 
-                <span class="pera-wallet-modal-header__version-number">PERA_CONNECT_VERSION</span>
+                <span class="pera-wallet-modal-header__version-number">${PERA_CONNECT_VERSION}</span>
               </div>
             </div>
             `

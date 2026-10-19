@@ -1,14 +1,15 @@
-import {WalletTransport} from "./WalletTransport";
+import algosdk from "algosdk";
+import {type WalletTransport} from "./WalletTransport";
 import {buildArc60WireParams, buildArc60SignDataResponse} from "./arc60Wire";
 import PeraWalletConnectError from "../util/PeraWalletConnectError";
 import {
-  PeraWalletArbitraryData,
-  PeraWalletArc60SignData,
-  PeraWalletArc60SignDataResponse,
-  SignMetadata,
-  PeraWalletTransaction
+  type PeraWalletArbitraryData,
+  type PeraWalletArc60SignData,
+  type PeraWalletArc60SignDataResponse,
+  type SignMetadata,
+  type PeraWalletTransaction
 } from "../util/model/peraWalletModels";
-import {AlgorandChainIDs} from "../util/peraWalletTypes";
+import {type AlgorandChainIDs} from "../util/peraWalletTypes";
 import {
   base64ToUint8Array,
   formatJsonRpcRequest
@@ -152,7 +153,7 @@ export class MobileTransport implements WalletTransport {
     }
 
     const b64encodedData = data.map((item) => ({
-      data: Buffer.from(item.data).toString("base64"),
+      data: algosdk.bytesToBase64(item.data),
       message: item.message
     }));
     const formattedSignTxnRequest = formatJsonRpcRequest(

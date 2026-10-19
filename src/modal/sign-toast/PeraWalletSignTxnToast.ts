@@ -2,7 +2,7 @@ import CloseIcon from "../../asset/icon/Close--small.svg";
 
 import Lottie from "@evanhahn/lottie-web-light";
 
-import styles from "./_pera-wallet-sign-txn-toast.scss";
+import styles from "./_pera-wallet-sign-txn-toast.scss?inline";
 import {
   PERA_WALLET_SIGN_TXN_TOAST_ID,
   removeModalWrapperFromDOM

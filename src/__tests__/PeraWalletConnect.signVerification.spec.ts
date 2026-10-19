@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, afterEach} from "vitest";
 import algosdk from "algosdk";
-import {sign_detached} from "tweetnacl-ts";
+import nacl from "tweetnacl";
 
 import PeraWalletConnect from "../PeraWalletConnect";
 import {ScopeType} from "../util/model/peraWalletModels";
@@ -130,7 +130,7 @@ describe("PeraWalletConnect.getAccountAuthAddr (legacy signData verification)", 
   it("keeps reading mainnet for all-networks, unset and betanet chain ids", async () => {
     // The legacy path predates per-network sessions; its mainnet fallback is a
     // compatibility guarantee that getNetworkFromChainId no longer provides.
-    for (const chainId of [4160, 416003, undefined]) {
+    for (const chainId of [4160, 416_003, undefined]) {
       const pera = new PeraWalletConnect();
       const spy = mockAlgod(pera);
 
@@ -144,7 +144,7 @@ describe("PeraWalletConnect.getAccountAuthAddr (legacy signData verification)", 
     const pera = new PeraWalletConnect();
     const spy = mockAlgod(pera);
 
-    await (pera as any).getAccountAuthAddr(account.addr.toString(), 416002);
+    await (pera as any).getAccountAuthAddr(account.addr.toString(), 416_002);
 
     expect(spy).toHaveBeenCalledWith("testnet");
   });
@@ -273,12 +273,12 @@ describe("PeraWalletConnect.signArc60Data", () => {
 
         // Sign exactly what ARC-60 says the wallet signs.
         const digest = async (bytes: Uint8Array) =>
-          new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+          new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes)));
         const toBeSigned = new Uint8Array([
           ...(await digest(new Uint8Array(rawData))),
           ...(await digest(authenticatorData))
         ]);
-        const signature = sign_detached(toBeSigned, account.sk);
+        const signature = nacl.sign.detached(toBeSigned, account.sk);
 
         const pera = new PeraWalletConnect();
 

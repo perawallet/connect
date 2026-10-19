@@ -6,7 +6,7 @@ import {
 } from "../peraWalletUtils";
 
 const deviceMock = {
-  detectBrowser: vi.fn<[], string | null>(() => "Chrome"),
+  detectBrowser: vi.fn<() => string | null>(() => "Chrome"),
   isIOS: vi.fn(() => false),
   isAndroid: vi.fn(() => false)
 };

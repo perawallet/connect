@@ -2,7 +2,7 @@ import {describe, it, expect, vi, beforeEach} from "vitest";
 import algosdk from "algosdk";
 
 import {ExtensionTransport} from "../ExtensionTransport";
-import {PERA_PROVIDER_ERROR_CODES, PeraProvider} from "../peraProviderTypes";
+import {PERA_PROVIDER_ERROR_CODES, type PeraProvider} from "../peraProviderTypes";
 import {ScopeType} from "../../../util/model/peraWalletModels";
 
 const account = algosdk.generateAccount();

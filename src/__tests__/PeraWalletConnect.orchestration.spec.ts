@@ -2,7 +2,7 @@ import {describe, it, expect, vi, afterEach} from "vitest";
 import algosdk from "algosdk";
 
 import PeraWalletConnect from "../PeraWalletConnect";
-import {ScopeType, SignMetadata} from "../util/model/peraWalletModels";
+import {ScopeType, type SignMetadata} from "../util/model/peraWalletModels";
 import {
   saveWalletDetailsToStorage,
   resetWalletDetailsFromStorage

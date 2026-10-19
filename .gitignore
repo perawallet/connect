@@ -1,17 +1,12 @@
-idea
-.vscode
 node_modules
 dist
+coverage
 
-# misc
+.idea
+.vscode
 .DS_Store
-npm-debug.log
-.npm
-pnpm-debug.log
+*.log
 
 # pnpm is the only supported package manager; block stray lockfiles
 package-lock.json
 yarn.lock
-/coverage
-
-docs/superpowers

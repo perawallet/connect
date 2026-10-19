@@ -1,14 +1,14 @@
+# Dev-only advisories that the direct dependency has not picked up yet. Drop an
+# entry once `pnpm why <name>` shows the parent resolving a patched version.
 overrides:
-  bn.js@<4.12.3: '>=4.12.3'
-  flatted@<3.4.0: '>=3.4.0'
-  flatted@<=3.4.1: '>=3.4.2'
-  serialize-javascript@<7.0.5: '>=7.0.5'
-  serialize-javascript@<=7.0.2: '>=7.0.3'
-  tmp@<=0.2.3: '>=0.2.4'
-  ws@>=7.0.0 <7.5.10: '>=7.5.10'
+  immutable@>=5.0.0 <5.1.8: ^5.1.8
+  source-map-js@>=1.0.0 <1.2.2: ^1.2.2
 
+# Supply-chain hardening: a release has to be a week old before it installs, so
+# a compromised publish is usually caught and yanked first. Keep in sync with
+# the Dependabot cooldown in .github/dependabot.yml.
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
-  - "@perawallet/walletconnect"
+  - '@perawallet/walletconnect'
 
 strictPeerDependencies: true

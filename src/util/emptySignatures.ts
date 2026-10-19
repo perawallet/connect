@@ -1,11 +1,11 @@
 import PeraWalletConnectError from "./PeraWalletConnectError";
-import {AlgorandChainIDs} from "./peraWalletTypes";
+import {type AlgorandChainIDs} from "./peraWalletTypes";
 import {
   BETANET_NODE_CHAIN_ID,
   MAINNET_NODE_CHAIN_ID,
   TESTNET_NODE_CHAIN_ID
 } from "./algod/algodConstants";
-import {PeraNetwork} from "../transport/extension/peraProviderTypes";
+import {type PeraNetwork} from "../transport/extension/peraProviderTypes";
 
 /** The WalletConnect method use-wallet defines for empty signatures (TxnLab/use-wallet#465). */
 export const EMPTY_SIGNATURES_METHOD = "algo_getEmptySignatures";

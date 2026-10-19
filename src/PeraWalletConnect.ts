@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 import WalletConnect from "@perawallet/walletconnect";
 import algosdk, {type TransactionSigner} from "algosdk";
-import {sign_detached_verify} from "tweetnacl-ts";
+import nacl from "tweetnacl";
 
 import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
@@ -9,7 +9,7 @@ import {
   removeModalWrapperFromDOM,
   PERA_WALLET_CONNECT_MODAL_ID,
   PERA_WALLET_EXTENSION_CONNECT_EVENT,
-  PeraWalletModalConfig,
+  type PeraWalletModalConfig,
   setupPeraWalletConnectModalCloseListener
 } from "./modal/peraWalletConnectModalUtils";
 import {
@@ -23,18 +23,18 @@ import {
 import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
 import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
 import {
-  PeraWalletArbitraryData,
-  PeraWalletArc60SignData,
-  PeraWalletArc60SignDataResponse,
-  PeraWalletArc60SignerResolution,
-  PeraWalletNetwork,
-  PeraWalletTransaction,
-  SignerTransaction,
-  SignMetadata
+  type PeraWalletArbitraryData,
+  type PeraWalletArc60SignData,
+  type PeraWalletArc60SignDataResponse,
+  type PeraWalletArc60SignerResolution,
+  type PeraWalletNetwork,
+  type PeraWalletTransaction,
+  type SignerTransaction,
+  type SignMetadata
 } from "./util/model/peraWalletModels";
 import {composeTransaction} from "./util/transaction/transactionUtils";
 import {isMobile} from "./util/device/deviceUtils";
-import {AlgorandChainIDs} from "./util/peraWalletTypes";
+import {type AlgorandChainIDs} from "./util/peraWalletTypes";
 import {runWebConnectFlow} from "./util/connect/connectFlow";
 import {concatArrays} from "./util/array/arrayUtils";
 import {AlgodManager} from "./util/algod/algod";
@@ -42,7 +42,7 @@ import {
   ALGORAND_NODE_CHAIN_ID,
   DEFAULT_ALGORAND_NODE_PROVIDER_TYPE
 } from "./util/algod/algodConstants";
-import {AlgodClients, NetworkToggle} from "./util/algod/algodTypes";
+import {type AlgodClients, type NetworkToggle} from "./util/algod/algodTypes";
 import {assertValidAlgodClients, getNetworkFromChainId} from "./util/algod/algodUtils";
 import {
   PERA_WALLET_CONNECT_FALLBACK_BRIDGE,
@@ -53,7 +53,7 @@ import {
   ExtensionTransport,
   getPeraNetworkFromChainId
 } from "./transport/extension/ExtensionTransport";
-import {getPeraProvider, PeraNetwork} from "./transport/extension/peraProviderTypes";
+import {getPeraProvider, type PeraNetwork} from "./transport/extension/peraProviderTypes";
 import {isArc60OriginMismatch} from "./transport/extension/originBinding";
 import {MobileTransport, requestEmptySignatures} from "./transport/MobileTransport";
 import {
@@ -63,7 +63,7 @@ import {
   resolveEmptySignaturesNetwork
 } from "./util/emptySignatures";
 import {WebTransport} from "./transport/WebTransport";
-import {ConnectOptions} from "./transport/WalletTransport";
+import {type ConnectOptions} from "./transport/WalletTransport";
 import {buildArc60SignDataResponse, decodeArc60SignedData} from "./transport/arc60Wire";
 
 interface PeraWalletConnectOptions {
@@ -535,7 +535,7 @@ class PeraWalletConnect {
         });
 
         if (isWebWalletAvailable) {
-          // @ts-ignore ts-2339
+          // @ts-expect-error ts-2339
           window.onWebWalletConnect = onWebWalletConnect;
         }
 
@@ -800,7 +800,7 @@ class PeraWalletConnect {
       const {publicKey} = algosdk.decodeAddress(signerAddress);
       const toBeVerified = concatArrays(PERA_WALLET_SIGNATURE_PREFIX, data);
 
-      return sign_detached_verify(toBeVerified, signature, publicKey);
+      return nacl.sign.detached.verify(toBeVerified, signature, publicKey);
     } catch (error) {
       return false;
     }
@@ -815,14 +815,14 @@ class PeraWalletConnect {
     try {
       const {publicKey} = algosdk.decodeAddress(signerAddress);
       const dataHash = new Uint8Array(
-        await crypto.subtle.digest("SHA-256", Buffer.from(data))
+        await crypto.subtle.digest("SHA-256", new Uint8Array(data))
       );
       const authHash = new Uint8Array(
-        await crypto.subtle.digest("SHA-256", Buffer.from(authenticatorData))
+        await crypto.subtle.digest("SHA-256", new Uint8Array(authenticatorData))
       );
       const toBeVerified = concatArrays(dataHash, authHash);
 
-      return sign_detached_verify(toBeVerified, signature, publicKey);
+      return nacl.sign.detached.verify(toBeVerified, signature, publicKey);
     } catch (error) {
       return false;
     }

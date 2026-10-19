@@ -1,9 +1,9 @@
 import PeraWalletConnectError from "../PeraWalletConnectError";
 import {waitForTabOpening} from "../dom/domUtils";
-import {PeraWalletArbitraryData, PeraWalletTransaction} from "../model/peraWalletModels";
-import appTellerManager, {PeraTeller} from "../network/teller/appTellerManager";
+import {type PeraWalletArbitraryData, type PeraWalletTransaction} from "../model/peraWalletModels";
+import appTellerManager, {type PeraTeller} from "../network/teller/appTellerManager";
 import {getPeraWebWalletURL} from "../peraWalletConstants";
-import {RunSignTransactionFlowParams} from "./signTransactionFlowModels";
+import {type RunSignTransactionFlowParams} from "./signTransactionFlowModels";
 import {newTabSignTransactionFlowTellerReducer} from "./signTransactionFlowReducers";
 
 function runWebSignTransactionFlow({

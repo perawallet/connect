@@ -1,22 +1,23 @@
-import {WalletTransport, ConnectOptions} from "../WalletTransport";
+import algosdk from "algosdk";
+import {type WalletTransport, type ConnectOptions} from "../WalletTransport";
 import {buildArc60WireParams, buildArc60SignDataResponse} from "../arc60Wire";
 import {
-  PeraNetwork,
-  PeraProvider,
-  PeraProviderConnectOptions,
+  type PeraNetwork,
+  type PeraProvider,
+  type PeraProviderConnectOptions,
   PERA_PROVIDER_ERROR_CODES,
   isPeraProviderError
 } from "./peraProviderTypes";
 import {mapEmptySignaturesError} from "./emptySignaturesError";
 import PeraWalletConnectError from "../../util/PeraWalletConnectError";
 import {
-  PeraWalletArbitraryData,
-  PeraWalletArc60SignData,
-  PeraWalletArc60SignDataResponse,
-  SignMetadata,
-  PeraWalletTransaction
+  type PeraWalletArbitraryData,
+  type PeraWalletArc60SignData,
+  type PeraWalletArc60SignDataResponse,
+  type SignMetadata,
+  type PeraWalletTransaction
 } from "../../util/model/peraWalletModels";
-import {AlgorandChainIDs} from "../../util/peraWalletTypes";
+import {type AlgorandChainIDs} from "../../util/peraWalletTypes";
 import {
   BETANET_NODE_CHAIN_ID,
   MAINNET_NODE_CHAIN_ID,
@@ -81,27 +82,32 @@ function mapProviderError(error: unknown, context: ErrorContext): PeraWalletConn
 
   if (isPeraProviderError(error)) {
     switch (error.code) {
-      case PERA_PROVIDER_ERROR_CODES.USER_REJECTED:
+      case PERA_PROVIDER_ERROR_CODES.USER_REJECTED: {
         return new PeraWalletConnectError({type: CANCELLED_TYPES[context]}, message);
-      case PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED:
+      }
+      case PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED: {
         return new PeraWalletConnectError(
           {type: NETWORK_MISMATCH_TYPES[context], detail: error},
           message
         );
-      case PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED:
+      }
+      case PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED: {
         return new PeraWalletConnectError(
           {type: UNAUTHORIZED_TYPES[context], detail: error},
           context === "connect"
             ? `${message}. connect() must be called from a user gesture (for example a click handler).`
             : message
         );
-      case PERA_PROVIDER_ERROR_CODES.TIMED_OUT:
+      }
+      case PERA_PROVIDER_ERROR_CODES.TIMED_OUT: {
         return new PeraWalletConnectError(
           {type: "MESSAGE_NOT_RECEIVED", detail: error},
           message
         );
-      default:
+      }
+      default: {
         break;
+      }
     }
   }
 
@@ -118,14 +124,18 @@ function mapProviderError(error: unknown, context: ErrorContext): PeraWalletConn
  */
 function getPeraNetworkFromChainId(chainId?: AlgorandChainIDs): PeraNetwork | undefined {
   switch (chainId) {
-    case MAINNET_NODE_CHAIN_ID:
+    case MAINNET_NODE_CHAIN_ID: {
       return "mainnet";
-    case TESTNET_NODE_CHAIN_ID:
+    }
+    case TESTNET_NODE_CHAIN_ID: {
       return "testnet";
-    case BETANET_NODE_CHAIN_ID:
+    }
+    case BETANET_NODE_CHAIN_ID: {
       return "betanet";
-    default:
+    }
+    default: {
       return undefined;
+    }
   }
 }
 
@@ -277,7 +287,7 @@ export class ExtensionTransport implements WalletTransport {
     const payload = {
       data: data.map((item) => ({
         signer,
-        data: Buffer.from(item.data).toString("base64"),
+        data: algosdk.bytesToBase64(item.data),
         message: item.message
       }))
     };

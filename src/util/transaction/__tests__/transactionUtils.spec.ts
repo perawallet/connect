@@ -1,17 +1,22 @@
 import {describe, it, expect, vi, beforeEach} from "vitest";
 
-import {SignerTransaction} from "../../model/peraWalletModels";
+import {type SignerTransaction} from "../../model/peraWalletModels";
 import {
   base64ToUint8Array,
   composeTransaction,
   formatJsonRpcRequest
 } from "../transactionUtils";
 
-vi.mock("algosdk", () => ({
-  default: {
-    encodeUnsignedTransaction: vi.fn(() => new Uint8Array([1, 2, 3]))
-  }
-}));
+vi.mock("algosdk", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("algosdk")>();
+
+  return {
+    default: {
+      ...actual.default,
+      encodeUnsignedTransaction: vi.fn(() => new Uint8Array([1, 2, 3]))
+    }
+  };
+});
 
 // base64 of the bytes [1, 2, 3]
 const ENCODED_TXN = Buffer.from([1, 2, 3]).toString("base64");

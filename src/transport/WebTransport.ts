@@ -1,12 +1,12 @@
-import {WalletTransport} from "./WalletTransport";
+import {type WalletTransport} from "./WalletTransport";
 import {
-  PeraWalletArbitraryData,
-  PeraWalletArc60SignData,
-  PeraWalletArc60SignDataResponse,
-  SignMetadata,
-  PeraWalletTransaction
+  type PeraWalletArbitraryData,
+  type PeraWalletArc60SignData,
+  type PeraWalletArc60SignDataResponse,
+  type SignMetadata,
+  type PeraWalletTransaction
 } from "../util/model/peraWalletModels";
-import {AlgorandChainIDs} from "../util/peraWalletTypes";
+import {type AlgorandChainIDs} from "../util/peraWalletTypes";
 import {runWebSignTransactionFlow} from "../util/sign/signTransactionFlow";
 
 export interface WebTransportDeps {

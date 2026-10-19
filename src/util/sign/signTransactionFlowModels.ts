@@ -1,13 +1,12 @@
-import PeraWalletConnectError from "../PeraWalletConnectError";
-import {PeraWalletArbitraryData, PeraWalletTransaction} from "../model/peraWalletModels";
-import {PeraTeller} from "../network/teller/appTellerManager";
-import {AlgorandChainIDs} from "../peraWalletTypes";
+import {type PeraWalletArbitraryData, type PeraWalletTransaction} from "../model/peraWalletModels";
+import {type PeraTeller} from "../network/teller/appTellerManager";
+import {type AlgorandChainIDs} from "../peraWalletTypes";
 
 type SignTransactionFlowMethod = "SIGN_TXN" | "SIGN_DATA";
 
 interface SignTransactionFlowPromise {
   resolve: (value: Uint8Array[] | PromiseLike<Uint8Array[]>) => void;
-  reject: (error: PeraWalletConnectError) => void;
+  reject: (error: unknown) => void;
 
   signer?: string;
   chainId?: AlgorandChainIDs;

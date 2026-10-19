@@ -45,7 +45,7 @@ function makeConnector(overrides: Partial<any> = {}) {
   };
 }
 
-function mobileWallet(connector: any, chainId?: 416001 | 416002 | 416003 | 4160) {
+function mobileWallet(connector: any, chainId?: 416_001 | 416_002 | 416_003 | 4160) {
   saveWalletDetailsToStorage([ACCOUNT], "pera-wallet");
 
   const pera = new PeraWalletConnect(chainId ? {chainId} : undefined);
@@ -88,7 +88,7 @@ describe("PeraWalletConnect.getEmptySignatures()", () => {
 
   it("falls back to the network the chainId option pins", async () => {
     const connector = makeConnector();
-    const pera = mobileWallet(connector, 416003);
+    const pera = mobileWallet(connector, 416_003);
 
     await pera.getEmptySignatures();
 
@@ -140,7 +140,7 @@ describe("PeraWalletConnect.getEmptySignatures()", () => {
 
     function extensionWallet(
       getEmptySignatures?: ReturnType<typeof vi.fn>,
-      chainId?: 416001 | 416002 | 416003 | 4160
+      chainId?: 416_001 | 416_002 | 416_003 | 4160
     ) {
       const provider = installPeraProvider([ACCOUNT]);
 
@@ -181,7 +181,7 @@ describe("PeraWalletConnect.getEmptySignatures()", () => {
     it("sends the network the chainId option pins", async () => {
       const getEmptySignatures = vi.fn().mockResolvedValue({});
 
-      await extensionWallet(getEmptySignatures, 416002).getEmptySignatures();
+      await extensionWallet(getEmptySignatures, 416_002).getEmptySignatures();
 
       expect(getEmptySignatures).toHaveBeenCalledWith({network: "testnet"});
     });

@@ -127,10 +127,6 @@ class JsonRpcErrorClass extends Error {
     this.name = "JsonRpcError";
     this.code = error.code;
     this.data = error.data;
-    // Maintains proper stack trace for where our error was thrown (only available on V8)
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, JsonRpcErrorClass);
-    }
   }
 
   /**
@@ -146,37 +142,42 @@ class JsonRpcErrorClass extends Error {
  */
 function createJsonRpcError(error: JsonRpcError): JsonRpcErrorClass {
   switch (error.code) {
-    case JsonRpcErrorCode.ParseError:
+    case JsonRpcErrorCode.ParseError: {
       return new JsonRpcErrorClass({
         code: JsonRpcErrorCode.ParseError,
         message: "Parse error",
         data: error.data
       });
-    case JsonRpcErrorCode.InvalidRequest:
+    }
+    case JsonRpcErrorCode.InvalidRequest: {
       return new JsonRpcErrorClass({
         code: JsonRpcErrorCode.InvalidRequest,
         message: "Invalid Request",
         data: error.data
       });
-    case JsonRpcErrorCode.MethodNotFound:
+    }
+    case JsonRpcErrorCode.MethodNotFound: {
       return new JsonRpcErrorClass({
         code: JsonRpcErrorCode.MethodNotFound,
         message: error.message || "Method not found",
         data: error.data
       });
-    case JsonRpcErrorCode.InvalidParams:
+    }
+    case JsonRpcErrorCode.InvalidParams: {
       return new JsonRpcErrorClass({
         code: JsonRpcErrorCode.InvalidParams,
         message: "Invalid params",
         data: error.data
       });
-    case JsonRpcErrorCode.InternalError:
+    }
+    case JsonRpcErrorCode.InternalError: {
       return new JsonRpcErrorClass({
         code: JsonRpcErrorCode.InternalError,
         message: "Internal error",
         data: error.data
       });
-    default:
+    }
+    default: {
       // Server errors (-32000 to -32099) or custom errors
       if (
         error.code >= JsonRpcErrorCode.ServerErrorStart &&
@@ -186,6 +187,7 @@ function createJsonRpcError(error: JsonRpcError): JsonRpcErrorClass {
       }
       // Custom application errors
       return new JsonRpcErrorClass(error);
+    }
   }
 }
 

@@ -35,7 +35,7 @@ function invoke(overrides: Partial<Parameters<typeof runWebConnectFlow>[0]> = {}
 
   const run = runWebConnectFlow({
     webWalletURL: "web.perawallet.app",
-    chainId: 416001,
+    chainId: 416_001,
     resolve,
     reject,
     ...overrides
@@ -68,7 +68,7 @@ describe("runWebConnectFlow", () => {
 
     const sent = sendMessageMock.mock.calls[0][0];
 
-    expect(sent.message).toMatchObject({type: "CONNECT", data: {chainId: 416001}});
+    expect(sent.message).toMatchObject({type: "CONNECT", data: {chainId: 416_001}});
     expect(sent.targetWindow).toBe(tab);
     expect(setupListenerMock).toHaveBeenCalledTimes(1);
     // Only the opened Pera Web tab may answer.

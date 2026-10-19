@@ -1,9 +1,19 @@
+// Mobile browsers count the collapsible URL bar in `100vh`; the modal sizes
+// itself with `--pera-wallet-vh` instead so it never hides behind it.
 function setVhVariable() {
-  // a vh unit is equal to 1% of the screen height
-  // eslint-disable-next-line no-magic-numbers
-  const vhUnit = window.innerHeight * 0.01;
+    const vhUnit = window.innerHeight / 100
 
-  document.documentElement.style.setProperty("--pera-wallet-vh", `${vhUnit}px`);
+    document.documentElement.style.setProperty('--pera-wallet-vh', `${vhUnit}px`)
 }
 
-export {setVhVariable};
+function setupDynamicVhValue() {
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', setVhVariable)
+    } else {
+        setVhVariable()
+    }
+
+    window.addEventListener('resize', setVhVariable)
+}
+
+export { setVhVariable, setupDynamicVhValue }

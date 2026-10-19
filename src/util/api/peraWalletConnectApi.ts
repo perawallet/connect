@@ -1,6 +1,6 @@
 import {shuffleArray} from "../array/arrayUtils";
 import fetcher from "./fetcher";
-import {PeraWalletConfig} from "./peraWalletConnectApiTypes";
+import {type PeraWalletConfig} from "./peraWalletConnectApiTypes";
 
 const PERA_CONNECT_CONFIG_URL = "https://wc.perawallet.app/config.json";
 

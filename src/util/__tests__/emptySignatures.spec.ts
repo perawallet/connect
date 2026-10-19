@@ -48,13 +48,13 @@ describe("assertEmptySignaturesNetwork", () => {
 
 describe("resolveEmptySignaturesNetwork", () => {
   it("uses an explicit network over the chainId", () => {
-    expect(resolveEmptySignaturesNetwork("testnet", 416001)).toBe("testnet");
+    expect(resolveEmptySignaturesNetwork("testnet", 416_001)).toBe("testnet");
   });
 
   it("maps a pinned chainId to its network", () => {
-    expect(resolveEmptySignaturesNetwork(undefined, 416001)).toBe("mainnet");
-    expect(resolveEmptySignaturesNetwork(undefined, 416002)).toBe("testnet");
-    expect(resolveEmptySignaturesNetwork(undefined, 416003)).toBe("betanet");
+    expect(resolveEmptySignaturesNetwork(undefined, 416_001)).toBe("mainnet");
+    expect(resolveEmptySignaturesNetwork(undefined, 416_002)).toBe("testnet");
+    expect(resolveEmptySignaturesNetwork(undefined, 416_003)).toBe("betanet");
   });
 
   it("requires a network for an all-networks session", () => {

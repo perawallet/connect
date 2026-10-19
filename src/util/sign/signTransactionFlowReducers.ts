@@ -1,7 +1,7 @@
 import PeraWalletConnectError from "../PeraWalletConnectError";
 import {resetWalletDetailsFromStorage} from "../storage/storageUtils";
 import {base64ToUint8Array} from "../transaction/transactionUtils";
-import {NewTabSignTransactionFlowTellerReducerParams} from "./signTransactionFlowModels";
+import {type NewTabSignTransactionFlowTellerReducerParams} from "./signTransactionFlowModels";
 
 // =========== New Tab Sign Flow ===========
 function newTabSignTransactionFlowTellerReducer({
@@ -12,24 +12,26 @@ function newTabSignTransactionFlowTellerReducer({
   reject
 }: NewTabSignTransactionFlowTellerReducerParams) {
   switch (event.data.message.type) {
-    case "SIGN_TXN_CALLBACK":
+    case "SIGN_TXN_CALLBACK": {
       newPeraWalletTab?.close();
 
       resolve(
         event.data.message.signedTxns.map((txn) => base64ToUint8Array(txn.signedTxn))
       );
       break;
+    }
 
-    case "SIGN_DATA_CALLBACK":
+    case "SIGN_DATA_CALLBACK": {
       newPeraWalletTab?.close();
 
       resolve(
         event.data.message.signedData.map((data) => base64ToUint8Array(data.signedData))
       );
       break;
+    }
 
     case "SIGN_TXN_NETWORK_MISMATCH":
-    case "SIGN_DATA_NETWORK_MISMATCH":
+    case "SIGN_DATA_NETWORK_MISMATCH": {
       reject(
         new PeraWalletConnectError(
           {
@@ -40,9 +42,10 @@ function newTabSignTransactionFlowTellerReducer({
         )
       );
       break;
+    }
 
     case "SIGN_TXN_CALLBACK_ERROR":
-    case "SIGN_DATA_CALLBACK_ERROR":
+    case "SIGN_DATA_CALLBACK_ERROR": {
       newPeraWalletTab?.close();
 
       reject(
@@ -54,8 +57,9 @@ function newTabSignTransactionFlowTellerReducer({
         )
       );
       break;
+    }
 
-    case "SESSION_DISCONNECTED":
+    case "SESSION_DISCONNECTED": {
       newPeraWalletTab?.close();
 
       resetWalletDetailsFromStorage();
@@ -70,9 +74,11 @@ function newTabSignTransactionFlowTellerReducer({
         )
       );
       break;
+    }
 
-    default:
+    default: {
       break;
+    }
   }
 }
 

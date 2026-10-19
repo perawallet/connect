@@ -4,7 +4,7 @@ import NoteIcon from "../../../asset/icon/Note.svg";
 import PeraWalletWithText from "../../../asset/icon/PeraWallet--with-text.svg";
 import PeraWalletLogo from "../../../asset/icon/PeraWallet.svg";
 
-import styles from "./_pera-wallet-connect-modal-information-section.scss";
+import styles from "./_pera-wallet-connect-modal-information-section.scss?inline";
 import {isMobile} from "../../../util/device/deviceUtils";
 
 const peraWalletConnectModalInformationSectionTemplate =

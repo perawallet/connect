@@ -1,10 +1,10 @@
-import algosdk, {Transaction} from "algosdk";
+import algosdk, {type Transaction} from "algosdk";
 
-import {PeraWalletTransaction, SignerTransaction} from "../model/peraWalletModels";
+import {type PeraWalletTransaction, type SignerTransaction} from "../model/peraWalletModels";
 import {generateSimpleId} from "../number/numberUtils";
 
 function encodeUnsignedTransactionInBase64(txn: Transaction): string {
-  return Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64");
+  return algosdk.bytesToBase64(algosdk.encodeUnsignedTransaction(txn));
 }
 
 function base64ToUint8Array(data: string) {

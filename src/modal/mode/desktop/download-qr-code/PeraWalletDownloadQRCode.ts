@@ -2,7 +2,7 @@ import PeraWalletLogoWithBlackBackground from "../../../../asset/icon/PeraWallet
 
 import QRCodeStyling from "qr-code-styling";
 
-import styles from "./_pera-wallet-download-qr-code.scss";
+import styles from "./_pera-wallet-download-qr-code.scss?inline";
 import {PERA_DOWNLOAD_URL} from "../../../../util/peraWalletConstants";
 
 const peraWalletDownloadQRCode = document.createElement("template");

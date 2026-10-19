@@ -128,12 +128,12 @@ describe("webviewBridge", () => {
       respond({
         jsonrpc: "2.0",
         id,
-        error: {code: -32601, message: "Method not found"}
+        error: {code: -32_601, message: "Method not found"}
       });
 
       await expect(promise).rejects.toMatchObject({
         name: "JsonRpcError",
-        code: -32601
+        code: -32_601
       });
     });
 

@@ -1,9 +1,9 @@
-import {AlgodCredentials, AlgorandNodeProviderType} from "./algodTypes";
+import {type AlgodCredentials, type AlgorandNodeProviderType} from "./algodTypes";
 
 export const DEFAULT_ALGORAND_NODE_PROVIDER_TYPE: AlgorandNodeProviderType = "algodev";
-export const MAINNET_NODE_CHAIN_ID = 416001;
-export const TESTNET_NODE_CHAIN_ID = 416002;
-export const BETANET_NODE_CHAIN_ID = 416003;
+export const MAINNET_NODE_CHAIN_ID = 416_001;
+export const TESTNET_NODE_CHAIN_ID = 416_002;
+export const BETANET_NODE_CHAIN_ID = 416_003;
 export const ALGORAND_NODE_CHAIN_ID = 4160;
 export const DEFAULT_ALGORAND_CLIENT_PORT = 443;
 // Public, tokenless Algorand nodes. A published SDK cannot keep a secret — any

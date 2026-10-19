@@ -1,5 +1,5 @@
 import {generatePeraWalletConnectDeepLink} from "../../../util/peraWalletUtils";
-import styles from "./_pera-wallet-modal-touch-screen-mode.scss";
+import styles from "./_pera-wallet-modal-touch-screen-mode.scss?inline";
 
 const peraWalletModalTouchScreenMode = document.createElement("template");
 

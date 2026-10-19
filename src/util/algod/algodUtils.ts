@@ -2,8 +2,8 @@ import ALGOD_CREDENTIALS, {
   MAINNET_NODE_CHAIN_ID,
   TESTNET_NODE_CHAIN_ID
 } from "./algodConstants";
-import {AlgodClients, AlgorandNodeProviderType, NetworkToggle} from "./algodTypes";
-import {AlgorandChainIDs} from "../peraWalletTypes";
+import {type AlgodClients, type AlgorandNodeProviderType, type NetworkToggle} from "./algodTypes";
+import {type AlgorandChainIDs} from "../peraWalletTypes";
 import PeraWalletConnectError from "../PeraWalletConnectError";
 
 function getAlgosdkCredentialsForNetwork(

@@ -84,15 +84,15 @@ export interface PeraProviderError extends Error {
 }
 
 export const PERA_PROVIDER_ERROR_CODES = {
-  METHOD_NOT_FOUND: -32601,
-  INVALID_PARAMS: -32602,
-  INTERNAL_ERROR: -32603,
+  METHOD_NOT_FOUND: -32_601,
+  INVALID_PARAMS: -32_602,
+  INTERNAL_ERROR: -32_603,
   /** Not connected, `connect()` without a user gesture, or untrusted origin. */
-  UNAUTHORIZED: -32001,
-  USER_REJECTED: -32002,
-  NETWORK_NOT_SUPPORTED: -32003,
+  UNAUTHORIZED: -32_001,
+  USER_REJECTED: -32_002,
+  NETWORK_NOT_SUPPORTED: -32_003,
   /** The wallet did not answer within its own TTL (about 5 minutes). */
-  TIMED_OUT: -32004
+  TIMED_OUT: -32_004
 } as const;
 
 declare global {

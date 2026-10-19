@@ -54,7 +54,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
   });
 
   it("returns the account itself as the signer when it is not rekeyed", async () => {
-    const pera = new PeraWalletConnect({chainId: 416002});
+    const pera = new PeraWalletConnect({chainId: 416_002});
 
     mockAccountInformation(pera, {});
 
@@ -70,7 +70,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
   });
 
   it("returns the on-chain auth address as the signer when the account is rekeyed", async () => {
-    const pera = new PeraWalletConnect({chainId: 416002});
+    const pera = new PeraWalletConnect({chainId: 416_002});
 
     mockAccountInformation(pera, {authAddr: authAccount.addr.toString()});
 
@@ -88,7 +88,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
     // Without exclude=all algod answers 400 "Result limit exceeded" for accounts
     // holding more than MaxAPIResourcesPerAccount assets/apps; auth-addr is part
     // of the header and does not need the resources.
-    const pera = new PeraWalletConnect({chainId: 416002});
+    const pera = new PeraWalletConnect({chainId: 416_002});
 
     const {exclude} = mockAccountInformation(pera, {});
 
@@ -98,7 +98,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
   });
 
   it("looks the account up on the session's network when the chain id is specific", async () => {
-    const pera = new PeraWalletConnect({chainId: 416001});
+    const pera = new PeraWalletConnect({chainId: 416_001});
 
     const {getAlgodClient, accountInformation} = mockAccountInformation(pera, {});
 
@@ -110,7 +110,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
   });
 
   it("accepts an explicit network that matches the pinned session", async () => {
-    const pera = new PeraWalletConnect({chainId: 416002});
+    const pera = new PeraWalletConnect({chainId: 416_002});
 
     const {getAlgodClient} = mockAccountInformation(pera, {});
 
@@ -123,7 +123,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
   it("throws SIGN_DATA_NETWORK_MISMATCH when an explicit network contradicts the pinned session", async () => {
     // The wallet only serves a pinned session while it is on that network, so a
     // resolution read elsewhere can never match what the wallet validates.
-    const pera = new PeraWalletConnect({chainId: 416001});
+    const pera = new PeraWalletConnect({chainId: 416_001});
 
     const {getAlgodClient} = mockAccountInformation(pera, {});
 
@@ -164,7 +164,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
   it("throws SIGN_DATA_NETWORK_UNSUPPORTED for a betanet session, even with an explicit network", async () => {
     // connect has algod access for mainnet and testnet only; the wallet will
     // validate on betanet, so no supported network can give the right answer.
-    const pera = new PeraWalletConnect({chainId: 416003});
+    const pera = new PeraWalletConnect({chainId: 416_003});
 
     const {getAlgodClient} = mockAccountInformation(pera, {});
 
@@ -182,7 +182,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
   it("throws SIGN_DATA_NETWORK_UNSUPPORTED for a network value other than mainnet or testnet", async () => {
     // Plain-JS callers bypass the type; a bogus value must not fall through to
     // the credential picker, which treats anything but "mainnet" as testnet.
-    const pera = new PeraWalletConnect({chainId: 416002});
+    const pera = new PeraWalletConnect({chainId: 416_002});
 
     const {getAlgodClient} = mockAccountInformation(pera, {});
 
@@ -193,7 +193,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
   });
 
   it("throws SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED carrying the cause instead of assuming no rekey", async () => {
-    const pera = new PeraWalletConnect({chainId: 416002});
+    const pera = new PeraWalletConnect({chainId: 416_002});
     const failure = new Error("network down");
 
     mockAccountInformation(pera, {failure});
@@ -204,7 +204,7 @@ describe("PeraWalletConnect.resolveArc60Signer", () => {
   });
 
   it("throws SIGN_DATA_INVALID_ADDRESS for a malformed account address before touching the network", async () => {
-    const pera = new PeraWalletConnect({chainId: 416002});
+    const pera = new PeraWalletConnect({chainId: 416_002});
 
     const {getAlgodClient} = mockAccountInformation(pera, {});
 
