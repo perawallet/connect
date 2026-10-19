@@ -37,7 +37,7 @@
     "@vitest/coverage-v8": "^3.2.7",
     "eslint": "^8.12.0",
     "eslint-config-prettier": "^8.5.0",
-    "jsdom": "^25.0.1",
+    "jsdom": "^30.1.2",
     "prettier": "^2.6.1",
     "rollup": "^2.70.1",
     "rollup-plugin-eslint": "^7.0.0",
