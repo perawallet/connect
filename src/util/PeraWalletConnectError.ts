@@ -6,19 +6,13 @@ interface PeraWalletConnectErrorData {
         // No longer thrown: the extension signs arbitrary data through
         // `window.pera`. Kept so existing consumer checks still compile.
         | 'EXTENSION_UNSUPPORTED_OPERATION'
-
-        // Connect
         | 'CONNECT_MODAL_CLOSED'
         | 'CONNECT_CANCELLED'
         | 'CONNECT_NETWORK_MISMATCH'
-
-        // Reconnect
         | 'SESSION_DISCONNECTED'
         | 'SESSION_UPDATE'
         | 'SESSION_CONNECT'
         | 'SESSION_RECONNECT'
-
-        // Sign
         | 'SIGN_TRANSACTIONS'
         | 'SIGN_DATA'
         | 'SIGN_TXN_CANCELLED'
@@ -31,11 +25,7 @@ interface PeraWalletConnectErrorData {
         | 'SIGN_DATA_NETWORK_UNSUPPORTED'
         | 'SIGN_DATA_INVALID_ADDRESS'
         | 'SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED'
-
-        // Configuration
         | 'INVALID_ALGOD_CLIENT'
-
-        // Empty signatures
         | 'EMPTY_SIGNATURES'
         | 'EMPTY_SIGNATURES_TIMEOUT'
         | 'EMPTY_SIGNATURES_NETWORK_REQUIRED'

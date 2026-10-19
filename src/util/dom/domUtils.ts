@@ -78,12 +78,9 @@ function getFavicons() {
     return icons
 }
 
-/**
- * Navigates the current tab to the given URL. For custom-scheme deep links this
- * launches the app without unloading the page, unlike window.open(url, "_blank"),
- * which spawns an extra browsing context (iOS Safari leaves the dApp on a blank
- * or reloaded tab after returning from the wallet).
- */
+// A custom-scheme deep link opened in the current tab launches the app without
+// unloading the page; window.open(url, "_blank") adds a browsing context that
+// iOS Safari leaves blank or reloaded when the user returns from the wallet.
 function openDeepLinkInCurrentTab(url: string) {
     window.location.href = url
 }

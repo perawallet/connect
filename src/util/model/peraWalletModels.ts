@@ -11,9 +11,6 @@ export interface SignerTransaction {
      */
     authAddr?: string
 
-    /**
-     * Optional multisig metadata used to sign the transaction
-     */
     msig?: PeraWalletMultisigMetadata
 
     /**
@@ -33,9 +30,6 @@ export interface SignerTransaction {
  * Options for creating and using a multisignature account.
  */
 export interface PeraWalletMultisigMetadata {
-    /**
-     * Multisig version.
-     */
     version: number
 
     /**
@@ -64,9 +58,6 @@ export interface PeraWalletTransaction {
      */
     authAddr?: string
 
-    /**
-     * Optional multisig metadata used to sign the transaction
-     */
     msig?: PeraWalletMultisigMetadata
 
     /**
@@ -79,7 +70,6 @@ export interface PeraWalletTransaction {
      */
     message?: string
 }
-// Reference: https://github.com/jasonpaulos/algorand-walletconnect-example-dapp/blob/algorand/src/helpers/types.ts
 
 export interface PeraWalletArbitraryData {
     data: Uint8Array
@@ -144,7 +134,7 @@ export interface Siwa {
 export interface PeraWalletArc60SignData {
     /**
      * Payload bytes to be signed (typically the UTF-8 bytes of canonical SIWA
-     * JSON). Will be encoded on the wire bsaed on encoding specified in metadata.
+     * JSON). Encoded on the wire based on the encoding specified in metadata.
      */
     data: string
 

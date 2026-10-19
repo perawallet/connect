@@ -5,10 +5,9 @@ import {
 import { PeraWalletConnectError } from '../../util/PeraWalletConnectError'
 
 /**
- * Maps a `window.pera.getEmptySignatures()` rejection. It keeps the error
- * contract `PeraWalletConnect.getEmptySignatures()` documents for every
- * transport (its own timeout type and `detail.reason`), so it is not one more
- * context of `mapProviderError`.
+ * Kept apart from `mapProviderError`: `PeraWalletConnect.getEmptySignatures()`
+ * documents its own error contract (timeout type, `detail.reason`) for every
+ * transport.
  */
 export function mapEmptySignaturesError(
     error: unknown,

@@ -84,10 +84,9 @@ export class PeraWalletRedirectModal extends HTMLElement {
     }
 
     connectedCallback() {
-        // Same-tab scheme navigation launches the wallet without unloading the
-        // page, so there is no synchronous success signal. The page going hidden
-        // is the launch confirmation; until then the modal stays as the
-        // "Can't Launch Pera" fallback.
+        // Same-tab scheme navigation gives no success signal, so the page going
+        // hidden is the launch confirmation; until then the modal stays up as
+        // the "Can't Launch Pera" fallback.
         document.addEventListener(
             'visibilitychange',
             this.handleVisibilityChange,

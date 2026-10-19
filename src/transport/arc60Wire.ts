@@ -40,7 +40,6 @@ function buildArc60WireParams(
     payload: Arc60WirePayload,
     metadata: SignMetadata,
 ): Record<string, unknown> {
-    // force encoding to base64 for future proofing
     const dataBase64 = shouldConvertEncoding(metadata.encoding)
         ? Buffer.from(payload.data, metadata.encoding).toString('base64')
         : payload.data

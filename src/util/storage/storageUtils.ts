@@ -68,14 +68,10 @@ function isSameAccountList(a: string[], b: string[]) {
 }
 
 /**
- * One-time, best-effort migration of a Pera session persisted by earlier
- * versions under the WalletConnect v1 default key ("walletconnect"), which is
- * shared with every other WC v1 wallet on the same origin.
- *
- * The legacy value is MOVED to the namespaced key only when it is clearly ours:
- * the stored Pera wallet details are for the mobile wallet and their accounts
- * match the session's accounts exactly. Anything else is left untouched so a
- * co-installed wallet's session is never clobbered. Never throws.
+ * Moves a session earlier versions stored under the shared WC v1 key to the
+ * namespaced key, but only when it is clearly ours (mobile wallet details with
+ * exactly matching accounts) so another wallet's session is never clobbered.
+ * Best-effort; never throws.
  */
 function migrateLegacyWalletConnectSession() {
     try {

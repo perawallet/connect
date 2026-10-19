@@ -15,7 +15,6 @@ import { newTabConnectFlowTellerReducer } from './connectFlowReducers'
 function runWebConnectFlow({
     webWalletURL,
     chainId,
-    // isCompactMode,
     resolve,
     reject,
 }: RunWebConnectFlowTypes) {

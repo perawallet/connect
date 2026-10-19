@@ -1,11 +1,3 @@
-/**
- * The provider the Pera browser extension installs at `window.pera` on every
- * https page (and `http://localhost`), before any page script runs. It is
- * frozen and lives in the top frame only, never in iframes.
- *
- * Detection is synchronous: `typeof window.pera === "object" &&
- * window.pera.version === "1"`. There is no ready event to wait for.
- */
 export type PeraAccount = { address: string; name: string }
 
 export type PeraNetwork = 'mainnet' | 'testnet' | 'betanet'
@@ -46,6 +38,14 @@ export type PeraProviderEvent =
     | 'networkChanged'
     | 'disconnect'
 
+/**
+ * The provider the Pera browser extension installs at `window.pera` on every
+ * https page (and `http://localhost`), before any page script runs. It is
+ * frozen and lives in the top frame only, never in iframes.
+ *
+ * Detection is synchronous: `typeof window.pera === "object" &&
+ * window.pera.version === "1"`. There is no ready event to wait for.
+ */
 export interface PeraProvider {
     readonly version: '1'
     /**
