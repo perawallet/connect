@@ -128,6 +128,27 @@ describe('ExtensionTransport signing', () => {
             )
         })
 
+        it('rejects a non-array response as SIGN_TRANSACTIONS', async () => {
+            provider.signTransactions.mockResolvedValue({ signed: true })
+            const transport = new ExtensionTransport(provider, {})
+
+            await expect(transport.signTransaction(txns)).rejects.toMatchObject(
+                { data: { type: 'SIGN_TRANSACTIONS' } },
+            )
+        })
+
+        it('uses a generic message when the failure carries none', async () => {
+            provider.signTransactions.mockRejectedValue(undefined)
+            const transport = new ExtensionTransport(provider, {})
+
+            await expect(transport.signTransaction(txns)).rejects.toMatchObject(
+                {
+                    data: { type: 'SIGN_TRANSACTIONS' },
+                    message: 'Failed to sign transaction',
+                },
+            )
+        })
+
         it('wraps unknown failures as SIGN_TRANSACTIONS with the cause attached', async () => {
             const cause = new Error('boom')
 
@@ -252,6 +273,23 @@ describe('ExtensionTransport signing', () => {
 
         it('rejects with SIGN_DATA when the wallet returns no signature', async () => {
             provider.signData.mockResolvedValue([])
+            const transport = new ExtensionTransport(provider, {})
+
+            await expect(
+                transport.signArc60Data(
+                    {
+                        data: 'AA==',
+                        signer,
+                        domain: window.location.origin,
+                        authenticatorData: new Uint8Array(37),
+                    },
+                    metadata,
+                ),
+            ).rejects.toMatchObject({ data: { type: 'SIGN_DATA' } })
+        })
+
+        it('rejects with SIGN_DATA when the wallet answers with something other than a list', async () => {
+            provider.signData.mockResolvedValue('signature')
             const transport = new ExtensionTransport(provider, {})
 
             await expect(

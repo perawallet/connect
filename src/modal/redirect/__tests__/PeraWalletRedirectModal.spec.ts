@@ -117,6 +117,23 @@ describe('PeraWalletRedirectModal', () => {
         ).not.toBeNull()
     })
 
+    it('closes when the install link is tapped', () => {
+        const wrapper = renderRedirectModal()
+
+        const installLink = wrapper
+            ?.querySelector('pera-wallet-redirect-modal')
+            ?.shadowRoot?.getElementById(
+                'pera-wallet-redirect-modal-download-pera-link',
+            )
+
+        installLink?.addEventListener('click', event => event.preventDefault())
+        installLink?.click()
+
+        expect(
+            document.getElementById(PERA_WALLET_REDIRECT_MODAL_ID),
+        ).toBeNull()
+    })
+
     it('stops watching page visibility after it is removed from the DOM', () => {
         const removeListenerSpy = vi.spyOn(document, 'removeEventListener')
 

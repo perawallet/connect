@@ -77,6 +77,20 @@ describe('Teller', () => {
             expect(onReceiveMessage).not.toHaveBeenCalled()
         })
 
+        it('logs a failing callback instead of letting it escape the listener', () => {
+            const failure = new Error('handler failed')
+            const consoleError = vi
+                .spyOn(console, 'error')
+                .mockImplementation(() => undefined)
+
+            listen(teller, () => {
+                throw failure
+            })
+            dispatchMessage({ channel: CHANNEL, message: { type: 'HELLO' } })
+
+            expect(consoleError).toHaveBeenCalledWith(failure)
+        })
+
         it('ignores messages from another origin', () => {
             const onReceiveMessage = vi.fn()
 

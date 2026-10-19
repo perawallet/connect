@@ -334,6 +334,18 @@ describe('storageUtils', () => {
             )
         })
 
+        it('does nothing when there is no legacy session', () => {
+            saveWalletDetailsToStorage(['ADDR_1', 'ADDR_2'])
+
+            migrateLegacyWalletConnectSession()
+
+            expect(
+                localStorage.getItem(
+                    PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
+                ),
+            ).toBeNull()
+        })
+
         it('never throws, even when storage access fails', () => {
             const getItemSpy = vi
                 .spyOn(Storage.prototype, 'getItem')
@@ -374,6 +386,20 @@ describe('storageUtils', () => {
             saveWalletDetailsToStorage(['ADDR'], 'pera-wallet-extension')
 
             expect(getWalletPlatformFromStorage()).toBe('extension')
+        })
+    })
+
+    describe('without localStorage (server-side rendering)', () => {
+        afterEach(() => {
+            vi.unstubAllGlobals()
+        })
+
+        it('reads nothing, writes nothing and never throws', () => {
+            vi.stubGlobal('localStorage', undefined)
+
+            expect(() => saveWalletDetailsToStorage(['ADDR_1'])).not.toThrow()
+            expect(getWalletDetailsFromStorage()).toBeNull()
+            expect(() => migrateLegacyWalletConnectSession()).not.toThrow()
         })
     })
 })

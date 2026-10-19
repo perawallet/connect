@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import algosdk from 'algosdk'
 
 import {
+    assertValidAlgodClients,
     createDefaultAlgodClient,
     getNetworkFromChainId,
 } from '../algodUtils.js'
@@ -60,6 +61,39 @@ describe('algodUtils', () => {
 
         it('returns null for a network this client has no algod for (betanet)', () => {
             expect(getNetworkFromChainId(BETANET_NODE_CHAIN_ID)).toBeNull()
+        })
+    })
+
+    describe('assertValidAlgodClients', () => {
+        it('accepts algosdk clients for every network', () => {
+            expect(() =>
+                assertValidAlgodClients({
+                    mainnet: createDefaultAlgodClient('mainnet'),
+                    testnet: createDefaultAlgodClient('testnet'),
+                }),
+            ).not.toThrow()
+        })
+
+        it.each([
+            ['a missing client', null],
+            ['a server URL instead of a client', 'https://algod.example.com'],
+            ['an object without accountInformation', { getStatus: () => 1 }],
+        ])('rejects %s, naming the network', (_, client) => {
+            expect(() =>
+                assertValidAlgodClients({
+                    mainnet: createDefaultAlgodClient('mainnet'),
+                    testnet: client as unknown as algosdk.Algodv2,
+                }),
+            ).toThrow(
+                expect.objectContaining({
+                    message:
+                        'algod.testnet must be an algosdk.Algodv2 instance.',
+                    data: {
+                        type: 'INVALID_ALGOD_CLIENT',
+                        detail: { network: 'testnet' },
+                    },
+                }),
+            )
         })
     })
 })

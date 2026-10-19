@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { setupDynamicVhValue, setVhVariable } from '../screenSizeUtils.js'
 
@@ -16,6 +16,7 @@ function readVhVariable() {
 describe('screenSizeUtils', () => {
     afterEach(() => {
         document.documentElement.style.removeProperty('--pera-wallet-vh')
+        vi.restoreAllMocks()
     })
 
     describe('setVhVariable', () => {
@@ -40,6 +41,19 @@ describe('screenSizeUtils', () => {
             window.dispatchEvent(new Event('resize'))
 
             expect(readVhVariable()).toBe('10px')
+        })
+
+        it('waits for DOMContentLoaded while the document is still loading', () => {
+            vi.spyOn(document, 'readyState', 'get').mockReturnValue('loading')
+            setInnerHeight(700)
+
+            setupDynamicVhValue()
+
+            expect(readVhVariable()).toBe('')
+
+            window.dispatchEvent(new Event('DOMContentLoaded'))
+
+            expect(readVhVariable()).toBe('7px')
         })
     })
 })

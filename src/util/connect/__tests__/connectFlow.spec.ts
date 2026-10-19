@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import algosdk from 'algosdk'
 
 import { appTellerManager } from '../../network/teller/appTellerManager.js'
 import { waitForTabOpening } from '../../dom/domUtils.js'
 import { removeModalWrapperFromDOM } from '../../../modal/peraWalletConnectModalUtils.js'
+import { PeraWalletConnectError } from '../../PeraWalletConnectError.js'
+import { resetWalletDetailsFromStorage } from '../../storage/storageUtils.js'
 import { runWebConnectFlow } from '../connectFlow.js'
 
 vi.mock('../../dom/domUtils.js', () => ({
@@ -29,6 +32,23 @@ const sendMessageMock = vi.mocked(appTellerManager.sendMessage)
 const setupListenerMock = vi.mocked(appTellerManager.setupListener)
 const removeModalMock = vi.mocked(removeModalWrapperFromDOM)
 
+function openTab() {
+    const tab = { closed: false, close: vi.fn() }
+
+    waitForTabOpeningMock.mockResolvedValue(tab as unknown as Window)
+
+    return tab
+}
+
+// Replays a message from Pera Web through the listener the flow registered.
+function replyFromPeraWeb(message: unknown) {
+    const { onReceiveMessage } = setupListenerMock.mock.calls[0][0]
+
+    onReceiveMessage({
+        data: { channel: 'pera-web-wallet', message },
+    } as MessageEvent<TellerMessage<never>>)
+}
+
 function invoke(
     overrides: Partial<Parameters<typeof runWebConnectFlow>[0]> = {},
 ) {
@@ -52,9 +72,10 @@ describe('runWebConnectFlow', () => {
         vi.useFakeTimers()
     })
 
-    afterEach(() => {
+    afterEach(async () => {
         vi.clearAllTimers()
         vi.useRealTimers()
+        await resetWalletDetailsFromStorage()
     })
 
     it('opens the connect tab, posts a CONNECT message, and wires the listener', async () => {
@@ -107,5 +128,83 @@ describe('runWebConnectFlow', () => {
             'pera-wallet-connect-modal',
         )
         expect(reject).toHaveBeenCalledWith(error)
+    })
+
+    it('rejects with CONNECT_CANCELLED and removes the modal when the user closes the tab', async () => {
+        const tab = openTab()
+        const { run, reject } = invoke()
+
+        await run()
+        tab.closed = true
+        await vi.advanceTimersByTimeAsync(2000)
+
+        expect(reject).toHaveBeenCalledTimes(1)
+
+        const error = reject.mock.calls[0][0] as PeraWalletConnectError
+
+        expect(error).toBeInstanceOf(PeraWalletConnectError)
+        expect(error.data.type).toBe('CONNECT_CANCELLED')
+        expect(removeModalMock).toHaveBeenCalledWith(
+            'pera-wallet-connect-modal',
+        )
+    })
+
+    it('keeps waiting while the tab stays open', async () => {
+        openTab()
+        const { run, reject, resolve } = invoke()
+
+        await run()
+        await vi.advanceTimersByTimeAsync(10_000)
+
+        expect(reject).not.toHaveBeenCalled()
+        expect(resolve).not.toHaveBeenCalled()
+        expect(removeModalMock).not.toHaveBeenCalled()
+    })
+
+    it('never reports a cancellation when no tab handle is available', async () => {
+        waitForTabOpeningMock.mockResolvedValue(null)
+
+        const { run, reject } = invoke()
+
+        await run()
+        await vi.advanceTimersByTimeAsync(10_000)
+
+        expect(reject).not.toHaveBeenCalled()
+    })
+
+    it("resolves with the accounts from Pera Web's connect callback and closes the tab", async () => {
+        const tab = openTab()
+        const address = algosdk.generateAccount().addr.toString()
+        const { run, resolve } = invoke()
+
+        await run()
+        replyFromPeraWeb({
+            type: 'CONNECT_CALLBACK',
+            data: { addresses: [address] },
+        })
+
+        expect(resolve).toHaveBeenCalledWith([address])
+        expect(tab.close).toHaveBeenCalled()
+    })
+
+    it("rejects with Pera Web's network mismatch", async () => {
+        openTab()
+        const { run, reject, resolve } = invoke()
+
+        await run()
+        replyFromPeraWeb({
+            type: 'CONNECT_NETWORK_MISMATCH',
+            error: 'Pera Web is on TestNet',
+        })
+
+        expect(resolve).not.toHaveBeenCalled()
+        expect(reject).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: 'Pera Web is on TestNet',
+                data: expect.objectContaining({
+                    type: 'CONNECT_NETWORK_MISMATCH',
+                }),
+            }),
+        )
     })
 })

@@ -303,6 +303,20 @@ describe('MobileTransport', () => {
             expect(Array.from(response.signature)).toEqual([9, 9])
         })
 
+        it('accepts a single signature that is not wrapped in a list', async () => {
+            const connector = makeConnector(
+                Buffer.from([9, 9]).toString('base64'),
+            )
+            const transport = makeTransport(connector)
+
+            const response = await transport.signArc60Data(makePayload(), {
+                scope: ScopeType.AUTH,
+                encoding: 'base64',
+            })
+
+            expect(Array.from(response.signature)).toEqual([9, 9])
+        })
+
         it('rejects with SIGN_DATA when the wallet returns no signature', async () => {
             const connector = makeConnector([null])
             const transport = makeTransport(connector)

@@ -4,6 +4,7 @@ import algosdk from 'algosdk'
 import {
     buildArc60WireParams,
     buildArc60SignDataResponse,
+    decodeArc60SignedData,
 } from '../arc60Wire.js'
 import { ScopeType } from '../../util/model/peraWalletModels.js'
 
@@ -123,5 +124,39 @@ describe('buildArc60SignDataResponse', () => {
 
         expect(withOptional.requestId).toBe('req-1')
         expect(withOptional.hdPath).toBe("m/44'/283'/0'/0/0")
+    })
+})
+
+describe('decodeArc60SignedData', () => {
+    it('decodes base64 data', () => {
+        const decoded = decodeArc60SignedData('AQID', 'base64')
+
+        expect(Array.from(decoded)).toEqual([1, 2, 3])
+    })
+
+    it('decodes data in another encoding Buffer understands', () => {
+        const decoded = decodeArc60SignedData('hello', 'utf8')
+
+        expect(decoded.toString('utf8')).toBe('hello')
+    })
+
+    it('treats an unknown encoding as base64, matching what goes on the wire', () => {
+        const decoded = decodeArc60SignedData('AQID', 'cbor')
+
+        expect(Array.from(decoded)).toEqual([1, 2, 3])
+    })
+
+    it('decodes the same bytes buildArc60WireParams sends', () => {
+        const payload = makePayload({ data: 'sign in to example.com' })
+        const wire = buildArc60WireParams(payload, {
+            scope: ScopeType.AUTH,
+            encoding: 'utf8',
+        })
+
+        expect(
+            decodeArc60SignedData(payload.data as string, 'utf8').toString(
+                'base64',
+            ),
+        ).toBe(wire.data)
     })
 })

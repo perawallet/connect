@@ -61,4 +61,17 @@ describe('verifyArc60Signature', () => {
             verifyArc60Signature(data, authenticatorData, signature, address),
         ).resolves.toBe(false)
     })
+
+    it('returns false for an invalid signer address instead of throwing', async () => {
+        const signature = nacl.sign.detached(data, account.sk)
+
+        await expect(
+            verifyArc60Signature(
+                data,
+                authenticatorData,
+                signature,
+                'not-an-address',
+            ),
+        ).resolves.toBe(false)
+    })
 })

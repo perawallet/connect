@@ -1,6 +1,12 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 
-import { isAndroid, isIOS, isMobile, detectBrowser } from '../deviceUtils.js'
+import {
+    isAndroid,
+    isIOS,
+    isMobile,
+    isPeraDiscoverBrowser,
+    detectBrowser,
+} from '../deviceUtils.js'
 
 const USER_AGENTS = {
     iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
@@ -23,6 +29,7 @@ function stubUserAgent(userAgent: string) {
 describe('deviceUtils', () => {
     afterEach(() => {
         vi.restoreAllMocks()
+        vi.unstubAllGlobals()
     })
 
     describe('isAndroid / isIOS / isMobile', () => {
@@ -88,6 +95,32 @@ describe('deviceUtils', () => {
             } finally {
                 delete (window.navigator as { brave?: unknown }).brave
             }
+        })
+    })
+
+    describe('isPeraDiscoverBrowser', () => {
+        it("detects the Pera in-app browser from its user agent's tag", () => {
+            stubUserAgent(`${USER_AGENTS.iphone} pera/6.0`)
+
+            expect(isPeraDiscoverBrowser()).toBe(true)
+        })
+
+        it('reports any other browser as not Pera Discover', () => {
+            stubUserAgent(USER_AGENTS.iphone)
+
+            expect(isPeraDiscoverBrowser()).toBe(false)
+        })
+    })
+
+    describe('without a navigator (server-side rendering)', () => {
+        it('reports no platform and no browser', () => {
+            vi.stubGlobal('navigator', undefined)
+
+            expect(isAndroid()).toBe(false)
+            expect(isIOS()).toBe(false)
+            expect(isMobile()).toBe(false)
+            expect(isPeraDiscoverBrowser()).toBe(false)
+            expect(detectBrowser()).toBeNull()
         })
     })
 })

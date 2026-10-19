@@ -101,6 +101,19 @@ describe('newTabSignTransactionFlowTellerReducer', () => {
         expect(error.message).toBe('bad network')
     })
 
+    it('falls back to a generic message when a network mismatch carries none', () => {
+        const { reject } = callReducer({
+            data: {
+                message: { type: 'SIGN_TXN_NETWORK_MISMATCH', error: '' },
+            },
+        })
+
+        const error = reject.mock.calls[0][0] as PeraWalletConnectError
+
+        expect(error.data.type).toBe('SIGN_TXN_NETWORK_MISMATCH')
+        expect(error.message).toBe('Network mismatch')
+    })
+
     it('rejects SIGN_TXN_CALLBACK_ERROR as a cancellation and closes the tab', () => {
         const { reject, close } = callReducer({
             data: {

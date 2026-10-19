@@ -71,6 +71,26 @@ describe('peraWalletUtils', () => {
             expect(link).toContain('&selectedAccount=ADDR_1')
         })
 
+        it('keeps the WalletConnect scheme on iOS', () => {
+            deviceMock.isIOS.mockReturnValue(true)
+
+            const link = generatePeraWalletConnectDeepLink('wc:abc')
+
+            expect(link).toBe(
+                `perawallet-wc://wc?uri=${encodeURIComponent('wc:abc')}&browser=Chrome`,
+            )
+        })
+
+        it('omits the browser query when the browser is unknown', () => {
+            deviceMock.detectBrowser.mockReturnValue(null)
+
+            const link = generatePeraWalletConnectDeepLink('wc:abc')
+
+            expect(link).toBe(
+                `perawallet-wc://wc?uri=${encodeURIComponent('wc:abc')}`,
+            )
+        })
+
         it("ignores a selectedAccount of the string 'undefined'", () => {
             const link = generatePeraWalletConnectDeepLink('wc:abc', {
                 selectedAccount: 'undefined',

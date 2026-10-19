@@ -114,6 +114,39 @@ describe('ExtensionTransport', () => {
             expect(options.network).toBe('mainnet')
         })
 
+        it('sends no name, description or icon when the page has none', async () => {
+            document.title = ''
+            document.head.innerHTML = ''
+            const transport = new ExtensionTransport(provider, {})
+
+            await transport.connect()
+
+            const options = provider.connect.mock.calls[0][0]
+
+            expect(options).not.toHaveProperty('name')
+            expect(options).not.toHaveProperty('description')
+            expect(options).not.toHaveProperty('icons')
+        })
+
+        it('sends the description and first icon, trimmed to the wallet limits', async () => {
+            document.head.innerHTML = `
+                <meta name="description" content="${'d'.repeat(500)}">
+                <link rel="icon" href="https://dapp.example.com/icon.png">
+            `
+            const transport = new ExtensionTransport(provider, {})
+
+            try {
+                await transport.connect()
+            } finally {
+                document.head.innerHTML = ''
+            }
+
+            const options = provider.connect.mock.calls[0][0]
+
+            expect(options.description).toBe('d'.repeat(300))
+            expect(options.icons).toEqual(['https://dapp.example.com/icon.png'])
+        })
+
         it('omits network for an all-networks session', async () => {
             const transport = new ExtensionTransport(provider, {
                 chainId: 4160,
@@ -381,6 +414,21 @@ describe('ExtensionTransport', () => {
                 network: 'mainnet',
             })
             expect(transport.network).toBe('mainnet')
+        })
+
+        it('ignores networkChanged without a network', () => {
+            saveWalletDetailsToStorage([ADDRESS], 'pera-wallet-extension')
+
+            const onNetworkChanged = vi.fn()
+            const transport = new ExtensionTransport(provider, {
+                onNetworkChanged,
+            })
+
+            provider.emit('networkChanged', {})
+            provider.emit('networkChanged')
+
+            expect(onNetworkChanged).not.toHaveBeenCalled()
+            expect(transport.network).toBeNull()
         })
 
         it('ignores networkChanged when the session is not an extension one', () => {

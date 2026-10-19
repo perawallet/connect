@@ -139,6 +139,24 @@ describe('newTabConnectFlowTellerReducer', () => {
             expect(error.message).toBe('wrong network')
         })
 
+        it('explains the mismatch when Pera Web sends no message', () => {
+            const { reject } = callReducer({
+                event: {
+                    data: {
+                        message: {
+                            type: 'CONNECT_NETWORK_MISMATCH',
+                            error: '',
+                        },
+                    },
+                },
+            })
+
+            const error = reject.mock.calls[0][0] as PeraWalletConnectError
+
+            expect(error.data.type).toBe('CONNECT_NETWORK_MISMATCH')
+            expect(error.message).toMatch(/different network/)
+        })
+
         it('tears down the modal and closes the tab', () => {
             const { close, resolve } = callReducer({ event })
 
