@@ -1,12 +1,18 @@
 import algosdk from 'algosdk'
+import { Buffer } from 'buffer'
 import nacl from 'tweetnacl'
 
 import { concatArrays } from '../array/arrayUtils.js'
 import { PERA_WALLET_SIGNATURE_PREFIX } from '../peraWalletConstants.js'
 
+// Read through Buffer.from like the wire encoding (bytesToBase64), so plain-JS
+// input such as a string hashes the same bytes the wallet signed.
 async function sha256(data: Uint8Array) {
     return new Uint8Array(
-        await crypto.subtle.digest('SHA-256', new Uint8Array(data)),
+        await crypto.subtle.digest(
+            'SHA-256',
+            new Uint8Array(Buffer.from(data)),
+        ),
     )
 }
 

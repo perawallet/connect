@@ -54,6 +54,24 @@ describe('verifyArc60Signature', () => {
         ).resolves.toBe(true)
     })
 
+    it('hashes plain-JS string input as UTF-8, the bytes the wallet signed', async () => {
+        const stringAuthenticatorData = 'auth' as unknown as Uint8Array
+        const signedBytes = new Uint8Array([
+            ...(await sha256(data)),
+            ...(await sha256(new TextEncoder().encode('auth'))),
+        ])
+        const signature = nacl.sign.detached(signedBytes, account.sk)
+
+        await expect(
+            verifyArc60Signature(
+                data,
+                stringAuthenticatorData,
+                signature,
+                address,
+            ),
+        ).resolves.toBe(true)
+    })
+
     it('rejects a signature over the raw data', async () => {
         const signature = nacl.sign.detached(data, account.sk)
 
