@@ -253,6 +253,52 @@ describe("PeraWalletConnect.signArc60Data", () => {
     expect(withOptional.hdPath).toBe("m/44'/283'/0'/0/0");
   });
 
+  describe("with a scheme other than ed25519", () => {
+    function makeFalconPayload() {
+      return {
+        ...makePayload(),
+        signer: new Uint8Array(1793).fill(5),
+        scheme: "falcon-1024-det"
+      };
+    }
+
+    it("resolves with the key and scheme it asked with", async () => {
+      saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet");
+
+      const pera = new PeraWalletConnect();
+      const signature = new Uint8Array(1230).fill(7);
+
+      vi.spyOn(pera as any, "getTransport").mockReturnValue({
+        signArc60Data: vi.fn().mockResolvedValue({signature})
+      });
+
+      const payload = makeFalconPayload();
+
+      await expect(
+        pera.signArc60Data(payload, {scope: ScopeType.AUTH, encoding: "base64"})
+      ).resolves.toEqual({...payload, signature});
+    });
+
+    // Verifying Falcon needs a Falcon implementation, which connect doesn't bundle.
+    it("refuses verifySignature with SIGN_DATA_VERIFICATION_UNSUPPORTED before asking the wallet", async () => {
+      saveWalletDetailsToStorage([account.addr.toString()], "pera-wallet");
+
+      const pera = new PeraWalletConnect();
+      const signArc60Data = vi.fn();
+
+      vi.spyOn(pera as any, "getTransport").mockReturnValue({signArc60Data});
+
+      await expect(
+        pera.signArc60Data(
+          makeFalconPayload(),
+          {scope: ScopeType.AUTH, encoding: "base64"},
+          true
+        )
+      ).rejects.toMatchObject({data: {type: "SIGN_DATA_VERIFICATION_UNSUPPORTED"}});
+      expect(signArc60Data).not.toHaveBeenCalled();
+    });
+  });
+
   // Verification must decode `data` the same way the wire encoder does, using
   // real crypto rather than a mocked verifier — mocking it is what let the
   // encoding mismatch ship in the 1.6.0 betas.
