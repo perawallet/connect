@@ -137,6 +137,8 @@ const manager = new WalletManager({ wallets: [pera()] })
 | `shouldPreferExtension`  | `true`       | `boolean`                               | optional |
 | `algod`                  | public nodes | `{mainnet?, testnet?: algosdk.Algodv2}` | optional |
 
+The options object is exported as the `PeraWalletConnectOptions` type.
+
 #### **`chainId`**
 
 Determines which Algorand network your dApp uses.
@@ -216,7 +218,7 @@ Subscribes to session events and returns the unsubscribe function.
 - `"disconnect"`: the wallet ended the session on its side. With the extension this happens when the user revokes your site from the extension's Connections screen; with Pera mobile when the WalletConnect session is killed from the app. The SDK has already cleared its session state when the handler runs. It does not fire for teardown the SDK itself starts — your own `disconnect()` call, or the session `connect()` replaces.
 - `"networkChanged"`: the extension wallet switched network, on a session owned by the extension. The handler receives `{network: "mainnet" | "testnet" | "betanet"}`.
 
-Handlers stay subscribed until you call the returned function, so register them once per instance rather than on every connect.
+Handlers stay subscribed until you call the returned function, so register them once per instance rather than on every connect. The event names and payloads are exported as the `PeraWalletConnectEvent`, `PeraWalletConnectEventHandler` and `PeraWalletConnectEventMap` types.
 
 ```typescript
 const unsubscribe = peraWallet.on('disconnect', () => setAccountAddress(null))
