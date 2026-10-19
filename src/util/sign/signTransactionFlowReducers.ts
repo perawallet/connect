@@ -1,9 +1,8 @@
-import PeraWalletConnectError from '../PeraWalletConnectError'
+import { PeraWalletConnectError } from '../PeraWalletConnectError'
 import { resetWalletDetailsFromStorage } from '../storage/storageUtils'
 import { base64ToUint8Array } from '../transaction/transactionUtils'
 import { type NewTabSignTransactionFlowTellerReducerParams } from './signTransactionFlowModels'
 
-// =========== New Tab Sign Flow ===========
 function newTabSignTransactionFlowTellerReducer({
     event,
     newPeraWalletTab,
@@ -66,7 +65,7 @@ function newTabSignTransactionFlowTellerReducer({
         case 'SESSION_DISCONNECTED': {
             newPeraWalletTab?.close()
 
-            resetWalletDetailsFromStorage()
+            void resetWalletDetailsFromStorage()
 
             reject(
                 new PeraWalletConnectError(

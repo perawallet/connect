@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import PeraWalletConnectError from '../../PeraWalletConnectError'
+import { PeraWalletConnectError } from '../../PeraWalletConnectError'
 import { newTabConnectFlowTellerReducer } from '../connectFlowReducers'
 import { type NewTabConnectFlowTellerReducerParams } from '../connectFlowModels'
 

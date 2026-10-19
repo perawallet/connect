@@ -2,7 +2,7 @@ import {
     PERA_PROVIDER_ERROR_CODES,
     isPeraProviderError,
 } from './peraProviderTypes'
-import PeraWalletConnectError from '../../util/PeraWalletConnectError'
+import { PeraWalletConnectError } from '../../util/PeraWalletConnectError'
 
 /**
  * Maps a `window.pera.getEmptySignatures()` rejection. It keeps the error

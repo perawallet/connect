@@ -1,4 +1,4 @@
-import PeraWalletConnectError from './PeraWalletConnectError'
+import { PeraWalletConnectError } from './PeraWalletConnectError'
 import { type AlgorandChainIDs } from './peraWalletTypes'
 import {
     BETANET_NODE_CHAIN_ID,

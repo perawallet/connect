@@ -1,4 +1,4 @@
-import PeraWalletConnectError from '../util/PeraWalletConnectError'
+import { PeraWalletConnectError } from '../util/PeraWalletConnectError'
 import { waitForElementCreatedAtShadowDOM } from '../util/dom/domUtils'
 import { generatePeraWalletConnectDeepLink } from '../util/peraWalletUtils'
 
@@ -99,6 +99,17 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
     }
 }
 
+// The `qrcodeModal` WalletConnect drives while pairing: it opens our modal with
+// the pairing URI and closes it once the session is established.
+function createPeraWalletConnectQrcodeModal(
+    modalConfig: PeraWalletModalConfig,
+) {
+    return {
+        open: openPeraWalletConnectModal(modalConfig),
+        close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID),
+    }
+}
+
 /**
  * Adds a listener to the close button of the given modal.
  *
@@ -169,7 +180,7 @@ function openPeraWalletSignTxnModal({
  *
  * @returns {void}
  */
-function closePeraWalletSignTxnModal(rejectPromise?: (error: any) => void) {
+function closePeraWalletSignTxnModal(rejectPromise?: (error: unknown) => void) {
     removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_MODAL_ID)
 
     if (rejectPromise) {
@@ -232,6 +243,7 @@ export {
     PERA_WALLET_MODAL_CLASSNAME,
     PERA_WALLET_EXTENSION_CONNECT_EVENT,
     openPeraWalletConnectModal,
+    createPeraWalletConnectQrcodeModal,
     setupPeraWalletConnectModalCloseListener,
     openPeraWalletRedirectModal,
     openPeraWalletSignTxnToast,

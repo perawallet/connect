@@ -11,4 +11,4 @@ function fetcher<T>(url: string, config: RequestInit = {}): Promise<T> {
         .then(data => data as T)
 }
 
-export default fetcher
+export { fetcher }

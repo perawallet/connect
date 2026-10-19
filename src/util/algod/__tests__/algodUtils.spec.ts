@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest'
 
+import algosdk from 'algosdk'
+
+import { createDefaultAlgodClient, getNetworkFromChainId } from '../algodUtils'
 import {
-    getAlgosdkCredentialsForNetwork,
-    getChainIdForNetwork,
-    getNetworkFromChainId,
-} from '../algodUtils'
-import {
+    DEFAULT_ALGOD_PORT,
+    DEFAULT_ALGOD_SERVERS,
+    DEFAULT_ALGOD_TOKEN,
     MAINNET_NODE_CHAIN_ID,
     TESTNET_NODE_CHAIN_ID,
     BETANET_NODE_CHAIN_ID,
@@ -13,52 +14,27 @@ import {
 } from '../algodConstants'
 
 describe('algodUtils', () => {
-    describe('getAlgosdkCredentialsForNetwork', () => {
-        it('returns mainnet servers for the mainnet network', () => {
-            const credentials = getAlgosdkCredentialsForNetwork(
-                'mainnet',
-                'algodev',
-            )
-
-            expect(credentials.server.client).toContain('mainnet-api')
-            expect(credentials.port).toBe(443)
+    describe('default algod nodes', () => {
+        it('point mainnet and testnet at their own networks', () => {
+            expect(DEFAULT_ALGOD_SERVERS.mainnet).toContain('mainnet-api')
+            expect(DEFAULT_ALGOD_SERVERS.testnet).toContain('testnet-api')
+            expect(DEFAULT_ALGOD_PORT).toBe(443)
         })
 
-        it('returns testnet servers for the testnet network', () => {
-            const credentials = getAlgosdkCredentialsForNetwork(
-                'testnet',
-                'algodev',
-            )
-
-            expect(credentials.server.client).toContain('testnet-api')
-        })
-
-        it("defaults to a public node, not Pera's own infrastructure", () => {
-            ;(['mainnet', 'testnet'] as const).forEach(network => {
-                expect(
-                    getAlgosdkCredentialsForNetwork(network, 'algodev').server
-                        .client,
-                ).not.toContain('perawallet.app')
+        it("are public nodes, not Pera's own infrastructure", () => {
+            Object.values(DEFAULT_ALGOD_SERVERS).forEach(server => {
+                expect(server).not.toContain('perawallet.app')
             })
         })
 
-        it('ships no API token, so none is published in the bundle', () => {
-            ;(['mainnet', 'testnet'] as const).forEach(network => {
-                expect(
-                    getAlgosdkCredentialsForNetwork(network, 'algodev').tokens
-                        .client,
-                ).toBe('')
-            })
-        })
-    })
-
-    describe('getChainIdForNetwork', () => {
-        it('maps mainnet to the mainnet chain id', () => {
-            expect(getChainIdForNetwork('mainnet')).toBe(MAINNET_NODE_CHAIN_ID)
+        it('ship no API token, so none is published in the bundle', () => {
+            expect(DEFAULT_ALGOD_TOKEN).toBe('')
         })
 
-        it('maps testnet to the testnet chain id', () => {
-            expect(getChainIdForNetwork('testnet')).toBe(TESTNET_NODE_CHAIN_ID)
+        it('builds an algod client for the requested network', () => {
+            expect(createDefaultAlgodClient('mainnet')).toBeInstanceOf(
+                algosdk.Algodv2,
+            )
         })
     })
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
-import PeraWalletConnect from '../PeraWalletConnect'
-import PeraWalletConnectError from '../util/PeraWalletConnectError'
+import { PeraWalletConnect } from '../PeraWalletConnect'
+import { PeraWalletConnectError } from '../util/PeraWalletConnectError'
 
 /**
  * Guards the v1 public surface against accidental breakage. Every call below

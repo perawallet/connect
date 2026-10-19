@@ -3,7 +3,7 @@ import {
     type PeraWalletTransaction,
 } from '../../model/peraWalletModels'
 import { type AlgorandChainIDs } from '../../peraWalletTypes'
-import Teller from './Teller'
+import { Teller } from './Teller'
 
 export type PeraTeller =
     | {
@@ -98,4 +98,4 @@ const appTellerManager = new Teller<PeraTeller>({
     channel: 'pera-web-wallet',
 })
 
-export default appTellerManager
+export { appTellerManager }

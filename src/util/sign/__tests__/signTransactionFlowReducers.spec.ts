@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import PeraWalletConnectError from '../../PeraWalletConnectError'
+import { PeraWalletConnectError } from '../../PeraWalletConnectError'
 import { newTabSignTransactionFlowTellerReducer } from '../signTransactionFlowReducers'
 import { type NewTabSignTransactionFlowTellerReducerParams } from '../signTransactionFlowModels'
 

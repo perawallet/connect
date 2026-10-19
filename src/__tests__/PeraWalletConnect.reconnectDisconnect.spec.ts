@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
-import PeraWalletConnect from '../PeraWalletConnect'
+import { PeraWalletConnect } from '../PeraWalletConnect'
 import {
     saveWalletDetailsToStorage,
     getWalletDetailsFromStorage,

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import appTellerManager from '../../network/teller/appTellerManager'
+import { appTellerManager } from '../../network/teller/appTellerManager'
 import { waitForTabOpening } from '../../dom/domUtils'
 import { type RunSignTransactionFlowParams } from '../signTransactionFlowModels'
 import { runWebSignTransactionFlow } from '../signTransactionFlow'
@@ -10,7 +10,7 @@ vi.mock('../../dom/domUtils', () => ({
 }))
 
 vi.mock('../../network/teller/appTellerManager', () => ({
-    default: { sendMessage: vi.fn(), setupListener: vi.fn() },
+    appTellerManager: { sendMessage: vi.fn(), setupListener: vi.fn() },
 }))
 
 const waitForTabOpeningMock = vi.mocked(waitForTabOpening)

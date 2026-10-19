@@ -357,8 +357,7 @@ export class PeraWalletModalDesktopMode extends HTMLElement {
 
     webWalletConnect() {
         if (this.getAttribute('is-web-wallet-avaliable') === 'true') {
-            // @ts-expect-error ts-2339
-            window.onWebWalletConnect()
+            void window.onWebWalletConnect?.()
         }
     }
 

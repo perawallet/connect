@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import PeraWalletConnect from '../PeraWalletConnect'
+import { PeraWalletConnect } from '../PeraWalletConnect'
 import {
     MAINNET_NODE_CHAIN_ID,
     TESTNET_NODE_CHAIN_ID,

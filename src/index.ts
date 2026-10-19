@@ -1,18 +1,26 @@
 import { Buffer } from 'buffer'
 
-if (typeof window !== 'undefined') {
-    // Pollyfill for Buffer
-    ;(window as any).global = window
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    ;(window as any).Buffer = (window as any).Buffer || Buffer
+import { closePeraWalletSignTxnToast } from './modal/peraWalletConnectModalUtils'
+import { PeraWalletConnect } from './PeraWalletConnect'
 
-    import('./App')
+if (typeof window !== 'undefined') {
+    // The SDK no longer reads these, but earlier releases installed them and
+    // dApps came to rely on them, so removing them is a breaking change.
+    window.global = window
+    window.Buffer = window.Buffer || Buffer
+
+    // Registers the modal's custom elements. Loaded lazily so server-side
+    // rendering never touches `customElements`.
+    void import('./App')
 }
 
-import PeraWalletConnect from './PeraWalletConnect'
-import { closePeraWalletSignTxnToast } from './modal/peraWalletConnectModalUtils'
-
 export { PeraWalletConnect, closePeraWalletSignTxnToast }
+export { type PeraWalletConnectOptions } from './PeraWalletConnect'
+export {
+    type PeraWalletConnectEvent,
+    type PeraWalletConnectEventHandler,
+    type PeraWalletConnectEventMap,
+} from './util/events/SessionEventEmitter'
 export {
     ScopeType,
     type PeraWalletArbitraryData,

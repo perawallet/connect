@@ -4,11 +4,10 @@ import {
     PERA_WALLET_CONNECT_MODAL_ID,
     removeModalWrapperFromDOM,
 } from '../../modal/peraWalletConnectModalUtils'
-import PeraWalletConnectError from '../PeraWalletConnectError'
+import { PeraWalletConnectError } from '../PeraWalletConnectError'
 import { saveWalletDetailsToStorage } from '../storage/storageUtils'
 import { type NewTabConnectFlowTellerReducerParams } from './connectFlowModels'
 
-// =========== New Tab Connect Flow ===========
 function newTabConnectFlowTellerReducer({
     event,
     newPeraWalletTab,

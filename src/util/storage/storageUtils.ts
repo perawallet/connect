@@ -52,18 +52,10 @@ function getWalletConnectObjectFromStorage(): IWalletConnectSession | null {
     return null
 }
 
-function resetWalletDetailsFromStorage() {
-    return new Promise<undefined>((resolve, reject) => {
-        try {
-            getLocalStorage()?.removeItem(
-                PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
-            )
-            getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET)
-            resolve(undefined)
-        } catch (error) {
-            reject(error)
-        }
-    })
+// Async so a storage failure surfaces as a rejection, as callers expect.
+async function resetWalletDetailsFromStorage() {
+    getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT)
+    getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLET)
 }
 
 function isSameAccountList(a: string[], b: string[]) {

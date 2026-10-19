@@ -2,9 +2,10 @@ import {
     PERA_WALLET_CONNECT_MODAL_ID,
     removeModalWrapperFromDOM,
 } from '../../modal/peraWalletConnectModalUtils'
-import PeraWalletConnectError from '../PeraWalletConnectError'
+import { PeraWalletConnectError } from '../PeraWalletConnectError'
 import { getMetaInfo, waitForTabOpening } from '../dom/domUtils'
-import appTellerManager, {
+import {
+    appTellerManager,
     type PeraTeller,
 } from '../network/teller/appTellerManager'
 import { getPeraWebWalletURL } from '../peraWalletConstants'
@@ -22,7 +23,6 @@ function runWebConnectFlow({
 
     return runNewTabWebConnectFlow
 
-    // =========== New Tab Connect Flow ===========
     async function runNewTabWebConnectFlow() {
         try {
             const newPeraWalletTab = await waitForTabOpening(

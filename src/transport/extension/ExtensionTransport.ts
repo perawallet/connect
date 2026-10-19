@@ -9,7 +9,7 @@ import {
     isPeraProviderError,
 } from './peraProviderTypes'
 import { mapEmptySignaturesError } from './emptySignaturesError'
-import PeraWalletConnectError from '../../util/PeraWalletConnectError'
+import { PeraWalletConnectError } from '../../util/PeraWalletConnectError'
 import {
     type PeraWalletArbitraryData,
     type PeraWalletArc60SignData,
@@ -392,7 +392,7 @@ export class ExtensionTransport implements WalletTransport {
         }
 
         this._network = null
-        resetWalletDetailsFromStorage()
+        void resetWalletDetailsFromStorage()
         this.deps.onDisconnect?.()
     }
 

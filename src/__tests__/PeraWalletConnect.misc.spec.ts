@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 import nacl from 'tweetnacl'
 
-import PeraWalletConnect from '../PeraWalletConnect'
+import { PeraWalletConnect } from '../PeraWalletConnect'
 import { concatArrays } from '../util/array/arrayUtils'
 import { PERA_WALLET_SIGNATURE_PREFIX } from '../util/peraWalletConstants'
 import {

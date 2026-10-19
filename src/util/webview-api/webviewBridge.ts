@@ -25,10 +25,6 @@ import {
  */
 export type MobileMethodName = 'getPublicSettings'
 
-// ============================================================================
-// JSON-RPC Utilities
-// ============================================================================
-
 /**
  * Request ID generator
  * Uses timestamp + incrementing counter for better uniqueness
@@ -117,10 +113,6 @@ function isJsonRpcNotification(obj: unknown): obj is JsonRpcNotification {
     )
 }
 
-// ============================================================================
-// JSON-RPC Error Handling
-// ============================================================================
-
 /**
  * Base class for JSON-RPC errors
  */
@@ -197,10 +189,6 @@ function createJsonRpcError(error: JsonRpcError): JsonRpcErrorClass {
     }
 }
 
-// ============================================================================
-// Platform Detection
-// ============================================================================
-
 /**
  * Detect the current platform
  * Reserved for future use
@@ -235,10 +223,6 @@ function getAndroidInterface() {
 function getIosInterface() {
     return window.webkit?.messageHandlers as PeraMobileIosInterface | undefined
 }
-
-// ============================================================================
-// Message Listener
-// ============================================================================
 
 type ActionHandler<T> = (payload: T) => void
 
@@ -299,9 +283,8 @@ class MessageListener {
             if (isJsonRpcNotification(data)) {
                 this.handleJsonRpcNotification(data)
             }
-        } catch (error) {
-            // Silently ignore parsing errors
-            // This prevents errors from malformed messages breaking the app
+        } catch {
+            // A malformed message from the page must not break the bridge.
         }
     }
 
@@ -504,10 +487,6 @@ class MessageListener {
 }
 
 const messageListener = new MessageListener()
-
-// ============================================================================
-// Bridge Functions
-// ============================================================================
 
 /**
  * Send a JSON-RPC message to the mobile interface

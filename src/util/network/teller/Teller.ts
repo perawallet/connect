@@ -94,4 +94,4 @@ class Teller<Message> {
     }
 }
 
-export default Teller
+export { Teller }

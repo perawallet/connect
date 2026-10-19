@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import PeraWalletConnect from '../PeraWalletConnect'
+import { PeraWalletConnect } from '../PeraWalletConnect'
 import { ExtensionTransport } from '../transport/extension/ExtensionTransport'
 import { WebTransport } from '../transport/WebTransport'
 import { MobileTransport } from '../transport/MobileTransport'

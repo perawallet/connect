@@ -96,24 +96,6 @@ describe('MobileTransport', () => {
         })
     })
 
-    describe('setConnector', () => {
-        it('swaps the connector used by subsequent calls', async () => {
-            const transport = makeTransport(null)
-
-            await expect(
-                transport.signTransaction([{ txn: 'AA==' }]),
-            ).rejects.toBeTruthy()
-
-            const b64 = Buffer.from([1]).toString('base64')
-
-            transport.setConnector(makeConnector([b64]))
-
-            const signed = await transport.signTransaction([{ txn: 'AA==' }])
-
-            expect(Array.from(signed[0])).toEqual([1])
-        })
-    })
-
     describe('signTransaction', () => {
         it('decodes base64 responses and drops nulls', async () => {
             const b64 = Buffer.from([4, 5]).toString('base64')

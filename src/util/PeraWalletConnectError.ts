@@ -41,7 +41,7 @@ interface PeraWalletConnectErrorData {
         | 'EMPTY_SIGNATURES_NETWORK_REQUIRED'
         | 'EMPTY_SIGNATURES_NETWORK_UNSUPPORTED'
         | 'EMPTY_SIGNATURES_NETWORK_MISMATCH'
-    detail?: any
+    detail?: unknown
 }
 
 class PeraWalletConnectError extends Error {
@@ -59,4 +59,4 @@ class PeraWalletConnectError extends Error {
     }
 }
 
-export default PeraWalletConnectError
+export { PeraWalletConnectError }

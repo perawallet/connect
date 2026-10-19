@@ -1,57 +1,27 @@
-import algosdk from 'algosdk'
+import type algosdk from 'algosdk'
 
-import { type AlgorandNodeProviderType, type NetworkToggle } from './algodTypes'
-import { getAlgosdkCredentialsForNetwork } from './algodUtils'
+import { type AlgodClients, type NetworkToggle } from './algodTypes'
+import { createDefaultAlgodClient } from './algodUtils'
 
-class AlgodManager {
-    client: algosdk.Algodv2
-    providerType: AlgorandNodeProviderType
+// One client per network, built on first use: the integrator's when supplied,
+// otherwise a public node.
+class AlgodClientPool {
+    private clients = new Map<NetworkToggle, algosdk.Algodv2>()
 
-    constructor({
-        network,
-        providerType,
-        client,
-    }: {
-        network: NetworkToggle
-        providerType: AlgorandNodeProviderType
-        shouldCheckTransactionFee?: boolean
-        /** Supplied by the integrator; used as-is in place of Pera's node. */
-        client?: algosdk.Algodv2
-    }) {
-        const algosdkCredentials = getAlgosdkCredentialsForNetwork(
-            network,
-            providerType,
-        )
+    constructor(private readonly suppliedClients: AlgodClients = {}) {}
 
-        this.providerType = providerType
-        this.client =
-            client ??
-            new algosdk.Algodv2(
-                algosdkCredentials.tokens.client,
-                algosdkCredentials.server.client,
-                algosdkCredentials.port,
-            )
-    }
+    get(network: NetworkToggle): algosdk.Algodv2 {
+        let client = this.clients.get(network)
 
-    updateClient(
-        network: NetworkToggle,
-        providerType: AlgorandNodeProviderType,
-        client?: algosdk.Algodv2,
-    ) {
-        const algosdkCredentials = getAlgosdkCredentialsForNetwork(
-            network,
-            providerType,
-        )
+        if (!client) {
+            client =
+                this.suppliedClients[network] ??
+                createDefaultAlgodClient(network)
+            this.clients.set(network, client)
+        }
 
-        this.providerType = providerType
-        this.client =
-            client ??
-            new algosdk.Algodv2(
-                algosdkCredentials.tokens.client,
-                algosdkCredentials.server.client,
-                algosdkCredentials.port,
-            )
+        return client
     }
 }
 
-export { AlgodManager }
+export { AlgodClientPool }

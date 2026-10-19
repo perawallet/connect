@@ -1,41 +1,22 @@
-import ALGOD_CREDENTIALS, {
+import algosdk from 'algosdk'
+
+import {
+    DEFAULT_ALGOD_PORT,
+    DEFAULT_ALGOD_SERVERS,
+    DEFAULT_ALGOD_TOKEN,
     MAINNET_NODE_CHAIN_ID,
     TESTNET_NODE_CHAIN_ID,
 } from './algodConstants'
-import {
-    type AlgodClients,
-    type AlgorandNodeProviderType,
-    type NetworkToggle,
-} from './algodTypes'
+import { type AlgodClients, type NetworkToggle } from './algodTypes'
 import { type AlgorandChainIDs } from '../peraWalletTypes'
-import PeraWalletConnectError from '../PeraWalletConnectError'
+import { PeraWalletConnectError } from '../PeraWalletConnectError'
 
-function getAlgosdkCredentialsForNetwork(
-    network: NetworkToggle,
-    credentialType: AlgorandNodeProviderType,
-) {
-    const { mainnet: mainnetCredentials, testnet: testnetCredentials } =
-        ALGOD_CREDENTIALS
-    const preferredNetworkCredentials =
-        network === 'mainnet' ? mainnetCredentials : testnetCredentials
-
-    return {
-        tokens: {
-            client: preferredNetworkCredentials[credentialType].clientToken,
-        },
-        server: {
-            client: preferredNetworkCredentials[credentialType].clientServer,
-        },
-        port: preferredNetworkCredentials[credentialType].port,
-    }
-}
-
-function getChainIdForNetwork(network: NetworkToggle): number {
-    if (network === 'mainnet') {
-        return MAINNET_NODE_CHAIN_ID
-    }
-
-    return TESTNET_NODE_CHAIN_ID
+function createDefaultAlgodClient(network: NetworkToggle) {
+    return new algosdk.Algodv2(
+        DEFAULT_ALGOD_TOKEN,
+        DEFAULT_ALGOD_SERVERS[network],
+        DEFAULT_ALGOD_PORT,
+    )
 }
 
 /**
@@ -80,7 +61,6 @@ function assertValidAlgodClients(clients: AlgodClients) {
 
 export {
     assertValidAlgodClients,
-    getAlgosdkCredentialsForNetwork,
-    getChainIdForNetwork,
+    createDefaultAlgodClient,
     getNetworkFromChainId,
 }

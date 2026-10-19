@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 import nacl from 'tweetnacl'
 
-import PeraWalletConnect from '../PeraWalletConnect'
+import { PeraWalletConnect } from '../PeraWalletConnect'
 import { ScopeType } from '../util/model/peraWalletModels'
 import {
     saveWalletDetailsToStorage,
@@ -128,12 +128,10 @@ describe('PeraWalletConnect.getAccountAuthAddr (legacy signData verification)', 
     })
 
     function mockAlgod(pera: PeraWalletConnect) {
-        return vi.spyOn(pera as any, 'getAlgodClient').mockReturnValue({
-            client: {
-                accountInformation: () => ({
-                    do: () => Promise.resolve({ authAddr: undefined }),
-                }),
-            },
+        return vi.spyOn((pera as any).algodClients, 'get').mockReturnValue({
+            accountInformation: () => ({
+                do: () => Promise.resolve({ authAddr: undefined }),
+            }),
         })
     }
 

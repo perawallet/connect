@@ -93,7 +93,7 @@ vi.mock('../util/api/peraWalletConnectApi', () => ({
     getPeraConnectConfig: () => Promise.resolve(configState),
 }))
 
-const { default: PeraWalletConnect } = await import('../PeraWalletConnect')
+const { PeraWalletConnect } = await import('../PeraWalletConnect')
 
 // FakeConnector's createSession/`connect()`'s internal awaited config/webview
 // promises all resolve on the microtask queue; a real macrotask tick flushes

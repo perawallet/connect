@@ -121,7 +121,15 @@
     ],
     "unicorn/switch-case-braces": "error",
     "unicorn/numeric-separators-style": "error",
-    "no-console": "error",
+    "no-console": [
+      "error",
+      {
+        "allow": [
+          "warn",
+          "error"
+        ]
+      }
+    ],
     "no-param-reassign": "error",
     "typescript/no-floating-promises": "off"
   },

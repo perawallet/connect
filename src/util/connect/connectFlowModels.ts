@@ -3,7 +3,7 @@ import { type AlgorandChainIDs } from '../peraWalletTypes'
 
 interface ConnectFlowPromise {
     resolve: (accounts: string[]) => void
-    reject: (reason?: any) => void
+    reject: (reason?: unknown) => void
 }
 
 interface RunWebConnectFlowTypes extends ConnectFlowPromise {

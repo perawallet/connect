@@ -21,10 +21,11 @@ function isMobile() {
     )
 }
 
-/**
- * Detects the browser name
- * @returns {BrowserName} Browser name
- */
+// The Pera in-app browser (Discover) tags its user agent with "pera".
+function isPeraDiscoverBrowser() {
+    return isNavigatorAvailable() && navigator.userAgent.includes('pera')
+}
+
 function detectBrowser() {
     if (!isNavigatorAvailable()) {
         return null
@@ -48,4 +49,4 @@ function detectBrowser() {
     return browserName
 }
 
-export { isAndroid, isIOS, isMobile, detectBrowser }
+export { isAndroid, isIOS, isMobile, isPeraDiscoverBrowser, detectBrowser }

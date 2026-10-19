@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
 
-import PeraWalletConnect from '../PeraWalletConnect'
+import { PeraWalletConnect } from '../PeraWalletConnect'
 
 vi.mock('../util/api/peraWalletConnectApi', () => ({
     getPeraConnectConfig: () =>
@@ -42,8 +42,8 @@ function mockAccountInformation(
     })
 
     const getAlgodClient = vi
-        .spyOn(pera as any, 'getAlgodClient')
-        .mockReturnValue({ client: { accountInformation } })
+        .spyOn((pera as any).algodClients, 'get')
+        .mockReturnValue({ accountInformation })
 
     return { getAlgodClient, accountInformation, exclude }
 }
