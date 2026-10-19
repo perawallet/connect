@@ -53,7 +53,7 @@
   "dependencies": {
     "@evanhahn/lottie-web-light": "5.8.1",
     "@perawallet/walletconnect": "1.0.2",
-    "bowser": "2.11.0",
+    "bowser": "2.14.1",
     "buffer": "^6.0.3",
     "qr-code-styling": "1.6.0-rc.1",
     "tslib": "^2.8.1",
