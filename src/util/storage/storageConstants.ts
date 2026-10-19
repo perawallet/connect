@@ -1,7 +1,7 @@
 const PERA_WALLET_LOCAL_STORAGE_KEYS = {
-  WALLET: "PeraWallet.Wallet",
-  WALLETCONNECT: "PeraWallet.WalletConnect"
-};
+    WALLET: 'PeraWallet.Wallet',
+    WALLETCONNECT: 'PeraWallet.WalletConnect',
+}
 
 /**
  * The WalletConnect v1 default storage key. It is shared by every WC v1 wallet
@@ -11,6 +11,6 @@ const PERA_WALLET_LOCAL_STORAGE_KEYS = {
  * `storageUtils.ts`. Kept out of `PERA_WALLET_LOCAL_STORAGE_KEYS` on purpose so
  * a "reset every Pera key" helper can never touch it.
  */
-const LEGACY_WALLETCONNECT_STORAGE_KEY = "walletconnect";
+const LEGACY_WALLETCONNECT_STORAGE_KEY = 'walletconnect'
 
-export {PERA_WALLET_LOCAL_STORAGE_KEYS, LEGACY_WALLETCONNECT_STORAGE_KEY};
+export { PERA_WALLET_LOCAL_STORAGE_KEYS, LEGACY_WALLETCONNECT_STORAGE_KEY }

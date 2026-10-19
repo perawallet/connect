@@ -1,93 +1,93 @@
-import {type Transaction} from "algosdk";
+import { type Transaction } from 'algosdk'
 
-import {type AlgodClients, type NetworkToggle} from "../algod/algodTypes";
+import { type AlgodClients, type NetworkToggle } from '../algod/algodTypes'
 
 export interface SignerTransaction {
-  txn: Transaction;
+    txn: Transaction
 
-  /**
-   * Optional authorized address used to sign the transaction when
-   * the account is rekeyed. Also called the signor/sgnr.
-   */
-  authAddr?: string;
+    /**
+     * Optional authorized address used to sign the transaction when
+     * the account is rekeyed. Also called the signor/sgnr.
+     */
+    authAddr?: string
 
-  /**
-   * Optional multisig metadata used to sign the transaction
-   */
-  msig?: PeraWalletMultisigMetadata;
+    /**
+     * Optional multisig metadata used to sign the transaction
+     */
+    msig?: PeraWalletMultisigMetadata
 
-  /**
-   * Optional list of addresses that must sign the transactions.
-   * Wallet skips to sign this txn if signers is empty array.
-   * If undefined, wallet tries to sign it.
-   */
-  signers?: string[];
+    /**
+     * Optional list of addresses that must sign the transactions.
+     * Wallet skips to sign this txn if signers is empty array.
+     * If undefined, wallet tries to sign it.
+     */
+    signers?: string[]
 
-  /**
-   * Optional message explaining the reason of the transaction
-   */
-  message?: string;
+    /**
+     * Optional message explaining the reason of the transaction
+     */
+    message?: string
 }
 
 /**
  * Options for creating and using a multisignature account.
  */
 export interface PeraWalletMultisigMetadata {
-  /**
-   * Multisig version.
-   */
-  version: number;
+    /**
+     * Multisig version.
+     */
+    version: number
 
-  /**
-   * Multisig threshold value. Authorization requires a subset of
-   * signatures, equal to or greater than the threshold value.
-   */
-  threshold: number;
+    /**
+     * Multisig threshold value. Authorization requires a subset of
+     * signatures, equal to or greater than the threshold value.
+     */
+    threshold: number
 
-  /**
-   * List of Algorand addresses of possible signers for this
-   * multisig. Order is important.
-   */
-  addrs: string[];
+    /**
+     * List of Algorand addresses of possible signers for this
+     * multisig. Order is important.
+     */
+    addrs: string[]
 }
 
 export interface PeraWalletTransaction {
-  /**
-   * Base64 encoding of the canonical msgpack encoding of a
-   * Transaction.
-   */
-  txn: string;
+    /**
+     * Base64 encoding of the canonical msgpack encoding of a
+     * Transaction.
+     */
+    txn: string
 
-  /**
-   * Optional authorized address used to sign the transaction when
-   * the account is rekeyed. Also called the signor/sgnr.
-   */
-  authAddr?: string;
+    /**
+     * Optional authorized address used to sign the transaction when
+     * the account is rekeyed. Also called the signor/sgnr.
+     */
+    authAddr?: string
 
-  /**
-   * Optional multisig metadata used to sign the transaction
-   */
-  msig?: PeraWalletMultisigMetadata;
+    /**
+     * Optional multisig metadata used to sign the transaction
+     */
+    msig?: PeraWalletMultisigMetadata
 
-  /**
-   * Optional list of addresses that must sign the transactions
-   */
-  signers?: string[];
+    /**
+     * Optional list of addresses that must sign the transactions
+     */
+    signers?: string[]
 
-  /**
-   * Optional message explaining the reason of the transaction
-   */
-  message?: string;
+    /**
+     * Optional message explaining the reason of the transaction
+     */
+    message?: string
 }
 // Reference: https://github.com/jasonpaulos/algorand-walletconnect-example-dapp/blob/algorand/src/helpers/types.ts
 
 export interface PeraWalletArbitraryData {
-  data: Uint8Array;
+    data: Uint8Array
 
-  /**
-   * Required message explaining the reason for the action
-   */
-  message: string;
+    /**
+     * Required message explaining the reason for the action
+     */
+    message: string
 }
 
 /**
@@ -95,8 +95,8 @@ export interface PeraWalletArbitraryData {
  * so that dapps can share code between pera-connect and use-wallet adapters.
  */
 export enum ScopeType {
-  UNKNOWN = -1,
-  AUTH = 1
+    UNKNOWN = -1,
+    AUTH = 1,
 }
 
 /**
@@ -105,8 +105,8 @@ export enum ScopeType {
  * supported by the Pera mobile wallet.
  */
 export interface SignMetadata {
-  scope: ScopeType;
-  encoding: string;
+    scope: ScopeType
+    encoding: string
 }
 
 /**
@@ -118,19 +118,19 @@ export interface SignMetadata {
  * Spec: https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0060.md
  */
 export interface Siwa {
-  domain: string;
-  account_address: string;
-  uri: string;
-  version: string;
-  chain_id: string;
-  type: "ed25519";
-  statement?: string;
-  nonce?: string;
-  "issued-at"?: string;
-  "expiration-time"?: string;
-  "not-before"?: string;
-  "request-id"?: string;
-  resources?: string[];
+    domain: string
+    account_address: string
+    uri: string
+    version: string
+    chain_id: string
+    type: 'ed25519'
+    statement?: string
+    nonce?: string
+    'issued-at'?: string
+    'expiration-time'?: string
+    'not-before'?: string
+    'request-id'?: string
+    resources?: string[]
 }
 
 /**
@@ -142,37 +142,37 @@ export interface Siwa {
  * request to the ARC-60 auth flow rather than the generic arbitrary-data flow.
  */
 export interface PeraWalletArc60SignData {
-  /**
-   * Payload bytes to be signed (typically the UTF-8 bytes of canonical SIWA
-   * JSON). Will be encoded on the wire bsaed on encoding specified in metadata.
-   */
-  data: string;
+    /**
+     * Payload bytes to be signed (typically the UTF-8 bytes of canonical SIWA
+     * JSON). Will be encoded on the wire bsaed on encoding specified in metadata.
+     */
+    data: string
 
-  /**
-   * Algorand address that should sign the payload.
-   */
-  signer: Uint8Array;
+    /**
+     * Algorand address that should sign the payload.
+     */
+    signer: Uint8Array
 
-  /**
-   * Origin/domain requesting the signature.
-   */
-  domain: string;
+    /**
+     * Origin/domain requesting the signature.
+     */
+    domain: string
 
-  /**
-   * FIDO-style authenticator data. First 32 bytes must equal sha256(domain).
-   * Will be base64-encoded on the wire.
-   */
-  authenticatorData: Uint8Array;
+    /**
+     * FIDO-style authenticator data. First 32 bytes must equal sha256(domain).
+     * Will be base64-encoded on the wire.
+     */
+    authenticatorData: Uint8Array
 
-  /**
-   * Optional request ID for replay protection.
-   */
-  requestId?: string;
+    /**
+     * Optional request ID for replay protection.
+     */
+    requestId?: string
 
-  /**
-   * Optional BIP44 derivation path.
-   */
-  hdPath?: string;
+    /**
+     * Optional BIP44 derivation path.
+     */
+    hdPath?: string
 }
 
 /**
@@ -181,40 +181,40 @@ export interface PeraWalletArc60SignData {
  * dApps can verify Pera and Lute signatures with the same code path.
  */
 export interface PeraWalletArc60SignDataResponse extends PeraWalletArc60SignData {
-  /**
-   * `ed25519(sha256(data) || sha256(authenticatorData))` per ARC-60.
-   */
-  signature: Uint8Array;
+    /**
+     * `ed25519(sha256(data) || sha256(authenticatorData))` per ARC-60.
+     */
+    signature: Uint8Array
 }
 
 /** Networks connect can read accounts on; the auth address of a rekey is per network. */
-export type PeraWalletNetwork = NetworkToggle;
+export type PeraWalletNetwork = NetworkToggle
 
 /**
  * Algod clients to read account state with, keyed by network, for
  * `PeraWalletConnectOptions.algod`. A network left out keeps Pera's node.
  */
-export type PeraWalletAlgodClients = AlgodClients;
+export type PeraWalletAlgodClients = AlgodClients
 
 /**
  * Who has to sign an ARC-60 (SIWA) request for an account, see
  * `PeraWalletConnect.resolveArc60Signer`.
  */
 export interface PeraWalletArc60SignerResolution {
-  /** The account being authenticated; goes into the SIWA `account_address`. */
-  accountAddress: string;
+    /** The account being authenticated; goes into the SIWA `account_address`. */
+    accountAddress: string
 
-  /**
-   * The account whose key produces the signature: the on-chain auth address
-   * when `accountAddress` is rekeyed, otherwise `accountAddress` itself.
-   */
-  signerAddress: string;
+    /**
+     * The account whose key produces the signature: the on-chain auth address
+     * when `accountAddress` is rekeyed, otherwise `accountAddress` itself.
+     */
+    signerAddress: string
 
-  /** `signerAddress` as a public key, ready for `PeraWalletArc60SignData.signer`. */
-  signer: Uint8Array;
+    /** `signerAddress` as a public key, ready for `PeraWalletArc60SignData.signer`. */
+    signer: Uint8Array
 
-  isRekeyed: boolean;
+    isRekeyed: boolean
 
-  /** The network the auth address was read from. */
-  network: PeraWalletNetwork;
+    /** The network the auth address was read from. */
+    network: PeraWalletNetwork
 }

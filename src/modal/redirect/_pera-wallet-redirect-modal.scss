@@ -1,76 +1,76 @@
-@use "../pera-wallet-modal";
+@use '../pera-wallet-modal';
 
 .pera-wallet-redirect-modal {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 56px;
-  grid-template-rows: auto 48px;
-  height: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 56px;
+    grid-template-rows: auto 48px;
+    height: 100%;
 
-  padding: 4px;
+    padding: 4px;
 
-  padding-bottom: 70px;
+    padding-bottom: 70px;
 }
 
 .pera-wallet-redirect-modal__content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
 
 .pera-wallet-redirect-modal__content__title {
-  margin: 20px 0 8px;
+    margin: 20px 0 8px;
 
-  color: #3c3c49;
+    color: #3c3c49;
 
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 22px;
-  letter-spacing: -0.26px;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 22px;
+    letter-spacing: -0.26px;
 }
 
 .pera-wallet-redirect-modal__content__description,
 .pera-wallet-redirect-modal__content__install-pera-text {
-  color: #3c3c49;
+    color: #3c3c49;
 
-  max-width: 271px;
+    max-width: 271px;
 
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 24px;
-  letter-spacing: -0.09px;
-  text-align: center;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: -0.09px;
+    text-align: center;
 }
 
 .pera-wallet-redirect-modal__content__description {
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 }
 
 .pera-wallet-redirect-modal__content__install-pera-text__link {
-  color: #6b46fe;
+    color: #6b46fe;
 
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 24px;
-  letter-spacing: -0.09px;
-  text-align: center;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: -0.09px;
+    text-align: center;
 }
 
 .pera-wallet-redirect-modal__launch-pera-wallet-button {
-  display: block;
+    display: block;
 
-  padding: 14px;
+    padding: 14px;
 
-  color: #ffffff;
-  background-color: #6b46fe;
+    color: #ffffff;
+    background-color: #6b46fe;
 
-  border-radius: 12px;
+    border-radius: 12px;
 
-  text-decoration: none;
-  text-align: center;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: -0.09px;
-  font-weight: 500;
+    text-decoration: none;
+    text-align: center;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.09px;
+    font-weight: 500;
 }

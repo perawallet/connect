@@ -1,26 +1,26 @@
-import PeraConnectIcon from "../../asset/icon/PeraConnect.svg";
-import CloseIcon from "../../asset/icon/Close.svg";
-import CloseIconDark from "../../asset/icon/Close--dark.svg";
+import PeraConnectIcon from '../../asset/icon/PeraConnect.svg'
+import CloseIcon from '../../asset/icon/Close.svg'
+import CloseIconDark from '../../asset/icon/Close--dark.svg'
 
-import styles from "./_pera-wallet-modal-header.scss?inline";
-import {isMobile} from "../../util/device/deviceUtils";
+import styles from './_pera-wallet-modal-header.scss?inline'
+import { isMobile } from '../../util/device/deviceUtils'
 import {
-  PERA_WALLET_REDIRECT_MODAL_ID,
-  removeModalWrapperFromDOM
-} from "../peraWalletConnectModalUtils";
+    PERA_WALLET_REDIRECT_MODAL_ID,
+    removeModalWrapperFromDOM,
+} from '../peraWalletConnectModalUtils'
 
-const peraWalletModalHeader = document.createElement("template");
+const peraWalletModalHeader = document.createElement('template')
 
 const headerClassName = isMobile()
-  ? "pera-wallet-modal-header pera-wallet-modal-header--mobile"
-  : "pera-wallet-modal-header pera-wallet-modal-header--desktop";
+    ? 'pera-wallet-modal-header pera-wallet-modal-header--mobile'
+    : 'pera-wallet-modal-header pera-wallet-modal-header--desktop'
 
 peraWalletModalHeader.innerHTML = `
   <div class="${headerClassName}">
       ${
-        isMobile()
-          ? ""
-          : `<div class="pera-wallet-modal-header__brand">
+          isMobile()
+              ? ''
+              : `<div class="pera-wallet-modal-header__brand">
               <img src="${PeraConnectIcon}" />
 
               <div class="pera-wallet-modal-header__brand-text">
@@ -41,34 +41,37 @@ peraWalletModalHeader.innerHTML = `
         />
       </button>
     </div>
-`;
+`
 
 export class PeraWalletModalHeader extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({mode: "open"});
+    constructor() {
+        super()
+        this.attachShadow({ mode: 'open' })
 
-    if (this.shadowRoot) {
-      const styleSheet = document.createElement("style");
+        if (this.shadowRoot) {
+            const styleSheet = document.createElement('style')
 
-      styleSheet.textContent = styles;
+            styleSheet.textContent = styles
 
-      this.shadowRoot.append(peraWalletModalHeader.content.cloneNode(true), styleSheet);
+            this.shadowRoot.append(
+                peraWalletModalHeader.content.cloneNode(true),
+                styleSheet,
+            )
 
-      this.onClose();
+            this.onClose()
+        }
     }
-  }
 
-  onClose() {
-    const closeButton = this.shadowRoot?.getElementById(
-      "pera-wallet-modal-header-close-button"
-    );
-    const modalId = this.getAttribute("modal-id");
+    onClose() {
+        const closeButton = this.shadowRoot?.getElementById(
+            'pera-wallet-modal-header-close-button',
+        )
+        const modalId = this.getAttribute('modal-id')
 
-    if (closeButton && modalId === PERA_WALLET_REDIRECT_MODAL_ID) {
-      closeButton.addEventListener("click", () => {
-        removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
-      });
+        if (closeButton && modalId === PERA_WALLET_REDIRECT_MODAL_ID) {
+            closeButton.addEventListener('click', () => {
+                removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID)
+            })
+        }
     }
-  }
 }

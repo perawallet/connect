@@ -1,17 +1,22 @@
-import {describe, it, expect} from "vitest";
+import { describe, it, expect } from 'vitest'
 
-import {setVhVariable} from "../screenSizeUtils";
+import { setVhVariable } from '../screenSizeUtils'
 
-describe("screenSizeUtils", () => {
-  describe("setVhVariable", () => {
-    it("sets the --pera-wallet-vh custom property from window height", () => {
-      Object.defineProperty(window, "innerHeight", {configurable: true, value: 800});
+describe('screenSizeUtils', () => {
+    describe('setVhVariable', () => {
+        it('sets the --pera-wallet-vh custom property from window height', () => {
+            Object.defineProperty(window, 'innerHeight', {
+                configurable: true,
+                value: 800,
+            })
 
-      setVhVariable();
+            setVhVariable()
 
-      expect(document.documentElement.style.getPropertyValue("--pera-wallet-vh")).toBe(
-        "8px"
-      );
-    });
-  });
-});
+            expect(
+                document.documentElement.style.getPropertyValue(
+                    '--pera-wallet-vh',
+                ),
+            ).toBe('8px')
+        })
+    })
+})

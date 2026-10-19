@@ -18,7 +18,7 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 
 <details>
   <summary>Expand details</summary>
-  
+
 - [Using React Hooks](https://codesandbox.io/s/perawallet-connect-react-demo-zlvokc)
 
 - [Using React Hooks with React@18](https://codesandbox.io/s/perawallet-connect-react-18-demo-tig2md)
@@ -32,6 +32,7 @@ JavaScript SDK for integrating [Pera Wallet](https://perawallet.app) to web appl
 - [Using Nuxt.js](https://codesandbox.io/s/perawallet-connect-nuxt-js-demo-s65z58)
 
 - [Vanilla JS](https://codesandbox.io/s/perawallet-connect-vanillajs-demo-s5pjeo)
+
 </details>
 
 ## Quick Start
@@ -56,44 +57,44 @@ registering a fresh one per connect leaves the old ones running too.
 ```jsx
 // Once, alongside the peraWallet instance — not inside connect()/reconnectSession()
 useEffect(() => {
-  // Fires for every transport (mobile, extension) when the wallet ends the
-  // session on its side. Returns the unsubscribe function.
-  const unsubscribe = peraWallet.on("disconnect", handleDisconnectWalletClick);
+    // Fires for every transport (mobile, extension) when the wallet ends the
+    // session on its side. Returns the unsubscribe function.
+    const unsubscribe = peraWallet.on('disconnect', handleDisconnectWalletClick)
 
-  // Releases the `window.pera` subscriptions this instance holds; the wallet
-  // session itself is untouched.
-  return () => {
-    unsubscribe();
-    peraWallet.dispose();
-  };
-}, []);
+    // Releases the `window.pera` subscriptions this instance holds; the wallet
+    // session itself is untouched.
+    return () => {
+        unsubscribe()
+        peraWallet.dispose()
+    }
+}, [])
 ```
 
 ```jsx
 // Connect handler
 peraWallet
-  .connect()
-  .then((newAccounts) => {
-    setAccountAddress(newAccounts[0]);
-  })
-  .catch((error) => {
-    // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
-    // For the async/await syntax you MUST use try/catch
-    if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
-      // log the necessary errors
-    }
-  });
+    .connect()
+    .then(newAccounts => {
+        setAccountAddress(newAccounts[0])
+    })
+    .catch(error => {
+        // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
+        // For the async/await syntax you MUST use try/catch
+        if (error?.data?.type !== 'CONNECT_MODAL_CLOSED') {
+            // log the necessary errors
+        }
+    })
 ```
 
 If you don't want the user's account information to be lost by the dApp when the user closes the browser with user’s wallet connected to the dApp, you need to handle the reconnect session status. You can do this in the following way.
 
 ```jsx
 // On the every page refresh
-peraWallet.reconnectSession().then((accounts) => {
-  if (accounts.length) {
-    setAccountAddress(accounts[0]);
-  }
-});
+peraWallet.reconnectSession().then(accounts => {
+    if (accounts.length) {
+        setAccountAddress(accounts[0])
+    }
+})
 ```
 
 After that you can sign transaction with this way
@@ -101,9 +102,9 @@ After that you can sign transaction with this way
 ```jsx
 // Single Transaction
 try {
-  const signedTxn = await peraWallet.signTransaction([singleTxnGroups]);
+    const signedTxn = await peraWallet.signTransaction([singleTxnGroups])
 } catch (error) {
-  console.log("Couldn't sign Opt-in txns", error);
+    console.log("Couldn't sign Opt-in txns", error)
 }
 ```
 
@@ -116,10 +117,10 @@ pnpm add @perawallet/use-wallet-pera
 ```
 
 ```ts
-import {WalletManager} from "@txnlab/use-wallet";
-import {pera} from "@perawallet/use-wallet-pera";
+import { WalletManager } from '@txnlab/use-wallet'
+import { pera } from '@perawallet/use-wallet-pera'
 
-const manager = new WalletManager({wallets: [pera()]});
+const manager = new WalletManager({ wallets: [pera()] })
 ```
 
 `pera()` accepts the same [options](#options) as `new PeraWalletConnect()`. Moving from TxnLab's `@txnlab/use-wallet-pera` only means changing the import: the wallet id is still `"pera"`, so persisted sessions carry over.
@@ -128,12 +129,12 @@ const manager = new WalletManager({wallets: [pera()]});
 
 ## Options
 
-| option                   | default | value                                 |          |
-| ------------------------ | ------- | ------------------------------------- | -------- |
-| `chainId`                | `4160`  | `416001`, `416002`, `416003` , `4160` | optional |
-| `shouldShowSignTxnToast` | `true`  | `boolean`                             | optional |
-| `compactMode`            | `false` | `boolean`                             | optional |
-| `shouldPreferExtension`  | `true`  | `boolean`                             | optional |
+| option                   | default      | value                                   |          |
+| ------------------------ | ------------ | --------------------------------------- | -------- |
+| `chainId`                | `4160`       | `416001`, `416002`, `416003` , `4160`   | optional |
+| `shouldShowSignTxnToast` | `true`       | `boolean`                               | optional |
+| `compactMode`            | `false`      | `boolean`                               | optional |
+| `shouldPreferExtension`  | `true`       | `boolean`                               | optional |
 | `algod`                  | public nodes | `{mainnet?, testnet?: algosdk.Algodv2}` | optional |
 
 #### **`chainId`**
@@ -169,15 +170,19 @@ Connect reads account state from an Algorand node in two places: `resolveArc60Si
 That default is a third party on a shared free tier. **If your dApp reads often, supply your own client** — otherwise a rate limit surfaces as `SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED`. Pass `algosdk.Algodv2` instances to keep these reads on your own infrastructure, with whatever token, headers, or HTTP client your provider needs. A network you leave out keeps the public default.
 
 ```javascript
-import algosdk from "algosdk";
-import {PeraWalletConnect} from "@perawallet/connect";
+import algosdk from 'algosdk'
+import { PeraWalletConnect } from '@perawallet/connect'
 
 const peraWallet = new PeraWalletConnect({
-  chainId: 416001,
-  algod: {
-    mainnet: new algosdk.Algodv2(process.env.ALGOD_TOKEN, "https://my-node.example.com", 443)
-  }
-});
+    chainId: 416001,
+    algod: {
+        mainnet: new algosdk.Algodv2(
+            process.env.ALGOD_TOKEN,
+            'https://my-node.example.com',
+            443,
+        ),
+    },
+})
 ```
 
 The client is used as you built it, so anything `algosdk.Algodv2` supports works — a tokenless node (`new algosdk.Algodv2("", "http://localhost", 4001)`), a provider that wants its own header (`new algosdk.Algodv2({"X-API-Key": key}, server, "")`), or a custom `BaseHTTPClient`.
@@ -195,7 +200,6 @@ Reconnects to the wallet if there is any active connection and returns the array
 #### `PeraWalletConnect.disconnect(): Promise<void | undefined>`
 
 Disconnects from the wallet and resets the related storage items. Pera's session state lives only under its own `localStorage` keys (`PeraWallet.Wallet` and `PeraWallet.WalletConnect`), so disconnecting never removes another wallet's WalletConnect session. A session stored under the shared `walletconnect` key by earlier versions is migrated to `PeraWallet.WalletConnect` automatically the first time `PeraWalletConnect` is instantiated.
-
 
 #### `PeraWalletConnect.platform: PeraWalletPlatformType`
 
@@ -215,7 +219,7 @@ Subscribes to session events and returns the unsubscribe function.
 Handlers stay subscribed until you call the returned function, so register them once per instance rather than on every connect.
 
 ```typescript
-const unsubscribe = peraWallet.on("disconnect", () => setAccountAddress(null));
+const unsubscribe = peraWallet.on('disconnect', () => setAccountAddress(null))
 ```
 
 #### `PeraWalletConnect.dispose(): void`
@@ -242,27 +246,28 @@ An algosdk [`TransactionSigner`](https://github.com/algorand/js-algorand-sdk/blo
   <summary>See example</summary>
 
 ```typescript
-import algosdk from "algosdk";
+import algosdk from 'algosdk'
 
-const peraWallet = new PeraWalletConnect();
-const [sender] = await peraWallet.reconnectSession();
+const peraWallet = new PeraWalletConnect()
+const [sender] = await peraWallet.reconnectSession()
 
-const algod = new algosdk.Algodv2("", "https://testnet-api.algonode.cloud", "");
-const suggestedParams = await algod.getTransactionParams().do();
-const atc = new algosdk.AtomicTransactionComposer();
+const algod = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', '')
+const suggestedParams = await algod.getTransactionParams().do()
+const atc = new algosdk.AtomicTransactionComposer()
 
 atc.addTransaction({
-  signer: peraWallet.transactionSigner,
-  txn: algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    sender,
-    receiver: sender,
-    amount: 0,
-    suggestedParams
-  })
-});
+    signer: peraWallet.transactionSigner,
+    txn: algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender,
+        receiver: sender,
+        amount: 0,
+        suggestedParams,
+    }),
+})
 
-const result = await atc.execute(algod, 4);
+const result = await atc.execute(algod, 4)
 ```
+
 </details>
 
 #### `PeraWalletConnect.signData(data: PeraWalletArbitraryData[], signer: string, verifySignature?: boolean): Promise<Uint8Array[]>`
@@ -270,11 +275,13 @@ const result = await atc.execute(algod, 4);
 Starts the signing process for arbitrary data signing and returns the signed data in `Uint8Array`. The wallet signs each item with the `"MX"` prefix, exactly like `algosdk.signBytes`, so each signature verifies with `algosdk.verifyBytes` against the account that signed it, or with `verifySignature` below. `signer` should be a valid Algorand address that exists in the user's wallet.
 
 **Parameters:**
+
 - `data`: Array of arbitrary data to sign
 - `signer`: Algorand address that will sign the data
 - `verifySignature` (optional): If `true`, automatically detects if the account is rekeyed (has `authAddr`) and uses the `authAddr` as the signer. After signing, verifies each signature against the original data. Defaults to `false`.
 
 **Note:** When `verifySignature` is `true`, the function will:
+
 1. Fetch account information from the Algorand network
 2. Check if the account has an `authAddr` (rekeyed account)
 3. Automatically use the `authAddr` as the signer if it exists, otherwise use the provided `signer` address
@@ -282,28 +289,36 @@ Starts the signing process for arbitrary data signing and returns the signed dat
 
 <details>
   <summary>See example</summary>
-  
+
 ```typescript
 // Basic usage
-const signedData: Uint8Array[] = await peraWallet.signData([
-  {
-    data: new Uint8Array(Buffer.from(`timestamp//${Date.now()}`)),
-    message: "Timestamp confirmation"
-  },
-  {
-    data: new Uint8Array(Buffer.from(`agent//${navigator.userAgent}`)),
-    message: "User agent confirmation"
-  }
-], "SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4");
+const signedData: Uint8Array[] = await peraWallet.signData(
+    [
+        {
+            data: new Uint8Array(Buffer.from(`timestamp//${Date.now()}`)),
+            message: 'Timestamp confirmation',
+        },
+        {
+            data: new Uint8Array(Buffer.from(`agent//${navigator.userAgent}`)),
+            message: 'User agent confirmation',
+        },
+    ],
+    'SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4',
+)
 
 // With signature verification (automatically handles rekeyed accounts)
-const verifiedSignedData: Uint8Array[] = await peraWallet.signData([
-  {
-    data: new Uint8Array(Buffer.from(`timestamp//${Date.now()}`)),
-    message: "Timestamp confirmation"
-  }
-], "SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4", true);
+const verifiedSignedData: Uint8Array[] = await peraWallet.signData(
+    [
+        {
+            data: new Uint8Array(Buffer.from(`timestamp//${Date.now()}`)),
+            message: 'Timestamp confirmation',
+        },
+    ],
+    'SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4',
+    true,
+)
 ```
+
 </details>
 
 #### `PeraWalletConnect.verifySignature(data: Uint8Array, signature: Uint8Array, signerAddress: string): boolean`
@@ -311,6 +326,7 @@ const verifiedSignedData: Uint8Array[] = await peraWallet.signData([
 Verifies a signature against the provided data and signer address. This method can be used independently to verify signatures returned from `signData` or other sources. When `signData` is called with `verifySignature: true`, it uses this method internally to verify the signatures.
 
 **Parameters:**
+
 - `data`: The original data that was signed (as `Uint8Array`)
 - `signature`: The signature to verify (as `Uint8Array`)
 - `signerAddress`: The Algorand address that should have signed the data
@@ -321,21 +337,22 @@ Verifies a signature against the provided data and signer address. This method c
 
 <details>
   <summary>See example</summary>
-  
+
 ```typescript
 // Verify a signature independently
 const isValid = peraWallet.verifySignature(
-  originalData,
-  signature,
-  "SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4"
-);
+    originalData,
+    signature,
+    'SAHBJDRHHRR72JHTWSXZR5VHQQUVC7S757TJZI656FWSDO3TZZWV3IGJV4',
+)
 
 if (isValid) {
-  console.log("Signature is valid!");
+    console.log('Signature is valid!')
 } else {
-  console.log("Signature verification failed!");
+    console.log('Signature verification failed!')
 }
 ```
+
 </details>
 
 #### `PeraWalletConnect.signArc60Data(payload: PeraWalletArc60SignData, metadata: SignMetadata, verifySignature?: boolean): Promise<PeraWalletArc60SignDataResponse>`
@@ -362,42 +379,49 @@ The auth address is read from a public node by default. Use the [`algod`](#algod
   <summary>See example</summary>
 
 ```typescript
-import {PeraWalletConnect, ScopeType} from "@perawallet/connect";
+import { PeraWalletConnect, ScopeType } from '@perawallet/connect'
 
 // Pin the session to one network so the wallet and this lookup agree.
-const peraWallet = new PeraWalletConnect({chainId: 416002});
-const [accountAddress] = await peraWallet.connect();
+const peraWallet = new PeraWalletConnect({ chainId: 416002 })
+const [accountAddress] = await peraWallet.connect()
 
-const {signer, signerAddress} = await peraWallet.resolveArc60Signer(accountAddress);
+const { signer, signerAddress } =
+    await peraWallet.resolveArc60Signer(accountAddress)
 
 const siwa = {
-  account_address: accountAddress, // the account being authenticated
-  chain_id: "283",
-  domain: window.location.host,
-  nonce: crypto.randomUUID(),
-  type: "ed25519",
-  uri: window.location.origin,
-  version: "1"
-};
+    account_address: accountAddress, // the account being authenticated
+    chain_id: '283',
+    domain: window.location.host,
+    nonce: crypto.randomUUID(),
+    type: 'ed25519',
+    uri: window.location.origin,
+    version: '1',
+}
 
 const response = await peraWallet.signArc60Data(
-  {
-    data: Buffer.from(JSON.stringify(siwa, Object.keys(siwa).sort())).toString("base64"),
-    signer, // the auth address when rekeyed, the account itself otherwise
-    domain: siwa.domain,
-    authenticatorData: new Uint8Array(
-      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(siwa.domain))
-    )
-  },
-  {scope: ScopeType.AUTH, encoding: "base64"},
-  true
-);
+    {
+        data: Buffer.from(
+            JSON.stringify(siwa, Object.keys(siwa).sort()),
+        ).toString('base64'),
+        signer, // the auth address when rekeyed, the account itself otherwise
+        domain: siwa.domain,
+        authenticatorData: new Uint8Array(
+            await crypto.subtle.digest(
+                'SHA-256',
+                new TextEncoder().encode(siwa.domain),
+            ),
+        ),
+    },
+    { scope: ScopeType.AUTH, encoding: 'base64' },
+    true,
+)
 
 // Send `response` and `signerAddress` to your backend. A verifier checks the
 // signature against `signerAddress`, then checks on chain that `signerAddress`
 // is the current auth address of `account_address`, or, when the two are equal,
 // that `account_address` has no auth address (it is not rekeyed).
 ```
+
 </details>
 
 #### `PeraWalletConnect.getEmptySignatures(network?: PeraNetwork): Promise<Record<string, string>>`
@@ -405,8 +429,8 @@ const response = await peraWallet.signArc60Data(
 Returns each connected account's **empty signature**, as defined by [use-wallet](https://github.com/TxnLab/use-wallet/pull/465): base64 of a `SignedTransaction` without its `txn` field. It tells you the account type (ed25519, multisig, logic sig or post-quantum) and lets you simulate with correctly shaped signatures. Accounts missing from the result are unknown.
 
 ```js
-const accounts = await peraWallet.connect();
-const emptySignatures = await peraWallet.getEmptySignatures("testnet");
+const accounts = await peraWallet.connect()
+const emptySignatures = await peraWallet.getEmptySignatures('testnet')
 // {"<address>": "<base64>"}
 ```
 
@@ -417,14 +441,14 @@ const emptySignatures = await peraWallet.getEmptySignatures("testnet");
 
 It rejects with these `error.data.type` values:
 
-| `error.data.type`                      | when                                                                                      |
-| -------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `SESSION_DISCONNECTED`                 | no Pera session is connected                                                              |
+| `error.data.type`                      | when                                                                                         |
+| -------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `SESSION_DISCONNECTED`                 | no Pera session is connected                                                                 |
 | `EMPTY_SIGNATURES_NETWORK_REQUIRED`    | Pera Mobile only: `network` is missing and the session allows any network (`chainId` `4160`) |
-| `EMPTY_SIGNATURES_NETWORK_UNSUPPORTED` | `network` isn't `"mainnet"`, `"testnet"` or `"betanet"`                                   |
-| `EMPTY_SIGNATURES_NETWORK_MISMATCH`    | extension only: the wallet is on a different network than `network`                       |
-| `EMPTY_SIGNATURES_TIMEOUT`             | Pera didn't answer within 30 seconds                                                      |
-| `EMPTY_SIGNATURES`                     | `error.data.detail.reason` is `"wallet-error"`, `"session-changed"` or `"invalid-result"` |
+| `EMPTY_SIGNATURES_NETWORK_UNSUPPORTED` | `network` isn't `"mainnet"`, `"testnet"` or `"betanet"`                                      |
+| `EMPTY_SIGNATURES_NETWORK_MISMATCH`    | extension only: the wallet is on a different network than `network`                          |
+| `EMPTY_SIGNATURES_TIMEOUT`             | Pera didn't answer within 30 seconds                                                         |
+| `EMPTY_SIGNATURES`                     | `error.data.detail.reason` is `"wallet-error"`, `"session-changed"` or `"invalid-result"`    |
 
 ## Customizing Style
 
@@ -432,8 +456,8 @@ You can override the z-index using the `.pera-wallet-modal` class so that the mo
 
 ```scss
 .pera-wallet-modal {
-  // The default value of z-index is 10. You can lower and raise it as much as you want.
-  z-index: 11;
+    // The default value of z-index is 10. You can lower and raise it as much as you want.
+    z-index: 11;
 }
 ```
 
@@ -444,7 +468,10 @@ By default, the connect wallet drawer on Pera Wallet gets the app name from `doc
 In some cases, you may want to customize it. You can achieve this by adding a meta tag to your HTML between the `head` tag.
 
 ```html
-<meta name="name" content="My dApp" />
+<meta
+    name="name"
+    content="My dApp"
+/>
 ```
 
 ## WalletConnect
@@ -471,12 +498,12 @@ With a specific `chainId` (`416001`, `416002`, `416003`) the SDK asks the extens
 
 Provider errors are mapped onto the SDK's `PeraWalletConnectError` types:
 
-| extension code | meaning                          | `error.data.type`                                                                         |
-| -------------- | -------------------------------- | ----------------------------------------------------------------------------------------- |
-| `-32002`       | user rejected                    | `CONNECT_CANCELLED`, `SIGN_TXN_CANCELLED`, `SIGN_DATA_CANCELLED`                          |
-| `-32003`       | network mismatch                 | `CONNECT_NETWORK_MISMATCH`, `SIGN_TXN_NETWORK_MISMATCH`, `SIGN_DATA_NETWORK_MISMATCH`     |
-| `-32001`       | not connected / no user gesture  | `SESSION_CONNECT` on connect, `SESSION_DISCONNECTED` when signing, `[]` from reconnect    |
-| `-32004`       | the wallet did not answer in time| `MESSAGE_NOT_RECEIVED`                                                                    |
+| extension code | meaning                           | `error.data.type`                                                                      |
+| -------------- | --------------------------------- | -------------------------------------------------------------------------------------- |
+| `-32002`       | user rejected                     | `CONNECT_CANCELLED`, `SIGN_TXN_CANCELLED`, `SIGN_DATA_CANCELLED`                       |
+| `-32003`       | network mismatch                  | `CONNECT_NETWORK_MISMATCH`, `SIGN_TXN_NETWORK_MISMATCH`, `SIGN_DATA_NETWORK_MISMATCH`  |
+| `-32001`       | not connected / no user gesture   | `SESSION_CONNECT` on connect, `SESSION_DISCONNECTED` when signing, `[]` from reconnect |
+| `-32004`       | the wallet did not answer in time | `MESSAGE_NOT_RECEIVED`                                                                 |
 
 The wallet applies its own approval timeout (about five minutes); the SDK adds none, so users can take their time. The original provider error is attached as `error.data.detail`.
 
@@ -485,9 +512,13 @@ The wallet applies its own approval timeout (about five minutes); the SDK adds n
 The provider's types are exported for dApps that talk to it themselves:
 
 ```typescript
-import {getPeraProvider, PERA_PROVIDER_ERROR_CODES, type PeraProvider} from "@perawallet/connect";
+import {
+    getPeraProvider,
+    PERA_PROVIDER_ERROR_CODES,
+    type PeraProvider,
+} from '@perawallet/connect'
 
-const pera = getPeraProvider(); // PeraProvider | null, also typed as window.pera
+const pera = getPeraProvider() // PeraProvider | null, also typed as window.pera
 ```
 
 ## Contributing

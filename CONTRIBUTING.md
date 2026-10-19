@@ -43,7 +43,7 @@ Two automated checks back this up:
 If a scan flags something that is genuinely not a secret, mark it at the source
 with a `// gitleaks:allow` comment on the line so the reason shows up in review.
 Only add a fingerprint to `.gitleaksignore` for a secret that is already public
-*and* has been revoked — never to silence a live credential.
+_and_ has been revoked — never to silence a live credential.
 
 If a real credential does get committed, removing it in a later commit does not
 un-expose it. It has to be rotated at the provider.

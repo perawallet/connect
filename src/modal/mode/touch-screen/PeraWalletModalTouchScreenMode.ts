@@ -1,7 +1,7 @@
-import {generatePeraWalletConnectDeepLink} from "../../../util/peraWalletUtils";
-import styles from "./_pera-wallet-modal-touch-screen-mode.scss?inline";
+import { generatePeraWalletConnectDeepLink } from '../../../util/peraWalletUtils'
+import styles from './_pera-wallet-modal-touch-screen-mode.scss?inline'
 
-const peraWalletModalTouchScreenMode = document.createElement("template");
+const peraWalletModalTouchScreenMode = document.createElement('template')
 
 const touchScreenDefaultMode = `
   <div class="pera-wallet-connect-modal-touch-screen-mode">
@@ -34,64 +34,68 @@ const touchScreenDefaultMode = `
       </a>
     </div>
   </div>
-`;
+`
 
 export class PeraWalletModalTouchScreenMode extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({mode: "open"});
+    constructor() {
+        super()
+        this.attachShadow({ mode: 'open' })
 
-    peraWalletModalTouchScreenMode.innerHTML = touchScreenDefaultMode;
+        peraWalletModalTouchScreenMode.innerHTML = touchScreenDefaultMode
 
-    if (this.shadowRoot) {
-      const styleSheet = document.createElement("style");
+        if (this.shadowRoot) {
+            const styleSheet = document.createElement('style')
 
-      styleSheet.textContent = styles;
+            styleSheet.textContent = styles
 
-      this.shadowRoot.append(
-        peraWalletModalTouchScreenMode.content.cloneNode(true),
-        styleSheet
-      );
+            this.shadowRoot.append(
+                peraWalletModalTouchScreenMode.content.cloneNode(true),
+                styleSheet,
+            )
 
-      const launchPeraLink = this.shadowRoot?.getElementById(
-        "pera-wallet-connect-modal-touch-screen-mode-launch-pera-wallet-button"
-      );
-      const URI = this.getAttribute("uri");
-      const singleAccount = this.getAttribute("single-account") === "true";
-      const selectedAccount = this.getAttribute("selected-account") || undefined;
+            const launchPeraLink = this.shadowRoot?.getElementById(
+                'pera-wallet-connect-modal-touch-screen-mode-launch-pera-wallet-button',
+            )
+            const URI = this.getAttribute('uri')
+            const singleAccount = this.getAttribute('single-account') === 'true'
+            const selectedAccount =
+                this.getAttribute('selected-account') || undefined
 
-      if (launchPeraLink && URI) {
-        launchPeraLink.setAttribute(
-          "href",
-          generatePeraWalletConnectDeepLink(URI, {singleAccount, selectedAccount})
-        );
-        launchPeraLink.addEventListener("click", () => {
-          this.onClickLaunch();
-        });
-      }
+            if (launchPeraLink && URI) {
+                launchPeraLink.setAttribute(
+                    'href',
+                    generatePeraWalletConnectDeepLink(URI, {
+                        singleAccount,
+                        selectedAccount,
+                    }),
+                )
+                launchPeraLink.addEventListener('click', () => {
+                    this.onClickLaunch()
+                })
+            }
+        }
     }
-  }
 
-  onClickLaunch() {
-    peraWalletModalTouchScreenMode.innerHTML = `
+    onClickLaunch() {
+        peraWalletModalTouchScreenMode.innerHTML = `
     <div class="pera-wallet-connect-modal-touch-screen-mode pera-wallet-connect-modal-touch-screen-mode--pending-message-view">
       <pera-wallet-connect-modal-pending-message-section should-use-sound="${this.getAttribute(
-        "should-use-sound"
+          'should-use-sound',
       )}"></pera-wallet-connect-modal-pending-message-section>
     </div>
-  `;
+  `
 
-    if (this.shadowRoot) {
-      const styleSheet = document.createElement("style");
+        if (this.shadowRoot) {
+            const styleSheet = document.createElement('style')
 
-      styleSheet.textContent = styles;
+            styleSheet.textContent = styles
 
-      this.shadowRoot.innerHTML = "";
+            this.shadowRoot.innerHTML = ''
 
-      this.shadowRoot.append(
-        peraWalletModalTouchScreenMode.content.cloneNode(true),
-        styleSheet
-      );
+            this.shadowRoot.append(
+                peraWalletModalTouchScreenMode.content.cloneNode(true),
+                styleSheet,
+            )
+        }
     }
-  }
 }

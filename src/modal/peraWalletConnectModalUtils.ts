@@ -1,42 +1,42 @@
-import PeraWalletConnectError from "../util/PeraWalletConnectError";
-import {waitForElementCreatedAtShadowDOM} from "../util/dom/domUtils";
-import {generatePeraWalletConnectDeepLink} from "../util/peraWalletUtils";
+import PeraWalletConnectError from '../util/PeraWalletConnectError'
+import { waitForElementCreatedAtShadowDOM } from '../util/dom/domUtils'
+import { generatePeraWalletConnectDeepLink } from '../util/peraWalletUtils'
 
 export interface PeraWalletModalConfig {
-  isWebWalletAvailable: boolean;
-  shouldDisplayNewBadge: boolean;
-  shouldUseSound: boolean;
-  promoteMobile?: boolean;
-  compactMode?: boolean;
-  singleAccount?: boolean;
-  selectedAccount?: string;
-  isInWebview?: boolean;
-  /**
-   * Render the "Connect with Pera Extension" option. Only set when
-   * `window.pera` is present; it also sets `is-extension-enabled="true"` on
-   * the modal wrapper, which tells the extension not to inject its own row.
-   */
-  isExtensionEnabled?: boolean;
+    isWebWalletAvailable: boolean
+    shouldDisplayNewBadge: boolean
+    shouldUseSound: boolean
+    promoteMobile?: boolean
+    compactMode?: boolean
+    singleAccount?: boolean
+    selectedAccount?: string
+    isInWebview?: boolean
+    /**
+     * Render the "Connect with Pera Extension" option. Only set when
+     * `window.pera` is present; it also sets `is-extension-enabled="true"` on
+     * the modal wrapper, which tells the extension not to inject its own row.
+     */
+    isExtensionEnabled?: boolean
 }
 
 // The ID of the wrapper element for PeraWalletConnectModal
-const PERA_WALLET_CONNECT_MODAL_ID = "pera-wallet-connect-modal-wrapper";
+const PERA_WALLET_CONNECT_MODAL_ID = 'pera-wallet-connect-modal-wrapper'
 
 // The ID of the wrapper element for PeraWalletRedirectModal
-const PERA_WALLET_REDIRECT_MODAL_ID = "pera-wallet-redirect-modal-wrapper";
+const PERA_WALLET_REDIRECT_MODAL_ID = 'pera-wallet-redirect-modal-wrapper'
 
 // The ID of the wrapper element for PeraWalletSignTxnToast
-const PERA_WALLET_SIGN_TXN_TOAST_ID = "pera-wallet-sign-txn-toast-wrapper";
+const PERA_WALLET_SIGN_TXN_TOAST_ID = 'pera-wallet-sign-txn-toast-wrapper'
 
 // The ID of the wrapper element for PeraWalletSignTxnModal
-const PERA_WALLET_SIGN_TXN_MODAL_ID = "pera-wallet-sign-txn-modal-wrapper";
+const PERA_WALLET_SIGN_TXN_MODAL_ID = 'pera-wallet-sign-txn-modal-wrapper'
 
 // The classname of Pera wallet modal
-const PERA_WALLET_MODAL_CLASSNAME = "pera-wallet-modal";
+const PERA_WALLET_MODAL_CLASSNAME = 'pera-wallet-modal'
 
 // Dispatched (bubbling, composed) by the connect modal's extension button so
 // PeraWalletConnect can call `window.pera.connect()` inside the same click.
-const PERA_WALLET_EXTENSION_CONNECT_EVENT = "pera-wallet-extension-connect";
+const PERA_WALLET_EXTENSION_CONNECT_EVENT = 'pera-wallet-extension-connect'
 
 /**
  * Creates a Div element with the given ID and appends it to the DOM.
@@ -45,13 +45,13 @@ const PERA_WALLET_EXTENSION_CONNECT_EVENT = "pera-wallet-extension-connect";
  * @returns HTMLDivElement
  */
 function createModalWrapperOnDOM(modalId: string) {
-  const wrapper = document.createElement("div");
+    const wrapper = document.createElement('div')
 
-  wrapper.setAttribute("id", modalId);
+    wrapper.setAttribute('id', modalId)
 
-  document.body.appendChild(wrapper);
+    document.body.appendChild(wrapper)
 
-  return wrapper;
+    return wrapper
 }
 
 /**
@@ -61,42 +61,42 @@ function createModalWrapperOnDOM(modalId: string) {
  * @returns VoidFunction
  */
 function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
-  return (uri: string) => {
-    const {
-      isWebWalletAvailable,
-      shouldDisplayNewBadge,
-      shouldUseSound,
-      compactMode,
-      promoteMobile,
-      singleAccount,
-      selectedAccount,
-      isInWebview,
-      isExtensionEnabled
-    } = modalConfig;
+    return (uri: string) => {
+        const {
+            isWebWalletAvailable,
+            shouldDisplayNewBadge,
+            shouldUseSound,
+            compactMode,
+            promoteMobile,
+            singleAccount,
+            selectedAccount,
+            isInWebview,
+            isExtensionEnabled,
+        } = modalConfig
 
-    if (isInWebview) {
-      const deepLink = generatePeraWalletConnectDeepLink(uri, {
-        singleAccount,
-        selectedAccount
-      });
+        if (isInWebview) {
+            const deepLink = generatePeraWalletConnectDeepLink(uri, {
+                singleAccount,
+                selectedAccount,
+            })
 
-      window.open(deepLink, "_blank");
-    } else if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
-      const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID);
-      const newURI = `${uri}&algorand=true`;
-      const extensionEnabled = String(isExtensionEnabled || false);
+            window.open(deepLink, '_blank')
+        } else if (!document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)) {
+            const root = createModalWrapperOnDOM(PERA_WALLET_CONNECT_MODAL_ID)
+            const newURI = `${uri}&algorand=true`
+            const extensionEnabled = String(isExtensionEnabled || false)
 
-      // The extension reads this attribute on the wrapper: "true" means the
-      // SDK renders its own extension option and the extension stays out.
-      root.setAttribute("is-extension-enabled", extensionEnabled);
+            // The extension reads this attribute on the wrapper: "true" means the
+            // SDK renders its own extension option and the extension stays out.
+            root.setAttribute('is-extension-enabled', extensionEnabled)
 
-      root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${
-        selectedAccount || ""
-      }" is-in-webview="${
-        isInWebview || false
-      }" is-extension-enabled="${extensionEnabled}"></pera-wallet-connect-modal>`;
+            root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${
+                selectedAccount || ''
+            }" is-in-webview="${
+                isInWebview || false
+            }" is-extension-enabled="${extensionEnabled}"></pera-wallet-connect-modal>`
+        }
     }
-  };
 }
 
 /**
@@ -108,24 +108,24 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
  * @returns {void}
  */
 function setupPeraWalletConnectModalCloseListener(
-  modalId: string,
-  onClose: VoidFunction
+    modalId: string,
+    onClose: VoidFunction,
 ) {
-  const peraWalletConnectModalWrapper = document.getElementById(modalId);
+    const peraWalletConnectModalWrapper = document.getElementById(modalId)
 
-  const peraWalletConnectModal = peraWalletConnectModalWrapper
-    ?.querySelector(modalId.replace("-wrapper", ""))
-    ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`);
+    const peraWalletConnectModal = peraWalletConnectModalWrapper
+        ?.querySelector(modalId.replace('-wrapper', ''))
+        ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`)
 
-  const closeButton = peraWalletConnectModal
-    ?.querySelector("pera-wallet-modal-header")
-    ?.shadowRoot?.getElementById("pera-wallet-modal-header-close-button");
+    const closeButton = peraWalletConnectModal
+        ?.querySelector('pera-wallet-modal-header')
+        ?.shadowRoot?.getElementById('pera-wallet-modal-header-close-button')
 
-  closeButton?.addEventListener("click", () => {
-    onClose();
+    closeButton?.addEventListener('click', () => {
+        onClose()
 
-    removeModalWrapperFromDOM(modalId);
-  });
+        removeModalWrapperFromDOM(modalId)
+    })
 }
 
 /**
@@ -134,9 +134,9 @@ function setupPeraWalletConnectModalCloseListener(
  * @returns {void}
  */
 function openPeraWalletRedirectModal() {
-  const root = createModalWrapperOnDOM(PERA_WALLET_REDIRECT_MODAL_ID);
+    const root = createModalWrapperOnDOM(PERA_WALLET_REDIRECT_MODAL_ID)
 
-  root.innerHTML = "<pera-wallet-redirect-modal></pera-wallet-redirect-modal>";
+    root.innerHTML = '<pera-wallet-redirect-modal></pera-wallet-redirect-modal>'
 }
 
 /**
@@ -144,19 +144,23 @@ function openPeraWalletRedirectModal() {
  *
  * @returns {Promise<Element>}
  */
-function openPeraWalletSignTxnModal({isCompactMode}: {isCompactMode?: boolean}) {
-  const root = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
+function openPeraWalletSignTxnModal({
+    isCompactMode,
+}: {
+    isCompactMode?: boolean
+}) {
+    const root = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_MODAL_ID)
 
-  root.innerHTML = `<pera-wallet-sign-txn-modal compact-mode=${isCompactMode}></pera-wallet-sign-txn-modal>`;
+    root.innerHTML = `<pera-wallet-sign-txn-modal compact-mode=${isCompactMode}></pera-wallet-sign-txn-modal>`
 
-  const signTxnModal = root.querySelector("pera-wallet-sign-txn-modal");
+    const signTxnModal = root.querySelector('pera-wallet-sign-txn-modal')
 
-  return signTxnModal
-    ? waitForElementCreatedAtShadowDOM(
-        signTxnModal,
-        "pera-wallet-sign-txn-modal__body__content"
-      )
-    : Promise.reject();
+    return signTxnModal
+        ? waitForElementCreatedAtShadowDOM(
+              signTxnModal,
+              'pera-wallet-sign-txn-modal__body__content',
+          )
+        : Promise.reject()
 }
 
 /**
@@ -166,18 +170,18 @@ function openPeraWalletSignTxnModal({isCompactMode}: {isCompactMode?: boolean}) 
  * @returns {void}
  */
 function closePeraWalletSignTxnModal(rejectPromise?: (error: any) => void) {
-  removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_MODAL_ID);
+    removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_MODAL_ID)
 
-  if (rejectPromise) {
-    rejectPromise(
-      new PeraWalletConnectError(
-        {
-          type: "SIGN_TXN_CANCELLED"
-        },
-        "Transaction sign is cancelled"
-      )
-    );
-  }
+    if (rejectPromise) {
+        rejectPromise(
+            new PeraWalletConnectError(
+                {
+                    type: 'SIGN_TXN_CANCELLED',
+                },
+                'Transaction sign is cancelled',
+            ),
+        )
+    }
 }
 
 /**
@@ -186,9 +190,9 @@ function closePeraWalletSignTxnModal(rejectPromise?: (error: any) => void) {
  * @returns {void}
  */
 function openPeraWalletSignTxnToast() {
-  const root = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
+    const root = createModalWrapperOnDOM(PERA_WALLET_SIGN_TXN_TOAST_ID)
 
-  root.innerHTML = "<pera-wallet-sign-txn-toast></pera-wallet-sign-txn-toast>";
+    root.innerHTML = '<pera-wallet-sign-txn-toast></pera-wallet-sign-txn-toast>'
 }
 
 /**
@@ -197,7 +201,7 @@ function openPeraWalletSignTxnToast() {
  * @returns {void}
  */
 function closePeraWalletSignTxnToast() {
-  removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
+    removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID)
 }
 
 /**
@@ -207,11 +211,11 @@ function closePeraWalletSignTxnToast() {
  * @returns {void}
  */
 function removeModalWrapperFromDOM(modalId: string) {
-  const wrapper = document.getElementById(modalId);
+    const wrapper = document.getElementById(modalId)
 
-  if (wrapper) {
-    wrapper.remove();
-  }
+    if (wrapper) {
+        wrapper.remove()
+    }
 }
 
 /**
@@ -221,18 +225,18 @@ function removeModalWrapperFromDOM(modalId: string) {
  * @returns HTMLElement | null | undefined
  */
 export {
-  PERA_WALLET_CONNECT_MODAL_ID,
-  PERA_WALLET_REDIRECT_MODAL_ID,
-  PERA_WALLET_SIGN_TXN_TOAST_ID,
-  PERA_WALLET_SIGN_TXN_MODAL_ID,
-  PERA_WALLET_MODAL_CLASSNAME,
-  PERA_WALLET_EXTENSION_CONNECT_EVENT,
-  openPeraWalletConnectModal,
-  setupPeraWalletConnectModalCloseListener,
-  openPeraWalletRedirectModal,
-  openPeraWalletSignTxnToast,
-  closePeraWalletSignTxnToast,
-  removeModalWrapperFromDOM,
-  openPeraWalletSignTxnModal,
-  closePeraWalletSignTxnModal
-};
+    PERA_WALLET_CONNECT_MODAL_ID,
+    PERA_WALLET_REDIRECT_MODAL_ID,
+    PERA_WALLET_SIGN_TXN_TOAST_ID,
+    PERA_WALLET_SIGN_TXN_MODAL_ID,
+    PERA_WALLET_MODAL_CLASSNAME,
+    PERA_WALLET_EXTENSION_CONNECT_EVENT,
+    openPeraWalletConnectModal,
+    setupPeraWalletConnectModalCloseListener,
+    openPeraWalletRedirectModal,
+    openPeraWalletSignTxnToast,
+    closePeraWalletSignTxnToast,
+    removeModalWrapperFromDOM,
+    openPeraWalletSignTxnModal,
+    closePeraWalletSignTxnModal,
+}

@@ -6,9 +6,9 @@
  * @returns {any}
  */
 function fetcher<T>(url: string, config: RequestInit = {}): Promise<T> {
-  return fetch(url, config)
-    .then((response) => response.json())
-    .then((data) => data as T);
+    return fetch(url, config)
+        .then(response => response.json())
+        .then(data => data as T)
 }
 
-export default fetcher;
+export default fetcher

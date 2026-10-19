@@ -1,147 +1,159 @@
-import {describe, it, expect, vi, afterEach} from "vitest";
-import algosdk from "algosdk";
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import algosdk from 'algosdk'
 
-import PeraWalletConnect from "../PeraWalletConnect";
-import {ExtensionTransport} from "../transport/extension/ExtensionTransport";
-import {WebTransport} from "../transport/WebTransport";
-import {MobileTransport} from "../transport/MobileTransport";
+import PeraWalletConnect from '../PeraWalletConnect'
+import { ExtensionTransport } from '../transport/extension/ExtensionTransport'
+import { WebTransport } from '../transport/WebTransport'
+import { MobileTransport } from '../transport/MobileTransport'
 import {
-  saveWalletDetailsToStorage,
-  resetWalletDetailsFromStorage
-} from "../util/storage/storageUtils";
-import {installPeraProvider, uninstallPeraProvider} from "./helpers/peraProviderStub";
+    saveWalletDetailsToStorage,
+    resetWalletDetailsFromStorage,
+} from '../util/storage/storageUtils'
+import {
+    installPeraProvider,
+    uninstallPeraProvider,
+} from './helpers/peraProviderStub'
 
-vi.mock("../util/api/peraWalletConnectApi", () => ({
-  getPeraConnectConfig: () =>
-    Promise.resolve({
-      isWebWalletAvailable: false,
-      bridgeURL: "https://bridge.test",
-      webWalletURL: "https://web.test",
-      shouldDisplayNewBadge: false,
-      shouldUseSound: false,
-      silent: true,
-      promoteMobile: false
+vi.mock('../util/api/peraWalletConnectApi', () => ({
+    getPeraConnectConfig: () =>
+        Promise.resolve({
+            isWebWalletAvailable: false,
+            bridgeURL: 'https://bridge.test',
+            webWalletURL: 'https://web.test',
+            shouldDisplayNewBadge: false,
+            shouldUseSound: false,
+            silent: true,
+            promoteMobile: false,
+        }),
+}))
+
+const runWebSignTransactionFlowMock = vi.fn()
+
+vi.mock('../util/sign/signTransactionFlow', () => ({
+    runWebSignTransactionFlow: (args: any) =>
+        runWebSignTransactionFlowMock(args),
+}))
+
+describe('PeraWalletConnect.getTransport()', () => {
+    afterEach(() => {
+        uninstallPeraProvider()
+        resetWalletDetailsFromStorage()
+        vi.restoreAllMocks()
     })
-}));
 
-const runWebSignTransactionFlowMock = vi.fn();
+    it('returns the shared extensionTransport instance when platform is extension', () => {
+        saveWalletDetailsToStorage(['ADDR'], 'pera-wallet-extension')
+        installPeraProvider()
 
-vi.mock("../util/sign/signTransactionFlow", () => ({
-  runWebSignTransactionFlow: (args: any) => runWebSignTransactionFlowMock(args)
-}));
+        const pera = new PeraWalletConnect()
+        const transport = (pera as any).getTransport()
 
-describe("PeraWalletConnect.getTransport()", () => {
-  afterEach(() => {
-    uninstallPeraProvider();
-    resetWalletDetailsFromStorage();
-    vi.restoreAllMocks();
-  });
+        expect(transport).toBeInstanceOf(ExtensionTransport)
+        expect(transport).toBe((pera as any).extensionTransport)
+    })
 
-  it("returns the shared extensionTransport instance when platform is extension", () => {
-    saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
-    installPeraProvider();
+    it('throws EXTENSION_NOT_AVAILABLE when platform is extension but window.pera is absent', () => {
+        saveWalletDetailsToStorage(['ADDR'], 'pera-wallet-extension')
 
-    const pera = new PeraWalletConnect();
-    const transport = (pera as any).getTransport();
+        const pera = new PeraWalletConnect()
 
-    expect(transport).toBeInstanceOf(ExtensionTransport);
-    expect(transport).toBe((pera as any).extensionTransport);
-  });
+        expect(() => (pera as any).getTransport()).toThrow(
+            expect.objectContaining({
+                data: { type: 'EXTENSION_NOT_AVAILABLE' },
+            }),
+        )
+    })
 
-  it("throws EXTENSION_NOT_AVAILABLE when platform is extension but window.pera is absent", () => {
-    saveWalletDetailsToStorage(["ADDR"], "pera-wallet-extension");
+    it('returns a WebTransport when platform is web', () => {
+        saveWalletDetailsToStorage(['ADDR'], 'pera-wallet-web')
 
-    const pera = new PeraWalletConnect();
+        const pera = new PeraWalletConnect()
+        const transport = (pera as any).getTransport()
 
-    expect(() => (pera as any).getTransport()).toThrow(
-      expect.objectContaining({data: {type: "EXTENSION_NOT_AVAILABLE"}})
-    );
-  });
+        expect(transport).toBeInstanceOf(WebTransport)
+    })
 
-  it("returns a WebTransport when platform is web", () => {
-    saveWalletDetailsToStorage(["ADDR"], "pera-wallet-web");
+    it('returns a MobileTransport bound to the live connector when platform is mobile', () => {
+        saveWalletDetailsToStorage(['ADDR'], 'pera-wallet')
 
-    const pera = new PeraWalletConnect();
-    const transport = (pera as any).getTransport();
+        const pera = new PeraWalletConnect()
+        const fakeConnector = { sendCustomRequest: vi.fn(), accounts: ['ADDR'] }
 
-    expect(transport).toBeInstanceOf(WebTransport);
-  });
+        ;(pera as any).connector = fakeConnector
 
-  it("returns a MobileTransport bound to the live connector when platform is mobile", () => {
-    saveWalletDetailsToStorage(["ADDR"], "pera-wallet");
+        const transport = (pera as any).getTransport()
 
-    const pera = new PeraWalletConnect();
-    const fakeConnector = {sendCustomRequest: vi.fn(), accounts: ["ADDR"]};
+        expect(transport).toBeInstanceOf(MobileTransport)
+    })
 
-    (pera as any).connector = fakeConnector;
+    it('throws when platform is mobile but no connector has been established', () => {
+        saveWalletDetailsToStorage(['ADDR'], 'pera-wallet')
 
-    const transport = (pera as any).getTransport();
+        const pera = new PeraWalletConnect()
 
-    expect(transport).toBeInstanceOf(MobileTransport);
-  });
+        expect(() => (pera as any).getTransport()).toThrow(
+            'PeraWalletConnect was not initialized correctly.',
+        )
+    })
 
-  it("throws when platform is mobile but no connector has been established", () => {
-    saveWalletDetailsToStorage(["ADDR"], "pera-wallet");
+    function makeTxn() {
+        const from = algosdk.generateAccount()
+        const to = algosdk.generateAccount()
 
-    const pera = new PeraWalletConnect();
+        return algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+            sender: from.addr,
+            receiver: to.addr,
+            amount: 1000,
+            suggestedParams: {
+                fee: 0,
+                minFee: 1000,
+                flatFee: false,
+                firstValid: 1,
+                lastValid: 1001,
+                genesisID: 'testnet-v1.0',
+                genesisHash: new Uint8Array(32),
+            },
+        })
+    }
 
-    expect(() => (pera as any).getTransport()).toThrow(
-      "PeraWalletConnect was not initialized correctly."
-    );
-  });
+    it('web: signTransaction reaches the web wallet URL resolved from config', async () => {
+        saveWalletDetailsToStorage(['ADDR'], 'pera-wallet-web')
+        const txn = makeTxn()
+        const signedTxn = txn.signTxn(algosdk.generateAccount().sk)
 
-  function makeTxn() {
-    const from = algosdk.generateAccount();
-    const to = algosdk.generateAccount();
+        runWebSignTransactionFlowMock.mockImplementation(args =>
+            args.resolve([signedTxn]),
+        )
 
-    return algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      sender: from.addr,
-      receiver: to.addr,
-      amount: 1000,
-      suggestedParams: {
-        fee: 0,
-        minFee: 1000,
-        flatFee: false,
-        firstValid: 1,
-        lastValid: 1001,
-        genesisID: "testnet-v1.0",
-        genesisHash: new Uint8Array(32)
-      }
-    });
-  }
+        const pera = new PeraWalletConnect()
 
-  it("web: signTransaction reaches the web wallet URL resolved from config", async () => {
-    saveWalletDetailsToStorage(["ADDR"], "pera-wallet-web");
-    const txn = makeTxn();
-    const signedTxn = txn.signTxn(algosdk.generateAccount().sk);
+        await expect(pera.signTransaction([[{ txn }]])).resolves.toEqual([
+            signedTxn,
+        ])
+        expect(runWebSignTransactionFlowMock).toHaveBeenCalledWith(
+            expect.objectContaining({ webWalletURL: 'https://web.test' }),
+        )
+    })
 
-    runWebSignTransactionFlowMock.mockImplementation((args) => args.resolve([signedTxn]));
+    it("mobile: signTransaction reaches the live connector with the config's silent flag", async () => {
+        saveWalletDetailsToStorage(['ADDR'], 'pera-wallet')
 
-    const pera = new PeraWalletConnect();
+        const pera = new PeraWalletConnect()
+        const txn = makeTxn()
+        const signedTxn = txn.signTxn(algosdk.generateAccount().sk)
+        const sendCustomRequest = vi
+            .fn()
+            .mockResolvedValue([Buffer.from(signedTxn).toString('base64')])
 
-    await expect(pera.signTransaction([[{txn}]])).resolves.toEqual([signedTxn]);
-    expect(runWebSignTransactionFlowMock).toHaveBeenCalledWith(
-      expect.objectContaining({webWalletURL: "https://web.test"})
-    );
-  });
+        ;(pera as any).connector = { sendCustomRequest, accounts: ['ADDR'] }
 
-  it("mobile: signTransaction reaches the live connector with the config's silent flag", async () => {
-    saveWalletDetailsToStorage(["ADDR"], "pera-wallet");
-
-    const pera = new PeraWalletConnect();
-    const txn = makeTxn();
-    const signedTxn = txn.signTxn(algosdk.generateAccount().sk);
-    const sendCustomRequest = vi
-      .fn()
-      .mockResolvedValue([Buffer.from(signedTxn).toString("base64")]);
-
-    (pera as any).connector = {sendCustomRequest, accounts: ["ADDR"]};
-
-    await expect(pera.signTransaction([[{txn}]])).resolves.toEqual([signedTxn]);
-    expect(sendCustomRequest).toHaveBeenCalledWith(
-      expect.any(Object),
-      // config.silent is mocked to true above -> forcePushNotification is false
-      {forcePushNotification: false}
-    );
-  });
-});
+        await expect(pera.signTransaction([[{ txn }]])).resolves.toEqual([
+            signedTxn,
+        ])
+        expect(sendCustomRequest).toHaveBeenCalledWith(
+            expect.any(Object),
+            // config.silent is mocked to true above -> forcePushNotification is false
+            { forcePushNotification: false },
+        )
+    })
+})

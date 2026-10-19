@@ -1,78 +1,82 @@
-import {describe, it, expect, vi, beforeEach} from "vitest";
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import {
-  generatePeraWalletAppDeepLink,
-  generatePeraWalletConnectDeepLink
-} from "../peraWalletUtils";
+    generatePeraWalletAppDeepLink,
+    generatePeraWalletConnectDeepLink,
+} from '../peraWalletUtils'
 
 const deviceMock = {
-  detectBrowser: vi.fn<() => string | null>(() => "Chrome"),
-  isIOS: vi.fn(() => false),
-  isAndroid: vi.fn(() => false)
-};
+    detectBrowser: vi.fn<() => string | null>(() => 'Chrome'),
+    isIOS: vi.fn(() => false),
+    isAndroid: vi.fn(() => false),
+}
 
-vi.mock("../device/deviceUtils", () => ({
-  detectBrowser: () => deviceMock.detectBrowser(),
-  isIOS: () => deviceMock.isIOS(),
-  isAndroid: () => deviceMock.isAndroid()
-}));
+vi.mock('../device/deviceUtils', () => ({
+    detectBrowser: () => deviceMock.detectBrowser(),
+    isIOS: () => deviceMock.isIOS(),
+    isAndroid: () => deviceMock.isAndroid(),
+}))
 
-describe("peraWalletUtils", () => {
-  beforeEach(() => {
-    deviceMock.detectBrowser.mockReturnValue("Chrome");
-    deviceMock.isIOS.mockReturnValue(false);
-    deviceMock.isAndroid.mockReturnValue(false);
-  });
+describe('peraWalletUtils', () => {
+    beforeEach(() => {
+        deviceMock.detectBrowser.mockReturnValue('Chrome')
+        deviceMock.isIOS.mockReturnValue(false)
+        deviceMock.isAndroid.mockReturnValue(false)
+    })
 
-  describe("generatePeraWalletAppDeepLink", () => {
-    it("appends the browser name by default", () => {
-      expect(generatePeraWalletAppDeepLink()).toBe("perawallet-wc://?browser=Chrome");
-    });
+    describe('generatePeraWalletAppDeepLink', () => {
+        it('appends the browser name by default', () => {
+            expect(generatePeraWalletAppDeepLink()).toBe(
+                'perawallet-wc://?browser=Chrome',
+            )
+        })
 
-    it("omits the browser name when disabled", () => {
-      expect(generatePeraWalletAppDeepLink(false)).toBe("perawallet-wc://");
-    });
+        it('omits the browser name when disabled', () => {
+            expect(generatePeraWalletAppDeepLink(false)).toBe(
+                'perawallet-wc://',
+            )
+        })
 
-    it("omits the browser query when the browser is unknown", () => {
-      deviceMock.detectBrowser.mockReturnValue(null);
+        it('omits the browser query when the browser is unknown', () => {
+            deviceMock.detectBrowser.mockReturnValue(null)
 
-      expect(generatePeraWalletAppDeepLink()).toBe("perawallet-wc://");
-    });
-  });
+            expect(generatePeraWalletAppDeepLink()).toBe('perawallet-wc://')
+        })
+    })
 
-  describe("generatePeraWalletConnectDeepLink", () => {
-    it("builds a wc deep link with the encoded uri and browser", () => {
-      const link = generatePeraWalletConnectDeepLink("wc:abc@1?bridge=x");
+    describe('generatePeraWalletConnectDeepLink', () => {
+        it('builds a wc deep link with the encoded uri and browser', () => {
+            const link = generatePeraWalletConnectDeepLink('wc:abc@1?bridge=x')
 
-      expect(link).toBe(
-        `perawallet-wc://wc?uri=${encodeURIComponent("wc:abc@1?bridge=x")}&browser=Chrome`
-      );
-    });
+            expect(link).toBe(
+                `perawallet-wc://wc?uri=${encodeURIComponent('wc:abc@1?bridge=x')}&browser=Chrome`,
+            )
+        })
 
-    it("returns the raw uri (plus browser) on Android", () => {
-      deviceMock.isAndroid.mockReturnValue(true);
+        it('returns the raw uri (plus browser) on Android', () => {
+            deviceMock.isAndroid.mockReturnValue(true)
 
-      const link = generatePeraWalletConnectDeepLink("wc:abc");
+            const link = generatePeraWalletConnectDeepLink('wc:abc')
 
-      expect(link).toBe("wc:abc&browser=Chrome");
-    });
+            expect(link).toBe('wc:abc&browser=Chrome')
+        })
 
-    it("appends singleAccount and selectedAccount params", () => {
-      const link = generatePeraWalletConnectDeepLink("wc:abc", {
-        singleAccount: true,
-        selectedAccount: "ADDR_1"
-      });
+        it('appends singleAccount and selectedAccount params', () => {
+            const link = generatePeraWalletConnectDeepLink('wc:abc', {
+                singleAccount: true,
+                selectedAccount: 'ADDR_1',
+            })
 
-      expect(link).toContain("&singleAccount=true");
-      expect(link).toContain("&selectedAccount=ADDR_1");
-    });
+            expect(link).toContain('&singleAccount=true')
+            expect(link).toContain('&selectedAccount=ADDR_1')
+        })
 
-    it("ignores a selectedAccount of the string 'undefined'", () => {
-      const link = generatePeraWalletConnectDeepLink("wc:abc", {
-        selectedAccount: "undefined"
-      });
+        it("ignores a selectedAccount of the string 'undefined'", () => {
+            const link = generatePeraWalletConnectDeepLink('wc:abc', {
+                selectedAccount: 'undefined',
+            })
 
-      expect(link).not.toContain("selectedAccount");
-    });
-  });
-});
+            expect(link).not.toContain('selectedAccount')
+        })
+    })
+})

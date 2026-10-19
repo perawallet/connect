@@ -3,7 +3,10 @@
 function setVhVariable() {
     const vhUnit = window.innerHeight / 100
 
-    document.documentElement.style.setProperty('--pera-wallet-vh', `${vhUnit}px`)
+    document.documentElement.style.setProperty(
+        '--pera-wallet-vh',
+        `${vhUnit}px`,
+    )
 }
 
 function setupDynamicVhValue() {

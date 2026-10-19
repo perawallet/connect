@@ -1,18 +1,18 @@
 @mixin truncate-multiple-line($number-of-lines, $width: 100%) {
-  /* stylelint-disable value-no-vendor-prefix */
-  /* stylelint-disable  property-no-vendor-prefix */
+    /* stylelint-disable value-no-vendor-prefix */
+    /* stylelint-disable  property-no-vendor-prefix */
 
-  display: -webkit-box;
+    display: -webkit-box;
 
-  max-width: $width;
+    max-width: $width;
 
-  -webkit-line-clamp: $number-of-lines;
+    -webkit-line-clamp: $number-of-lines;
 
-  /* autoprefixer: ignore next */
+    /* autoprefixer: ignore next */
 
-  -webkit-box-orient: vertical;
+    -webkit-box-orient: vertical;
 
-  overflow: hidden;
-  /* stylelint-enable value-no-vendor-prefix */
-  /* stylelint-enable property-no-vendor-prefix */
+    overflow: hidden;
+    /* stylelint-enable value-no-vendor-prefix */
+    /* stylelint-enable property-no-vendor-prefix */
 }

@@ -1,24 +1,24 @@
-import {type PeraTeller} from "../network/teller/appTellerManager";
-import {type AlgorandChainIDs} from "../peraWalletTypes";
+import { type PeraTeller } from '../network/teller/appTellerManager'
+import { type AlgorandChainIDs } from '../peraWalletTypes'
 
 interface ConnectFlowPromise {
-  resolve: (accounts: string[]) => void;
-  reject: (reason?: any) => void;
+    resolve: (accounts: string[]) => void
+    reject: (reason?: any) => void
 }
 
 interface RunWebConnectFlowTypes extends ConnectFlowPromise {
-  webWalletURL: string;
-  chainId: AlgorandChainIDs | undefined;
-  isCompactMode?: boolean;
+    webWalletURL: string
+    chainId: AlgorandChainIDs | undefined
+    isCompactMode?: boolean
 }
 
 interface NewTabConnectFlowTellerReducerParams extends ConnectFlowPromise {
-  event: MessageEvent<TellerMessage<PeraTeller>>;
-  newPeraWalletTab: Window | null;
+    event: MessageEvent<TellerMessage<PeraTeller>>
+    newPeraWalletTab: Window | null
 }
 
 export type {
-  ConnectFlowPromise,
-  RunWebConnectFlowTypes,
-  NewTabConnectFlowTellerReducerParams
-};
+    ConnectFlowPromise,
+    RunWebConnectFlowTypes,
+    NewTabConnectFlowTellerReducerParams,
+}

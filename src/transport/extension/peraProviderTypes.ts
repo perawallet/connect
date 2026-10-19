@@ -6,72 +6,79 @@
  * Detection is synchronous: `typeof window.pera === "object" &&
  * window.pera.version === "1"`. There is no ready event to wait for.
  */
-export type PeraAccount = {address: string; name: string};
+export type PeraAccount = { address: string; name: string }
 
-export type PeraNetwork = "mainnet" | "testnet" | "betanet";
+export type PeraNetwork = 'mainnet' | 'testnet' | 'betanet'
 
 export interface PeraProviderConnectOptions {
-  /** dApp display name, at most 100 characters. */
-  name?: string;
-  /** At most 300 characters. */
-  description?: string;
-  /** https only and same origin as the page; anything else is dropped by the wallet. */
-  icons?: string[];
-  /**
-   * When given and the wallet is on a different network, `connect()` rejects
-   * with `PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED`.
-   */
-  network?: PeraNetwork;
+    /** dApp display name, at most 100 characters. */
+    name?: string
+    /** At most 300 characters. */
+    description?: string
+    /** https only and same origin as the page; anything else is dropped by the wallet. */
+    icons?: string[]
+    /**
+     * When given and the wallet is on a different network, `connect()` rejects
+     * with `PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED`.
+     */
+    network?: PeraNetwork
 }
 
 export interface PeraProviderConnectResult {
-  accounts: PeraAccount[];
-  network: PeraNetwork;
-  /** Same as `getEmptySignatures()`, from extensions that support it. */
-  emptySignatures?: Record<string, string>;
+    accounts: PeraAccount[]
+    network: PeraNetwork
+    /** Same as `getEmptySignatures()`, from extensions that support it. */
+    emptySignatures?: Record<string, string>
 }
 
 /** ARC-0001 `WalletTransaction`; `txn` is the base64 unsigned transaction. */
 export interface PeraProviderWalletTransaction {
-  txn: string;
-  signers?: string[];
-  authAddr?: string;
-  msig?: unknown;
-  stxn?: string;
-  message?: string;
+    txn: string
+    signers?: string[]
+    authAddr?: string
+    msig?: unknown
+    stxn?: string
+    message?: string
 }
 
-export type PeraProviderEvent = "accountsChanged" | "networkChanged" | "disconnect";
+export type PeraProviderEvent =
+    | 'accountsChanged'
+    | 'networkChanged'
+    | 'disconnect'
 
 export interface PeraProvider {
-  readonly version: "1";
-  /**
-   * Needs transient user activation for a first-time connect: call it directly
-   * inside a click handler. When the origin already has an approved connection
-   * it resolves immediately with the stored accounts and needs no gesture.
-   */
-  connect(options?: PeraProviderConnectOptions): Promise<PeraProviderConnectResult>;
-  disconnect(): Promise<void>;
-  getAddresses(): Promise<PeraAccount[]>;
-  /**
-   * use-wallet's empty signatures for this origin's accounts: address to base64
-   * `SignedTransaction` without `txn`. Answered without a prompt. Without
-   * `network` the wallet answers for the network it is on; any other network is
-   * refused with `NETWORK_NOT_SUPPORTED`. Missing from extensions that predate it.
-   */
-  getEmptySignatures?(options?: {network?: PeraNetwork}): Promise<Record<string, string>>;
-  /**
-   * One base64 signed transaction per entry, in order; `null` where the entry
-   * had `signers: []` and was therefore not signed by the wallet.
-   */
-  signTransactions(
-    txns: PeraProviderWalletTransaction[],
-    opts?: {message?: string}
-  ): Promise<(string | null)[]>;
-  /** Returns one base64 signature per entry. */
-  signData(payload: unknown): Promise<string[]>;
-  /** Returns the unsubscribe function. */
-  on(event: PeraProviderEvent, handler: (params: unknown) => void): () => void;
+    readonly version: '1'
+    /**
+     * Needs transient user activation for a first-time connect: call it directly
+     * inside a click handler. When the origin already has an approved connection
+     * it resolves immediately with the stored accounts and needs no gesture.
+     */
+    connect(
+        options?: PeraProviderConnectOptions,
+    ): Promise<PeraProviderConnectResult>
+    disconnect(): Promise<void>
+    getAddresses(): Promise<PeraAccount[]>
+    /**
+     * use-wallet's empty signatures for this origin's accounts: address to base64
+     * `SignedTransaction` without `txn`. Answered without a prompt. Without
+     * `network` the wallet answers for the network it is on; any other network is
+     * refused with `NETWORK_NOT_SUPPORTED`. Missing from extensions that predate it.
+     */
+    getEmptySignatures?(options?: {
+        network?: PeraNetwork
+    }): Promise<Record<string, string>>
+    /**
+     * One base64 signed transaction per entry, in order; `null` where the entry
+     * had `signers: []` and was therefore not signed by the wallet.
+     */
+    signTransactions(
+        txns: PeraProviderWalletTransaction[],
+        opts?: { message?: string },
+    ): Promise<(string | null)[]>
+    /** Returns one base64 signature per entry. */
+    signData(payload: unknown): Promise<string[]>
+    /** Returns the unsubscribe function. */
+    on(event: PeraProviderEvent, handler: (params: unknown) => void): () => void
 }
 
 /**
@@ -79,26 +86,26 @@ export interface PeraProvider {
  * numeric `code` from `PERA_PROVIDER_ERROR_CODES`.
  */
 export interface PeraProviderError extends Error {
-  name: "PeraProviderError";
-  code: number;
+    name: 'PeraProviderError'
+    code: number
 }
 
 export const PERA_PROVIDER_ERROR_CODES = {
-  METHOD_NOT_FOUND: -32_601,
-  INVALID_PARAMS: -32_602,
-  INTERNAL_ERROR: -32_603,
-  /** Not connected, `connect()` without a user gesture, or untrusted origin. */
-  UNAUTHORIZED: -32_001,
-  USER_REJECTED: -32_002,
-  NETWORK_NOT_SUPPORTED: -32_003,
-  /** The wallet did not answer within its own TTL (about 5 minutes). */
-  TIMED_OUT: -32_004
-} as const;
+    METHOD_NOT_FOUND: -32_601,
+    INVALID_PARAMS: -32_602,
+    INTERNAL_ERROR: -32_603,
+    /** Not connected, `connect()` without a user gesture, or untrusted origin. */
+    UNAUTHORIZED: -32_001,
+    USER_REJECTED: -32_002,
+    NETWORK_NOT_SUPPORTED: -32_003,
+    /** The wallet did not answer within its own TTL (about 5 minutes). */
+    TIMED_OUT: -32_004,
+} as const
 
 declare global {
-  interface Window {
-    pera?: PeraProvider;
-  }
+    interface Window {
+        pera?: PeraProvider
+    }
 }
 
 /**
@@ -107,13 +114,15 @@ declare global {
  * `instanceof Error` and would degrade every provider error to the generic
  * fallback.
  */
-export function isPeraProviderError(error: unknown): error is PeraProviderError {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    (error as {name?: unknown}).name === "PeraProviderError" &&
-    typeof (error as {code?: unknown}).code === "number"
-  );
+export function isPeraProviderError(
+    error: unknown,
+): error is PeraProviderError {
+    return (
+        typeof error === 'object' &&
+        error !== null &&
+        (error as { name?: unknown }).name === 'PeraProviderError' &&
+        typeof (error as { code?: unknown }).code === 'number'
+    )
 }
 
 /**
@@ -122,15 +131,19 @@ export function isPeraProviderError(error: unknown): error is PeraProviderError 
  * not at all.
  */
 export function getPeraProvider(): PeraProvider | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
+    if (typeof window === 'undefined') {
+        return null
+    }
 
-  const provider = window.pera;
+    const provider = window.pera
 
-  if (typeof provider === "object" && provider !== null && provider.version === "1") {
-    return provider;
-  }
+    if (
+        typeof provider === 'object' &&
+        provider !== null &&
+        provider.version === '1'
+    ) {
+        return provider
+    }
 
-  return null;
+    return null
 }

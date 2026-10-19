@@ -1,360 +1,412 @@
-import {describe, it, expect, vi, afterEach, beforeEach} from "vitest";
-import algosdk from "algosdk";
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
+import algosdk from 'algosdk'
 
-import {ExtensionTransport, getPeraNetworkFromChainId} from "../ExtensionTransport";
-import {PERA_PROVIDER_ERROR_CODES, type PeraProvider} from "../peraProviderTypes";
 import {
-  saveWalletDetailsToStorage,
-  getWalletDetailsFromStorage,
-  resetWalletDetailsFromStorage
-} from "../../../util/storage/storageUtils";
+    ExtensionTransport,
+    getPeraNetworkFromChainId,
+} from '../ExtensionTransport'
+import {
+    PERA_PROVIDER_ERROR_CODES,
+    type PeraProvider,
+} from '../peraProviderTypes'
+import {
+    saveWalletDetailsToStorage,
+    getWalletDetailsFromStorage,
+    resetWalletDetailsFromStorage,
+} from '../../../util/storage/storageUtils'
 
-const account = algosdk.generateAccount();
-const ADDRESS = account.addr.toString();
+const account = algosdk.generateAccount()
+const ADDRESS = account.addr.toString()
 
-function providerError(code: number, message = "provider error") {
-  const error = new Error(message) as Error & {code: number};
+function providerError(code: number, message = 'provider error') {
+    const error = new Error(message) as Error & { code: number }
 
-  error.name = "PeraProviderError";
-  error.code = code;
+    error.name = 'PeraProviderError'
+    error.code = code
 
-  return error;
+    return error
 }
 
 type StubProvider = PeraProvider & {
-  connect: ReturnType<typeof vi.fn>;
-  disconnect: ReturnType<typeof vi.fn>;
-  getAddresses: ReturnType<typeof vi.fn>;
-  signTransactions: ReturnType<typeof vi.fn>;
-  signData: ReturnType<typeof vi.fn>;
-  on: ReturnType<typeof vi.fn>;
-  emit: (event: string, params?: unknown) => void;
-};
-
-function makeProvider(): StubProvider {
-  const handlers: Record<string, ((params: unknown) => void)[]> = {};
-
-  return {
-    version: "1",
-    connect: vi.fn().mockResolvedValue({
-      accounts: [{address: ADDRESS, name: "Main"}],
-      network: "testnet"
-    }),
-    disconnect: vi.fn().mockResolvedValue(undefined),
-    getAddresses: vi.fn().mockResolvedValue([]),
-    signTransactions: vi.fn(),
-    signData: vi.fn(),
-    on: vi.fn((event: string, handler: (params: unknown) => void) => {
-      handlers[event] = handlers[event] || [];
-      handlers[event].push(handler);
-
-      return () => {
-        handlers[event] = handlers[event].filter((item) => item !== handler);
-      };
-    }),
-    emit: (event: string, params?: unknown) => {
-      (handlers[event] || []).forEach((handler) => handler(params));
-    }
-  } as StubProvider;
+    connect: ReturnType<typeof vi.fn>
+    disconnect: ReturnType<typeof vi.fn>
+    getAddresses: ReturnType<typeof vi.fn>
+    signTransactions: ReturnType<typeof vi.fn>
+    signData: ReturnType<typeof vi.fn>
+    on: ReturnType<typeof vi.fn>
+    emit: (event: string, params?: unknown) => void
 }
 
-describe("getPeraNetworkFromChainId", () => {
-  it("maps the specific chain ids and leaves all-networks unset", () => {
-    expect(getPeraNetworkFromChainId(416_001)).toBe("mainnet");
-    expect(getPeraNetworkFromChainId(416_002)).toBe("testnet");
-    expect(getPeraNetworkFromChainId(416_003)).toBe("betanet");
-    expect(getPeraNetworkFromChainId(4160)).toBeUndefined();
-    expect(getPeraNetworkFromChainId(undefined)).toBeUndefined();
-  });
-});
+function makeProvider(): StubProvider {
+    const handlers: Record<string, ((params: unknown) => void)[]> = {}
 
-describe("ExtensionTransport", () => {
-  let provider: StubProvider;
+    return {
+        version: '1',
+        connect: vi.fn().mockResolvedValue({
+            accounts: [{ address: ADDRESS, name: 'Main' }],
+            network: 'testnet',
+        }),
+        disconnect: vi.fn().mockResolvedValue(undefined),
+        getAddresses: vi.fn().mockResolvedValue([]),
+        signTransactions: vi.fn(),
+        signData: vi.fn(),
+        on: vi.fn((event: string, handler: (params: unknown) => void) => {
+            handlers[event] = handlers[event] || []
+            handlers[event].push(handler)
 
-  beforeEach(() => {
-    provider = makeProvider();
-  });
+            return () => {
+                handlers[event] = handlers[event].filter(
+                    item => item !== handler,
+                )
+            }
+        }),
+        emit: (event: string, params?: unknown) => {
+            ;(handlers[event] || []).forEach(handler => handler(params))
+        },
+    } as StubProvider
+}
 
-  afterEach(() => resetWalletDetailsFromStorage());
+describe('getPeraNetworkFromChainId', () => {
+    it('maps the specific chain ids and leaves all-networks unset', () => {
+        expect(getPeraNetworkFromChainId(416_001)).toBe('mainnet')
+        expect(getPeraNetworkFromChainId(416_002)).toBe('testnet')
+        expect(getPeraNetworkFromChainId(416_003)).toBe('betanet')
+        expect(getPeraNetworkFromChainId(4160)).toBeUndefined()
+        expect(getPeraNetworkFromChainId(undefined)).toBeUndefined()
+    })
+})
 
-  describe("connect()", () => {
-    it("calls the provider synchronously (inside the user gesture) and returns addresses", async () => {
-      const transport = new ExtensionTransport(provider, {chainId: 416_002});
+describe('ExtensionTransport', () => {
+    let provider: StubProvider
 
-      const promise = transport.connect();
+    beforeEach(() => {
+        provider = makeProvider()
+    })
 
-      // No awaits may precede the provider call: transient activation is only
-      // guaranteed within the click's synchronous task.
-      expect(provider.connect).toHaveBeenCalledTimes(1);
+    afterEach(() => resetWalletDetailsFromStorage())
 
-      await expect(promise).resolves.toEqual([ADDRESS]);
-    });
+    describe('connect()', () => {
+        it('calls the provider synchronously (inside the user gesture) and returns addresses', async () => {
+            const transport = new ExtensionTransport(provider, {
+                chainId: 416_002,
+            })
 
-    it("passes the dApp metadata and the pinned network", async () => {
-      document.title = "My dApp";
-      const transport = new ExtensionTransport(provider, {chainId: 416_001});
+            const promise = transport.connect()
 
-      await transport.connect();
+            // No awaits may precede the provider call: transient activation is only
+            // guaranteed within the click's synchronous task.
+            expect(provider.connect).toHaveBeenCalledTimes(1)
 
-      const options = provider.connect.mock.calls[0][0];
+            await expect(promise).resolves.toEqual([ADDRESS])
+        })
 
-      expect(options.name).toBe("My dApp");
-      expect(options.network).toBe("mainnet");
-    });
+        it('passes the dApp metadata and the pinned network', async () => {
+            document.title = 'My dApp'
+            const transport = new ExtensionTransport(provider, {
+                chainId: 416_001,
+            })
 
-    it("omits network for an all-networks session", async () => {
-      const transport = new ExtensionTransport(provider, {chainId: 4160});
+            await transport.connect()
 
-      await transport.connect();
+            const options = provider.connect.mock.calls[0][0]
 
-      expect(provider.connect.mock.calls[0][0].network).toBeUndefined();
-    });
+            expect(options.name).toBe('My dApp')
+            expect(options.network).toBe('mainnet')
+        })
 
-    it("persists the extension as the active platform", async () => {
-      const transport = new ExtensionTransport(provider, {});
+        it('omits network for an all-networks session', async () => {
+            const transport = new ExtensionTransport(provider, {
+                chainId: 4160,
+            })
 
-      await transport.connect();
+            await transport.connect()
 
-      expect(getWalletDetailsFromStorage()).toMatchObject({
-        type: "pera-wallet-extension",
-        accounts: [ADDRESS]
-      });
-      expect(transport.network).toBe("testnet");
-    });
+            expect(provider.connect.mock.calls[0][0].network).toBeUndefined()
+        })
 
-    it("maps user rejection to CONNECT_CANCELLED", async () => {
-      provider.connect.mockRejectedValue(
-        providerError(PERA_PROVIDER_ERROR_CODES.USER_REJECTED)
-      );
-      const transport = new ExtensionTransport(provider, {});
+        it('persists the extension as the active platform', async () => {
+            const transport = new ExtensionTransport(provider, {})
 
-      await expect(transport.connect()).rejects.toMatchObject({
-        name: "PeraWalletConnectError",
-        data: {type: "CONNECT_CANCELLED"}
-      });
-      expect(getWalletDetailsFromStorage()).toBeNull();
-    });
+            await transport.connect()
 
-    it("maps a network mismatch to CONNECT_NETWORK_MISMATCH", async () => {
-      provider.connect.mockRejectedValue(
-        providerError(PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED)
-      );
-      const transport = new ExtensionTransport(provider, {chainId: 416_001});
+            expect(getWalletDetailsFromStorage()).toMatchObject({
+                type: 'pera-wallet-extension',
+                accounts: [ADDRESS],
+            })
+            expect(transport.network).toBe('testnet')
+        })
 
-      await expect(transport.connect()).rejects.toMatchObject({
-        data: {type: "CONNECT_NETWORK_MISMATCH"}
-      });
-    });
+        it('maps user rejection to CONNECT_CANCELLED', async () => {
+            provider.connect.mockRejectedValue(
+                providerError(PERA_PROVIDER_ERROR_CODES.USER_REJECTED),
+            )
+            const transport = new ExtensionTransport(provider, {})
 
-    it("maps a missing user gesture to SESSION_CONNECT with the provider's message", async () => {
-      provider.connect.mockRejectedValue(
-        providerError(PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED, "user activation required")
-      );
-      const transport = new ExtensionTransport(provider, {});
+            await expect(transport.connect()).rejects.toMatchObject({
+                name: 'PeraWalletConnectError',
+                data: { type: 'CONNECT_CANCELLED' },
+            })
+            expect(getWalletDetailsFromStorage()).toBeNull()
+        })
 
-      await expect(transport.connect()).rejects.toMatchObject({
-        data: {type: "SESSION_CONNECT"},
-        message: expect.stringContaining("user activation required")
-      });
-    });
+        it('maps a network mismatch to CONNECT_NETWORK_MISMATCH', async () => {
+            provider.connect.mockRejectedValue(
+                providerError(PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED),
+            )
+            const transport = new ExtensionTransport(provider, {
+                chainId: 416_001,
+            })
 
-    it("maps a wallet timeout to MESSAGE_NOT_RECEIVED", async () => {
-      provider.connect.mockRejectedValue(
-        providerError(PERA_PROVIDER_ERROR_CODES.TIMED_OUT)
-      );
-      const transport = new ExtensionTransport(provider, {});
+            await expect(transport.connect()).rejects.toMatchObject({
+                data: { type: 'CONNECT_NETWORK_MISMATCH' },
+            })
+        })
 
-      await expect(transport.connect()).rejects.toMatchObject({
-        data: {type: "MESSAGE_NOT_RECEIVED"}
-      });
-    });
-  });
+        it("maps a missing user gesture to SESSION_CONNECT with the provider's message", async () => {
+            provider.connect.mockRejectedValue(
+                providerError(
+                    PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED,
+                    'user activation required',
+                ),
+            )
+            const transport = new ExtensionTransport(provider, {})
 
-  describe("reconnect()", () => {
-    it("resolves the stored accounts when the origin is already approved", async () => {
-      const transport = new ExtensionTransport(provider, {chainId: 416_002});
+            await expect(transport.connect()).rejects.toMatchObject({
+                data: { type: 'SESSION_CONNECT' },
+                message: expect.stringContaining('user activation required'),
+            })
+        })
 
-      await expect(transport.reconnect()).resolves.toEqual([ADDRESS]);
-      expect(getWalletDetailsFromStorage()?.type).toBe("pera-wallet-extension");
-    });
+        it('maps a wallet timeout to MESSAGE_NOT_RECEIVED', async () => {
+            provider.connect.mockRejectedValue(
+                providerError(PERA_PROVIDER_ERROR_CODES.TIMED_OUT),
+            )
+            const transport = new ExtensionTransport(provider, {})
 
-    it("treats UNAUTHORIZED as no session rather than an error", async () => {
-      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
-      provider.connect.mockRejectedValue(
-        providerError(PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED)
-      );
-      const transport = new ExtensionTransport(provider, {});
+            await expect(transport.connect()).rejects.toMatchObject({
+                data: { type: 'MESSAGE_NOT_RECEIVED' },
+            })
+        })
+    })
 
-      await expect(transport.reconnect()).resolves.toEqual([]);
-      expect(getWalletDetailsFromStorage()).toBeNull();
-    });
+    describe('reconnect()', () => {
+        it('resolves the stored accounts when the origin is already approved', async () => {
+            const transport = new ExtensionTransport(provider, {
+                chainId: 416_002,
+            })
 
-    it("surfaces other failures as SESSION_RECONNECT", async () => {
-      provider.connect.mockRejectedValue(
-        providerError(PERA_PROVIDER_ERROR_CODES.INTERNAL_ERROR)
-      );
-      const transport = new ExtensionTransport(provider, {});
+            await expect(transport.reconnect()).resolves.toEqual([ADDRESS])
+            expect(getWalletDetailsFromStorage()?.type).toBe(
+                'pera-wallet-extension',
+            )
+        })
 
-      await expect(transport.reconnect()).rejects.toMatchObject({
-        data: {type: "SESSION_RECONNECT"}
-      });
-    });
-  });
+        it('treats UNAUTHORIZED as no session rather than an error', async () => {
+            saveWalletDetailsToStorage([ADDRESS], 'pera-wallet-extension')
+            provider.connect.mockRejectedValue(
+                providerError(PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED),
+            )
+            const transport = new ExtensionTransport(provider, {})
 
-  describe("disconnect()", () => {
-    it("calls the provider and clears storage even when the provider fails", async () => {
-      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
-      provider.disconnect.mockRejectedValue(
-        providerError(PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED)
-      );
-      const transport = new ExtensionTransport(provider, {});
+            await expect(transport.reconnect()).resolves.toEqual([])
+            expect(getWalletDetailsFromStorage()).toBeNull()
+        })
 
-      await expect(transport.disconnect()).resolves.toBeUndefined();
-      expect(provider.disconnect).toHaveBeenCalled();
-      expect(getWalletDetailsFromStorage()).toBeNull();
-    });
-  });
+        it('surfaces other failures as SESSION_RECONNECT', async () => {
+            provider.connect.mockRejectedValue(
+                providerError(PERA_PROVIDER_ERROR_CODES.INTERNAL_ERROR),
+            )
+            const transport = new ExtensionTransport(provider, {})
 
-  describe("getEmptySignatures()", () => {
-    it("resolves {} from an extension that predates the method", async () => {
-      const transport = new ExtensionTransport(provider, {});
+            await expect(transport.reconnect()).rejects.toMatchObject({
+                data: { type: 'SESSION_RECONNECT' },
+            })
+        })
+    })
 
-      await expect(transport.getEmptySignatures("testnet")).resolves.toEqual({});
-    });
+    describe('disconnect()', () => {
+        it('calls the provider and clears storage even when the provider fails', async () => {
+            saveWalletDetailsToStorage([ADDRESS], 'pera-wallet-extension')
+            provider.disconnect.mockRejectedValue(
+                providerError(PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED),
+            )
+            const transport = new ExtensionTransport(provider, {})
 
-    it("asks the provider for the given network and returns its answer as is", async () => {
-      const getEmptySignatures = vi
-        .fn()
-        .mockResolvedValue({[ADDRESS]: "gA==", OTHER: "x"});
-      const transport = new ExtensionTransport(
-        Object.assign(provider, {getEmptySignatures}),
-        {}
-      );
+            await expect(transport.disconnect()).resolves.toBeUndefined()
+            expect(provider.disconnect).toHaveBeenCalled()
+            expect(getWalletDetailsFromStorage()).toBeNull()
+        })
+    })
 
-      await expect(transport.getEmptySignatures("testnet")).resolves.toEqual({
-        [ADDRESS]: "gA==",
-        OTHER: "x"
-      });
-      expect(getEmptySignatures).toHaveBeenCalledWith({network: "testnet"});
-    });
+    describe('getEmptySignatures()', () => {
+        it('resolves {} from an extension that predates the method', async () => {
+            const transport = new ExtensionTransport(provider, {})
 
-    it("lets the wallet answer for its own network when none is given", async () => {
-      const getEmptySignatures = vi.fn().mockResolvedValue({});
-      const transport = new ExtensionTransport(
-        Object.assign(provider, {getEmptySignatures}),
-        {}
-      );
+            await expect(
+                transport.getEmptySignatures('testnet'),
+            ).resolves.toEqual({})
+        })
 
-      await transport.getEmptySignatures(undefined);
+        it('asks the provider for the given network and returns its answer as is', async () => {
+            const getEmptySignatures = vi
+                .fn()
+                .mockResolvedValue({ [ADDRESS]: 'gA==', OTHER: 'x' })
+            const transport = new ExtensionTransport(
+                Object.assign(provider, { getEmptySignatures }),
+                {},
+            )
 
-      expect(getEmptySignatures).toHaveBeenCalledWith(undefined);
-    });
+            await expect(
+                transport.getEmptySignatures('testnet'),
+            ).resolves.toEqual({
+                [ADDRESS]: 'gA==',
+                OTHER: 'x',
+            })
+            expect(getEmptySignatures).toHaveBeenCalledWith({
+                network: 'testnet',
+            })
+        })
 
-    it.each([
-      [PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED, "SESSION_DISCONNECTED"],
-      [
-        PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED,
-        "EMPTY_SIGNATURES_NETWORK_MISMATCH"
-      ],
-      [PERA_PROVIDER_ERROR_CODES.TIMED_OUT, "EMPTY_SIGNATURES_TIMEOUT"]
-    ])("maps provider code %s to %s", async (code, type) => {
-      const getEmptySignatures = vi
-        .fn()
-        .mockRejectedValue(providerError(code, "The wallet is on mainnet, not testnet"));
-      const transport = new ExtensionTransport(
-        Object.assign(provider, {getEmptySignatures}),
-        {}
-      );
+        it('lets the wallet answer for its own network when none is given', async () => {
+            const getEmptySignatures = vi.fn().mockResolvedValue({})
+            const transport = new ExtensionTransport(
+                Object.assign(provider, { getEmptySignatures }),
+                {},
+            )
 
-      await expect(transport.getEmptySignatures("testnet")).rejects.toMatchObject({
-        message: "The wallet is on mainnet, not testnet",
-        data: {type}
-      });
-    });
+            await transport.getEmptySignatures(undefined)
 
-    it("wraps any other failure as EMPTY_SIGNATURES with reason wallet-error", async () => {
-      const failure = providerError(
-        PERA_PROVIDER_ERROR_CODES.INTERNAL_ERROR,
-        "Internal error"
-      );
-      const getEmptySignatures = vi.fn().mockRejectedValue(failure);
-      const transport = new ExtensionTransport(
-        Object.assign(provider, {getEmptySignatures}),
-        {}
-      );
+            expect(getEmptySignatures).toHaveBeenCalledWith(undefined)
+        })
 
-      await expect(transport.getEmptySignatures("testnet")).rejects.toMatchObject({
-        message: "Internal error",
-        data: {type: "EMPTY_SIGNATURES", detail: {reason: "wallet-error", error: failure}}
-      });
-    });
-  });
+        it.each([
+            [PERA_PROVIDER_ERROR_CODES.UNAUTHORIZED, 'SESSION_DISCONNECTED'],
+            [
+                PERA_PROVIDER_ERROR_CODES.NETWORK_NOT_SUPPORTED,
+                'EMPTY_SIGNATURES_NETWORK_MISMATCH',
+            ],
+            [PERA_PROVIDER_ERROR_CODES.TIMED_OUT, 'EMPTY_SIGNATURES_TIMEOUT'],
+        ])('maps provider code %s to %s', async (code, type) => {
+            const getEmptySignatures = vi
+                .fn()
+                .mockRejectedValue(
+                    providerError(
+                        code,
+                        'The wallet is on mainnet, not testnet',
+                    ),
+                )
+            const transport = new ExtensionTransport(
+                Object.assign(provider, { getEmptySignatures }),
+                {},
+            )
 
-  describe("wallet-initiated notifications", () => {
-    it("subscribes once per provider and forwards disconnect after clearing the session", () => {
-      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
-      const onDisconnect = vi.fn();
-      const transport = new ExtensionTransport(provider, {onDisconnect});
+            await expect(
+                transport.getEmptySignatures('testnet'),
+            ).rejects.toMatchObject({
+                message: 'The wallet is on mainnet, not testnet',
+                data: { type },
+            })
+        })
 
-      expect(provider.on).toHaveBeenCalledWith("disconnect", expect.any(Function));
-      expect(
-        provider.on.mock.calls.filter(([event]: unknown[]) => event === "disconnect")
-      ).toHaveLength(1);
+        it('wraps any other failure as EMPTY_SIGNATURES with reason wallet-error', async () => {
+            const failure = providerError(
+                PERA_PROVIDER_ERROR_CODES.INTERNAL_ERROR,
+                'Internal error',
+            )
+            const getEmptySignatures = vi.fn().mockRejectedValue(failure)
+            const transport = new ExtensionTransport(
+                Object.assign(provider, { getEmptySignatures }),
+                {},
+            )
 
-      provider.emit("disconnect");
+            await expect(
+                transport.getEmptySignatures('testnet'),
+            ).rejects.toMatchObject({
+                message: 'Internal error',
+                data: {
+                    type: 'EMPTY_SIGNATURES',
+                    detail: { reason: 'wallet-error', error: failure },
+                },
+            })
+        })
+    })
 
-      expect(getWalletDetailsFromStorage()).toBeNull();
-      expect(onDisconnect).toHaveBeenCalledTimes(1);
-      expect(transport.network).toBeNull();
-    });
+    describe('wallet-initiated notifications', () => {
+        it('subscribes once per provider and forwards disconnect after clearing the session', () => {
+            saveWalletDetailsToStorage([ADDRESS], 'pera-wallet-extension')
+            const onDisconnect = vi.fn()
+            const transport = new ExtensionTransport(provider, { onDisconnect })
 
-    it("leaves a mobile session alone when the extension reports a disconnect", () => {
-      saveWalletDetailsToStorage([ADDRESS], "pera-wallet");
-      const onDisconnect = vi.fn();
+            expect(provider.on).toHaveBeenCalledWith(
+                'disconnect',
+                expect.any(Function),
+            )
+            expect(
+                provider.on.mock.calls.filter(
+                    ([event]: unknown[]) => event === 'disconnect',
+                ),
+            ).toHaveLength(1)
 
-      const transport = new ExtensionTransport(provider, {onDisconnect});
+            provider.emit('disconnect')
 
-      provider.emit("disconnect");
-      expect(transport.network).toBeNull();
+            expect(getWalletDetailsFromStorage()).toBeNull()
+            expect(onDisconnect).toHaveBeenCalledTimes(1)
+            expect(transport.network).toBeNull()
+        })
 
-      expect(getWalletDetailsFromStorage()?.type).toBe("pera-wallet");
-      expect(onDisconnect).not.toHaveBeenCalled();
-    });
+        it('leaves a mobile session alone when the extension reports a disconnect', () => {
+            saveWalletDetailsToStorage([ADDRESS], 'pera-wallet')
+            const onDisconnect = vi.fn()
 
-    it("forwards networkChanged with the new network", () => {
-      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
+            const transport = new ExtensionTransport(provider, { onDisconnect })
 
-      const onNetworkChanged = vi.fn();
-      const transport = new ExtensionTransport(provider, {onNetworkChanged});
+            provider.emit('disconnect')
+            expect(transport.network).toBeNull()
 
-      provider.emit("networkChanged", {network: "mainnet"});
+            expect(getWalletDetailsFromStorage()?.type).toBe('pera-wallet')
+            expect(onDisconnect).not.toHaveBeenCalled()
+        })
 
-      expect(onNetworkChanged).toHaveBeenCalledWith({network: "mainnet"});
-      expect(transport.network).toBe("mainnet");
-    });
+        it('forwards networkChanged with the new network', () => {
+            saveWalletDetailsToStorage([ADDRESS], 'pera-wallet-extension')
 
-    it("ignores networkChanged when the session is not an extension one", () => {
-      saveWalletDetailsToStorage([ADDRESS], "pera-wallet");
+            const onNetworkChanged = vi.fn()
+            const transport = new ExtensionTransport(provider, {
+                onNetworkChanged,
+            })
 
-      const onNetworkChanged = vi.fn();
-      const transport = new ExtensionTransport(provider, {onNetworkChanged});
+            provider.emit('networkChanged', { network: 'mainnet' })
 
-      provider.emit("networkChanged", {network: "mainnet"});
+            expect(onNetworkChanged).toHaveBeenCalledWith({
+                network: 'mainnet',
+            })
+            expect(transport.network).toBe('mainnet')
+        })
 
-      expect(onNetworkChanged).not.toHaveBeenCalled();
-      expect(transport.network).toBeNull();
-    });
+        it('ignores networkChanged when the session is not an extension one', () => {
+            saveWalletDetailsToStorage([ADDRESS], 'pera-wallet')
 
-    it("dispose() unsubscribes from the provider", () => {
-      const onDisconnect = vi.fn();
-      const transport = new ExtensionTransport(provider, {onDisconnect});
+            const onNetworkChanged = vi.fn()
+            const transport = new ExtensionTransport(provider, {
+                onNetworkChanged,
+            })
 
-      transport.dispose();
-      saveWalletDetailsToStorage([ADDRESS], "pera-wallet-extension");
-      provider.emit("disconnect");
+            provider.emit('networkChanged', { network: 'mainnet' })
 
-      expect(onDisconnect).not.toHaveBeenCalled();
-      expect(getWalletDetailsFromStorage()).not.toBeNull();
-    });
-  });
-});
+            expect(onNetworkChanged).not.toHaveBeenCalled()
+            expect(transport.network).toBeNull()
+        })
+
+        it('dispose() unsubscribes from the provider', () => {
+            const onDisconnect = vi.fn()
+            const transport = new ExtensionTransport(provider, { onDisconnect })
+
+            transport.dispose()
+            saveWalletDetailsToStorage([ADDRESS], 'pera-wallet-extension')
+            provider.emit('disconnect')
+
+            expect(onDisconnect).not.toHaveBeenCalled()
+            expect(getWalletDetailsFromStorage()).not.toBeNull()
+        })
+    })
+})
