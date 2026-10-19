@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# The fast half of CI, so a red build is caught before it is pushed. Tests and
+# the build run in CI; run `pnpm verify` for the full set.
+
+set -e
+
+printf '\033[33mRunning pre-push checks…\033[0m\n'
+
+pnpm --silent lint
+pnpm --silent format:check
+pnpm --silent typecheck
+
+printf '\033[32m✓ Pre-push checks passed\033[0m\n'

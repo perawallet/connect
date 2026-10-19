@@ -1,86 +1,93 @@
-import {isMobile} from "../util/device/deviceUtils";
+import { isMobile } from '../util/device/deviceUtils.js'
 import {
-  PERA_WALLET_CONNECT_MODAL_ID,
-  PERA_WALLET_MODAL_CLASSNAME
-} from "./peraWalletConnectModalUtils";
-import styles from "./_pera-wallet-modal.scss";
+    PERA_WALLET_CONNECT_MODAL_ID,
+    PERA_WALLET_MODAL_CLASSNAME,
+} from './peraWalletConnectModalUtils.js'
+import styles from './_pera-wallet-modal.scss?inline'
 
-const peraWalletConnectModal = document.createElement("template");
+const peraWalletConnectModal = document.createElement('template')
 let peraWalletConnectModalClassNames = isMobile()
-  ? `${PERA_WALLET_MODAL_CLASSNAME} ${PERA_WALLET_MODAL_CLASSNAME}--mobile`
-  : `${PERA_WALLET_MODAL_CLASSNAME} ${PERA_WALLET_MODAL_CLASSNAME}--desktop`;
+    ? `${PERA_WALLET_MODAL_CLASSNAME} ${PERA_WALLET_MODAL_CLASSNAME}--mobile`
+    : `${PERA_WALLET_MODAL_CLASSNAME} ${PERA_WALLET_MODAL_CLASSNAME}--desktop`
 
 export class PeraWalletConnectModal extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({mode: "open"});
-  }
-
-  connectedCallback() {
-    if (this.shadowRoot) {
-      this.render();
-    }
-  }
-
-  private render() {
-    if (!this.shadowRoot) {
-      return;
+    constructor() {
+        super()
+        this.attachShadow({ mode: 'open' })
     }
 
-    const styleSheet = document.createElement("style");
-
-    styleSheet.textContent = styles;
-
-    const isCompactMode = this.getAttribute("compact-mode") === "true";
-
-    if (isCompactMode) {
-      peraWalletConnectModalClassNames = `${peraWalletConnectModalClassNames} ${PERA_WALLET_MODAL_CLASSNAME}--compact`;
+    connectedCallback() {
+        if (this.shadowRoot) {
+            this.render()
+        }
     }
 
-    const singleAccount = this.getAttribute("single-account") === "true";
-    const selectedAccount = this.getAttribute("selected-account") || undefined;
+    private render() {
+        if (!this.shadowRoot) {
+            return
+        }
 
-    if (isMobile()) {
-      peraWalletConnectModal.innerHTML = `
+        const styleSheet = document.createElement('style')
+
+        styleSheet.textContent = styles
+
+        const isCompactMode = this.getAttribute('compact-mode') === 'true'
+
+        if (isCompactMode) {
+            peraWalletConnectModalClassNames = `${peraWalletConnectModalClassNames} ${PERA_WALLET_MODAL_CLASSNAME}--compact`
+        }
+
+        const singleAccount = this.getAttribute('single-account') === 'true'
+        const selectedAccount =
+            this.getAttribute('selected-account') || undefined
+
+        if (isMobile()) {
+            peraWalletConnectModal.innerHTML = `
           <div class="${peraWalletConnectModalClassNames}">
             <div class="pera-wallet-modal__body" part="body">
               <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header/>
         
               <pera-wallet-modal-touch-screen-mode uri="${this.getAttribute(
-                "uri"
+                  'uri',
               )}" should-use-sound="${this.getAttribute(
-        "should-use-sound"
-      )}" single-account="${singleAccount}" selected-account="${selectedAccount}"></pera-wallet-modal-touch-screen-mode>
+                  'should-use-sound',
+              )}" single-account="${singleAccount}" selected-account="${selectedAccount}"></pera-wallet-modal-touch-screen-mode>
             </div>
           </div>
-        `;
+        `
 
-      this.shadowRoot.append(peraWalletConnectModal.content.cloneNode(true), styleSheet);
-    } else {
-      peraWalletConnectModal.innerHTML = `
+            this.shadowRoot.append(
+                peraWalletConnectModal.content.cloneNode(true),
+                styleSheet,
+            )
+        } else {
+            peraWalletConnectModal.innerHTML = `
         <div class="${peraWalletConnectModalClassNames}">
           <div class="pera-wallet-modal__body">
             <pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header/>
       
             <pera-wallet-modal-desktop-mode id="pera-wallet-modal-desktop-mode" uri="${this.getAttribute(
-              "uri"
+                'uri',
             )}" is-web-wallet-avaliable="${this.getAttribute(
-        "is-web-wallet-avaliable"
-      )}" should-display-new-badge="${this.getAttribute(
-        "should-display-new-badge"
-      )}" compact-mode="${this.getAttribute(
-        "compact-mode"
-      )}" promote-mobile="${this.getAttribute(
-        "promote-mobile"
-      )}" single-account="${singleAccount}" is-extension-enabled="${this.getAttribute(
-        "is-extension-enabled"
-      )}"
+                'is-web-wallet-avaliable',
+            )}" should-display-new-badge="${this.getAttribute(
+                'should-display-new-badge',
+            )}" compact-mode="${this.getAttribute(
+                'compact-mode',
+            )}" promote-mobile="${this.getAttribute(
+                'promote-mobile',
+            )}" single-account="${singleAccount}" is-extension-enabled="${this.getAttribute(
+                'is-extension-enabled',
+            )}"
         ></pera-wallet-modal-desktop-mode>
           </div>
         </div>
-      `;
+      `
 
-      this.shadowRoot.append(peraWalletConnectModal.content.cloneNode(true), styleSheet);
+            this.shadowRoot.append(
+                peraWalletConnectModal.content.cloneNode(true),
+                styleSheet,
+            )
+        }
     }
-  }
 }

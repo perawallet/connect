@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": [
+    "./.oxlintrc.json"
+  ],
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "dist/**",
+    "coverage/**",
+    "**/__tests__/**"
+  ],
+  "options": {
+    "typeAware": true,
+    "typeCheck": false
+  },
+  "rules": {
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error"
+  }
+}

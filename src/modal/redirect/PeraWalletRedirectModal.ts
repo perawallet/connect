@@ -1,14 +1,15 @@
-import PeraRedirectIcon from "../../asset/icon/PeraRedirectIcon.svg";
+import PeraRedirectIcon from '../../asset/icon/PeraRedirectIcon.svg'
 
-import {openDeepLinkInCurrentTab} from "../../util/dom/domUtils";
-import {generatePeraWalletAppDeepLink} from "../../util/peraWalletUtils";
+import { openDeepLinkInCurrentTab } from '../../util/dom/domUtils.js'
+import { generatePeraWalletAppDeepLink } from '../../util/peraWalletUtils.js'
 import {
-  PERA_WALLET_REDIRECT_MODAL_ID,
-  removeModalWrapperFromDOM
-} from "../peraWalletConnectModalUtils";
-import styles from "./_pera-wallet-redirect-modal.scss";
+    PERA_WALLET_REDIRECT_MODAL_ID,
+    removeModalWrapperFromDOM,
+} from '../peraWalletConnectModalUtils.js'
+import styles from './_pera-wallet-redirect-modal.scss?inline'
+import { appendTemplateWithStyles } from '../shadowDomUtils.js'
 
-const peraWalletRedirectModalTemplate = document.createElement("template");
+const peraWalletRedirectModalTemplate = document.createElement('template')
 
 peraWalletRedirectModalTemplate.innerHTML = `
   <div class="pera-wallet-modal pera-wallet-modal--mobile">
@@ -50,62 +51,64 @@ peraWalletRedirectModalTemplate.innerHTML = `
       </div>
     </div>
   </div>
-`;
+`
 
 export class PeraWalletRedirectModal extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({mode: "open"});
+    constructor() {
+        super()
+        this.attachShadow({ mode: 'open' })
 
-    if (this.shadowRoot) {
-      const styleSheet = document.createElement("style");
+        if (this.shadowRoot) {
+            appendTemplateWithStyles(
+                this.shadowRoot,
+                peraWalletRedirectModalTemplate,
+                styles,
+            )
 
-      styleSheet.textContent = styles;
+            const downloadPeraLink = this.shadowRoot?.getElementById(
+                'pera-wallet-redirect-modal-download-pera-link',
+            )
 
-      this.shadowRoot.append(
-        peraWalletRedirectModalTemplate.content.cloneNode(true),
-        styleSheet
-      );
+            downloadPeraLink?.addEventListener('click', () => {
+                this.onClose()
+            })
 
-      const downloadPeraLink = this.shadowRoot?.getElementById(
-        "pera-wallet-redirect-modal-download-pera-link"
-      );
+            const launchPeraLink = this.shadowRoot?.getElementById(
+                'pera-wallet-redirect-modal-launch-pera-link',
+            )
 
-      downloadPeraLink?.addEventListener("click", () => {
-        this.onClose();
-      });
-
-      const launchPeraLink = this.shadowRoot?.getElementById(
-        "pera-wallet-redirect-modal-launch-pera-link"
-      );
-
-      launchPeraLink?.addEventListener("click", () => {
-        openDeepLinkInCurrentTab(generatePeraWalletAppDeepLink());
-      });
+            launchPeraLink?.addEventListener('click', () => {
+                openDeepLinkInCurrentTab(generatePeraWalletAppDeepLink())
+            })
+        }
     }
-  }
 
-  connectedCallback() {
-    // Same-tab scheme navigation launches the wallet without unloading the
-    // page, so there is no synchronous success signal. The page going hidden
-    // is the launch confirmation; until then the modal stays as the
-    // "Can't Launch Pera" fallback.
-    document.addEventListener("visibilitychange", this.handleVisibilityChange);
+    connectedCallback() {
+        // Same-tab scheme navigation gives no success signal, so the page going
+        // hidden is the launch confirmation; until then the modal stays up as
+        // the "Can't Launch Pera" fallback.
+        document.addEventListener(
+            'visibilitychange',
+            this.handleVisibilityChange,
+        )
 
-    openDeepLinkInCurrentTab(generatePeraWalletAppDeepLink());
-  }
-
-  disconnectedCallback() {
-    document.removeEventListener("visibilitychange", this.handleVisibilityChange);
-  }
-
-  onClose() {
-    removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID);
-  }
-
-  private handleVisibilityChange = () => {
-    if (document.visibilityState === "hidden") {
-      this.onClose();
+        openDeepLinkInCurrentTab(generatePeraWalletAppDeepLink())
     }
-  };
+
+    disconnectedCallback() {
+        document.removeEventListener(
+            'visibilitychange',
+            this.handleVisibilityChange,
+        )
+    }
+
+    onClose() {
+        removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID)
+    }
+
+    private handleVisibilityChange = () => {
+        if (document.visibilityState === 'hidden') {
+            this.onClose()
+        }
+    }
 }
