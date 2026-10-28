@@ -59,20 +59,6 @@ function isJsonRpcBatchResponse(obj: unknown): obj is JsonRpcBatchResponse {
     return Array.isArray(obj) && obj.every(item => isJsonRpcResponse(item))
 }
 
-function isJsonRpcNotification(obj: unknown): obj is JsonRpcNotification {
-    if (!obj || typeof obj !== 'object') {
-        return false
-    }
-
-    const notif = obj as Record<string, unknown>
-
-    return (
-        notif.jsonrpc === '2.0' &&
-        typeof notif.method === 'string' &&
-        !('id' in notif)
-    )
-}
-
 class JsonRpcErrorClass extends Error {
     public readonly code: number
     public readonly data?: unknown
@@ -127,12 +113,6 @@ function createJsonRpcError(error: JsonRpcError): JsonRpcErrorClass {
             })
         }
         default: {
-            if (
-                error.code >= JsonRpcErrorCode.ServerErrorStart &&
-                error.code <= JsonRpcErrorCode.ServerErrorEnd
-            ) {
-                return new JsonRpcErrorClass(error)
-            }
             return new JsonRpcErrorClass(error)
         }
     }
@@ -146,8 +126,6 @@ function getIosInterface() {
     return window.webkit?.messageHandlers as PeraMobileIosInterface | undefined
 }
 
-type ActionHandler<T> = (payload: T) => void
-
 interface PendingRequest<T> {
     resolve: (value: T) => void
     reject: (error: Error) => void
@@ -156,19 +134,18 @@ interface PendingRequest<T> {
 }
 
 class MessageListener {
-    private listeners: Map<string, Set<ActionHandler<unknown>>> = new Map()
     private pendingRequests: Map<string | number, PendingRequest<unknown>> =
         new Map()
     private isListening = false
-    // One bound instance, so cleanup() removes the listener startListening() added.
-    private readonly boundHandleMessage = this.handleMessage.bind(this)
 
     private startListening(): void {
         if (this.isListening) {
             return
         }
 
-        window.addEventListener('message', this.boundHandleMessage)
+        // Added once and kept for the page's lifetime: the listener is shared by
+        // every PeraWalletConnect instance through this module.
+        window.addEventListener('message', this.handleMessage.bind(this))
         this.isListening = true
     }
 
@@ -190,11 +167,6 @@ class MessageListener {
 
             if (isJsonRpcResponse(data)) {
                 this.handleJsonRpcResponse(data)
-                return
-            }
-
-            if (isJsonRpcNotification(data)) {
-                this.handleJsonRpcNotification(data)
             }
         } catch {
             // A malformed message from the page must not break the bridge.
@@ -247,29 +219,6 @@ class MessageListener {
                           ),
                 )
             }
-        }
-    }
-
-    private handleJsonRpcNotification(notification: {
-        method: string
-        params?: unknown
-    }): void {
-        const { method, params } = notification
-        const handlers = this.listeners.get(method)
-
-        if (handlers) {
-            const parsedParams = this.parsePayload(params)
-
-            handlers.forEach(handler => {
-                try {
-                    handler(parsedParams)
-                } catch (error) {
-                    console.error(
-                        `Error in handler for method ${method}:`,
-                        error,
-                    )
-                }
-            })
         }
     }
 
@@ -327,41 +276,6 @@ class MessageListener {
                 method,
             })
         })
-    }
-
-    // Subscribes to JSON-RPC notifications the app pushes (e.g. onBackPressed).
-    onAction<T>(action: string, handler: ActionHandler<T>): () => void {
-        this.startListening()
-
-        if (!this.listeners.has(action)) {
-            this.listeners.set(action, new Set())
-        }
-
-        const handlers = this.listeners.get(action)!
-
-        handlers.add(handler as ActionHandler<unknown>)
-
-        return () => {
-            handlers.delete(handler as ActionHandler<unknown>)
-            if (handlers.size === 0) {
-                this.listeners.delete(action)
-            }
-        }
-    }
-
-    cleanup(): void {
-        this.pendingRequests.forEach(request => {
-            clearTimeout(request.timeoutHandle)
-            request.reject(new Error('Message listener cleaned up'))
-        })
-        this.pendingRequests.clear()
-
-        this.listeners.clear()
-
-        if (this.isListening) {
-            window.removeEventListener('message', this.boundHandleMessage)
-            this.isListening = false
-        }
     }
 }
 
