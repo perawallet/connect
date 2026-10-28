@@ -6,13 +6,15 @@ import { concatArrays } from '../array/arrayUtils.js'
 import { PERA_WALLET_SIGNATURE_PREFIX } from '../peraWalletConstants.js'
 
 // Read through Buffer.from like the wire encoding (bytesToBase64), so plain-JS
-// input such as a string hashes the same bytes the wallet signed.
+// input (a string, an ArrayBuffer, a number array) is checked against the same
+// bytes the wallet signed.
+function toSignedBytes(data: Uint8Array): Uint8Array<ArrayBuffer> {
+    return new Uint8Array(Buffer.from(data))
+}
+
 async function sha256(data: Uint8Array) {
     return new Uint8Array(
-        await crypto.subtle.digest(
-            'SHA-256',
-            new Uint8Array(Buffer.from(data)),
-        ),
+        await crypto.subtle.digest('SHA-256', toSignedBytes(data)),
     )
 }
 
@@ -27,7 +29,7 @@ function verifyPeraSignature(
         const { publicKey } = algosdk.decodeAddress(signerAddress)
 
         return nacl.sign.detached.verify(
-            concatArrays(PERA_WALLET_SIGNATURE_PREFIX, data),
+            concatArrays(PERA_WALLET_SIGNATURE_PREFIX, toSignedBytes(data)),
             signature,
             publicKey,
         )

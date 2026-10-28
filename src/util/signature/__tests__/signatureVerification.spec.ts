@@ -30,6 +30,25 @@ describe('verifyPeraSignature', () => {
         expect(verifyPeraSignature(data, signature, address)).toBe(false)
     })
 
+    it.each([
+        ['a string', 'hello', new TextEncoder().encode('hello')],
+        ['an ArrayBuffer', data.slice().buffer, data],
+        ['a number array', Array.from(data), data],
+    ])(
+        'checks plain-JS %s against the bytes the wallet signed',
+        (_, plainJsInput, signedBytes) => {
+            const signature = algosdk.signBytes(signedBytes, account.sk)
+
+            expect(
+                verifyPeraSignature(
+                    plainJsInput as unknown as Uint8Array,
+                    signature,
+                    address,
+                ),
+            ).toBe(true)
+        },
+    )
+
     it('returns false for an invalid address instead of throwing', () => {
         const signature = algosdk.signBytes(data, account.sk)
 
