@@ -1,30 +1,40 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "module": "esnext",
-    "outDir": "build",
-    "lib": ["es2020", "dom"],
-    "types": ["node"],
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-
-    "declaration": true,
-    "declarationDir": "dist/types",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "downlevelIteration": true,
-
-    "resolveJsonModule": true
-  },
-  "include": ["src"]
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "compilerOptions": {
+        "target": "ES2020",
+        "lib": [
+            "ES2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "types": [
+            "vite/client"
+        ],
+        "strict": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "isolatedModules": true,
+        "verbatimModuleSyntax": true,
+        "noUncheckedSideEffectImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "paths": {
+            "@perawallet/connect": [
+                "./src/index.ts"
+            ]
+        }
+    },
+    "include": [
+        "src",
+        "e2e",
+        "vite.config.ts",
+        "vitest.config.ts"
+    ]
 }

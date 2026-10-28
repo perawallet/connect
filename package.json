@@ -1,67 +1,9 @@
 {
-  "version": "1.9.0",
   "name": "@perawallet/connect",
+  "version": "1.9.0",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications",
-  "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "module": "dist/index.js",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "prepare": "git config core.hooksPath .githooks || true",
-    "dev": "rollup -c -w",
-    "build": "pnpm run eslint && rollup -c",
-    "build:release": "rollup -c",
-    "eslint": "eslint --ext .jsx,.js,.tsx,.ts src/",
-    "prettify": "prettier --config ./.prettierrc.cjs --write \"src/**/*.{ts,tsx}\"",
-    "type-check:watch": "tsc --watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
-  },
-  "author": "Pera Wallet",
   "license": "ISC",
-  "devDependencies": {
-    "@hipo/eslint-config-base": "^4.1.1",
-    "@hipo/eslint-config-typescript": "^1.1.0",
-    "@rollup/plugin-image": "^2.1.1",
-    "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-replace": "^5.0.2",
-    "@types/node": "^25.5.2",
-    "@typescript-eslint/eslint-plugin": "^5.17.0",
-    "@typescript-eslint/parser": "^5.17.0",
-    "@vitest/coverage-v8": "^3.2.7",
-    "eslint": "^8.12.0",
-    "eslint-config-prettier": "^8.5.0",
-    "jsdom": "^25.0.1",
-    "prettier": "^2.6.1",
-    "rollup": "^2.70.1",
-    "rollup-plugin-eslint": "^7.0.0",
-    "rollup-plugin-node-polyfills": "^0.2.1",
-    "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-sizes": "^1.0.5",
-    "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-typescript2": "^0.31.2",
-    "sass": "^1.49.11",
-    "typescript": "^4.6.3",
-    "vitest": "^3.2.7"
-  },
-  "dependencies": {
-    "@evanhahn/lottie-web-light": "5.8.1",
-    "@perawallet/walletconnect": "1.0.2",
-    "bowser": "2.11.0",
-    "buffer": "^6.0.3",
-    "qr-code-styling": "1.6.0-rc.1",
-    "tslib": "^2.8.1",
-    "tweetnacl-ts": "^1.0.3"
-  },
-  "peerDependencies": {
-    "algosdk": "^3.5.2"
-  },
+  "author": "Pera Wallet",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/perawallet/connect.git"
@@ -70,5 +12,69 @@
     "url": "https://github.com/perawallet/connect/issues"
   },
   "homepage": "https://github.com/perawallet/connect#readme",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "module": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": true,
+  "scripts": {
+    "setup:hooks": "git config core.hooksPath .githooks",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "dev": "vite build --watch",
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:types": "oxlint --config .oxlintrc.types.json --type-aware",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt \"**/*.{ts,md,scss}\"",
+    "format:check": "oxfmt --check \"**/*.{ts,md,scss}\"",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "pnpm build && playwright test -c e2e/playwright.config.ts",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "check:package": "publint --strict && attw --pack --profile esm-only",
+    "verify": "pnpm lint && pnpm lint:types && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm check:package"
+  },
+  "dependencies": {
+    "@evanhahn/lottie-web-light": "5.13.0",
+    "@perawallet/walletconnect": "1.0.3",
+    "bowser": "2.14.1",
+    "buffer": "^6.0.3",
+    "qr-code-styling": "1.9.2",
+    "tweetnacl": "^1.0.3"
+  },
+  "peerDependencies": {
+    "algosdk": "^3.5.2"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^24.10.0",
+    "@types/pngjs": "^6.0.5",
+    "@vitest/coverage-v8": "^5.0.3",
+    "algosdk": "^3.8.0",
+    "jsdom": "^30.0.1",
+    "jsqr": "^1.4.0",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
+    "oxlint-tsgolint": "^7.0.2003",
+    "pngjs": "^7.0.0",
+    "publint": "^0.3.15",
+    "sass": "^1.104.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1",
+    "vitest": "^5.0.3"
+  },
   "packageManager": "pnpm@10.28.1+sha512.7d7dbbca9e99447b7c3bf7a73286afaaf6be99251eb9498baefa7d406892f67b879adb3a1d7e687fc4ccc1a388c7175fbaae567a26ab44d1067b54fcb0d6a316"
 }

@@ -1,559 +1,747 @@
-/* eslint-disable max-lines */
-import WalletConnect from "@perawallet/walletconnect";
-import algosdk, {type TransactionSigner} from "algosdk";
-import {sign_detached_verify} from "tweetnacl-ts";
+import WalletConnect from '@perawallet/walletconnect'
+import algosdk, { type TransactionSigner } from 'algosdk'
 
-import PeraWalletConnectError from "./util/PeraWalletConnectError";
 import {
-  openPeraWalletConnectModal,
-  removeModalWrapperFromDOM,
-  PERA_WALLET_CONNECT_MODAL_ID,
-  PERA_WALLET_EXTENSION_CONNECT_EVENT,
-  PeraWalletModalConfig,
-  setupPeraWalletConnectModalCloseListener
-} from "./modal/peraWalletConnectModalUtils";
+    createPeraWalletConnectQrcodeModal,
+    PERA_WALLET_CONNECT_MODAL_ID,
+    PERA_WALLET_EXTENSION_CONNECT_EVENT,
+    removeModalWrapperFromDOM,
+    setupPeraWalletConnectModalCloseListener,
+} from './modal/peraWalletConnectModalUtils.js'
 import {
-  getWalletDetailsFromStorage,
-  resetWalletDetailsFromStorage,
-  saveWalletDetailsToStorage,
-  getWalletConnectObjectFromStorage,
-  getWalletPlatformFromStorage,
-  migrateLegacyWalletConnectSession
-} from "./util/storage/storageUtils";
-import {PERA_WALLET_LOCAL_STORAGE_KEYS} from "./util/storage/storageConstants";
-import {getPeraConnectConfig} from "./util/api/peraWalletConnectApi";
+    buildArc60SignDataResponse,
+    decodeArc60SignedData,
+    isEd25519Scheme,
+} from './transport/arc60Wire.js'
 import {
-  PeraWalletArbitraryData,
-  PeraWalletArc60SignData,
-  PeraWalletArc60SignDataResponse,
-  PeraWalletArc60SignerResolution,
-  PeraWalletNetwork,
-  PeraWalletTransaction,
-  SignerTransaction,
-  SignMetadata
-} from "./util/model/peraWalletModels";
-import {composeTransaction} from "./util/transaction/transactionUtils";
-import {isMobile} from "./util/device/deviceUtils";
-import {AlgorandChainIDs} from "./util/peraWalletTypes";
-import {runWebConnectFlow} from "./util/connect/connectFlow";
-import {concatArrays} from "./util/array/arrayUtils";
-import {AlgodManager} from "./util/algod/algod";
+    ExtensionTransport,
+    getPeraNetworkFromChainId,
+} from './transport/extension/ExtensionTransport.js'
 import {
-  ALGORAND_NODE_CHAIN_ID,
-  DEFAULT_ALGORAND_NODE_PROVIDER_TYPE
-} from "./util/algod/algodConstants";
-import {AlgodClients, NetworkToggle} from "./util/algod/algodTypes";
-import {assertValidAlgodClients, getNetworkFromChainId} from "./util/algod/algodUtils";
+    getPeraProvider,
+    type PeraNetwork,
+} from './transport/extension/peraProviderTypes.js'
 import {
-  PERA_WALLET_CONNECT_FALLBACK_BRIDGE,
-  PERA_WALLET_SIGNATURE_PREFIX
-} from "./util/peraWalletConstants";
-import {getPublicSettings} from "./util/webview-api/webviewApi";
+    MobileTransport,
+    requestEmptySignatures,
+} from './transport/MobileTransport.js'
 import {
-  ExtensionTransport,
-  getPeraNetworkFromChainId
-} from "./transport/extension/ExtensionTransport";
-import {getPeraProvider, PeraNetwork} from "./transport/extension/peraProviderTypes";
-import {isArc60OriginMismatch} from "./transport/extension/originBinding";
-import {MobileTransport, requestEmptySignatures} from "./transport/MobileTransport";
+    type ConnectOptions,
+    type WalletTransport,
+} from './transport/WalletTransport.js'
+import { WebTransport } from './transport/WebTransport.js'
+import { AlgodClientPool } from './util/algod/algod.js'
+import { ALGORAND_NODE_CHAIN_ID } from './util/algod/algodConstants.js'
+import { type AlgodClients } from './util/algod/algodTypes.js'
 import {
-  EMPTY_SIGNATURES_CAIP2_CHAIN_IDS,
-  assertEmptySignaturesNetwork,
-  filterEmptySignatures,
-  resolveEmptySignaturesNetwork
-} from "./util/emptySignatures";
-import {WebTransport} from "./transport/WebTransport";
-import {ConnectOptions} from "./transport/WalletTransport";
+    assertValidAlgodClients,
+    getNetworkFromChainId,
+} from './util/algod/algodUtils.js'
+import { getPeraConnectConfig } from './util/api/peraWalletConnectApi.js'
 import {
-  buildArc60SignDataResponse,
-  decodeArc60SignedData,
-  isEd25519Scheme
-} from "./transport/arc60Wire";
+    assertArc60DomainMatchesOrigin,
+    assertValidArc60Account,
+    lookupArc60Signer,
+    resolveArc60SignerNetwork,
+} from './util/arc60/arc60Signer.js'
+import { runWebConnectFlow } from './util/connect/connectFlow.js'
+import { isMobile, isPeraDiscoverBrowser } from './util/device/deviceUtils.js'
+import {
+    assertEmptySignaturesNetwork,
+    EMPTY_SIGNATURES_CAIP2_CHAIN_IDS,
+    filterEmptySignatures,
+    resolveEmptySignaturesNetwork,
+} from './util/emptySignatures.js'
+import { getErrorMessage } from './util/error/errorUtils.js'
+import {
+    SessionEventEmitter,
+    type PeraWalletConnectEvent,
+    type PeraWalletConnectEventHandler,
+} from './util/events/SessionEventEmitter.js'
+import {
+    type PeraWalletArbitraryData,
+    type PeraWalletArc60SignData,
+    type PeraWalletArc60SignDataResponse,
+    type PeraWalletArc60SignerResolution,
+    type PeraWalletNetwork,
+    type PeraWalletTransaction,
+    type SignerTransaction,
+    type SignMetadata,
+} from './util/model/peraWalletModels.js'
+import { PeraWalletConnectError } from './util/PeraWalletConnectError.js'
+import { PERA_WALLET_CONNECT_FALLBACK_BRIDGE } from './util/peraWalletConstants.js'
+import { type AlgorandChainIDs } from './util/peraWalletTypes.js'
+import {
+    verifyArc60Signature,
+    verifyPeraSignature,
+} from './util/signature/signatureVerification.js'
+import { PERA_WALLET_LOCAL_STORAGE_KEYS } from './util/storage/storageConstants.js'
+import {
+    getWalletConnectObjectFromStorage,
+    getWalletDetailsFromStorage,
+    getWalletPlatformFromStorage,
+    migrateLegacyWalletConnectSession,
+    resetWalletDetailsFromStorage,
+    saveWalletDetailsToStorage,
+} from './util/storage/storageUtils.js'
+import { assertSignedTransactionsMatch } from './util/transaction/signedTransactionMatch.js'
+import {
+    buildSignerGroupForIndexes,
+    orderSignedByIndexes,
+} from './util/transaction/transactionSignerUtils.js'
+import { composeTransaction } from './util/transaction/transactionUtils.js'
+import { getPublicSettings } from './util/webview-api/webviewApi.js'
 
 interface PeraWalletConnectOptions {
-  bridge?: string;
-  shouldShowSignTxnToast?: boolean;
-  chainId?: AlgorandChainIDs;
-  compactMode?: boolean;
-  singleAccount?: boolean;
-  /**
-   * When the Pera browser extension is installed (`window.pera` is present),
-   * the connect modal offers "Connect with Pera Extension" and pre-selects it.
-   * Set to `false` to leave the extension out of the modal and only offer the
-   * QR / Pera Web options. Defaults to `true`.
-   */
-  shouldPreferExtension?: boolean;
-  /**
-   * Opts in to experimental features. Nothing is gated behind it at the
-   * moment: browser-extension support used to be, and is now on by default
-   * whenever `window.pera` is present. Kept as the opt-in for whatever is
-   * experimental next.
-   */
-  experimental?: boolean;
-  /**
-   * Algod clients connect reads account state with — the auth-address lookups
-   * behind `resolveArc60Signer` and `signData` verification. Supply your own to
-   * keep those reads on your infrastructure and off Pera's rate limits; a
-   * network left out keeps Pera's node.
-   *
-   * ```ts
-   * new PeraWalletConnect({
-   *   algod: {
-   *     mainnet: new algosdk.Algodv2(MY_TOKEN, "https://my-node.example.com", "")
-   *   }
-   * })
-   * ```
-   */
-  algod?: AlgodClients;
-}
-
-type PeraWalletConnectEventMap = {
-  /** The session ended from the wallet side (for example the user revoked the site). */
-  disconnect: undefined;
-  /** The wallet switched network (extension only). */
-  networkChanged: {network: PeraNetwork};
-};
-
-type PeraWalletConnectEvent = keyof PeraWalletConnectEventMap;
-type PeraWalletConnectEventHandler<E extends PeraWalletConnectEvent> = (
-  payload: PeraWalletConnectEventMap[E]
-) => void;
-
-function generatePeraWalletConnectModalActions({
-  isWebWalletAvailable,
-  shouldDisplayNewBadge,
-  shouldUseSound,
-  compactMode,
-  promoteMobile,
-  singleAccount,
-  selectedAccount,
-  isInWebview,
-  isExtensionEnabled
-}: PeraWalletModalConfig) {
-  return {
-    open: openPeraWalletConnectModal({
-      isWebWalletAvailable,
-      shouldDisplayNewBadge,
-      shouldUseSound,
-      compactMode,
-      promoteMobile,
-      singleAccount,
-      selectedAccount,
-      isInWebview,
-      isExtensionEnabled
-    }),
-    close: () => removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
-  };
-}
-
-/**
- * The txID a transaction would have without its fee and group ID. The wallet
- * may raise the fee (quantum accounts need more than the dApp's estimate) and
- * so regroup, but must leave everything else as requested.
- */
-function txIdIgnoringFeeAndGroup(txn: algosdk.Transaction) {
-  const data = txn.toEncodingData();
-
-  data.delete("fee");
-  data.delete("grp");
-
-  return algosdk.Transaction.fromEncodingData(data).txID();
-}
-
-function groupKey(txn: algosdk.Transaction) {
-  return txn.group ? algosdk.bytesToBase64(txn.group) : undefined;
-}
-
-/**
- * The group ID the transaction at `index` must come back with. A wallet that
- * raises a fee regroups every member of that group (including the ones it
- * doesn't sign) over the new fees, and leaves other transactions alone, so a
- * group can be neither split, joined nor created.
- */
-function expectedGroupKey(
-  requested: algosdk.Transaction[],
-  returnedFees: bigint[],
-  index: number
-) {
-  const key = groupKey(requested[index]);
-
-  if (!key) return undefined;
-
-  const members = requested
-    .map((txn, memberIndex) => ({txn, fee: returnedFees[memberIndex]}))
-    .filter(({txn}) => groupKey(txn) === key);
-
-  // Untouched groups keep their ID, which also covers a request that holds
-  // only part of a group.
-  if (members.every(({txn, fee}) => txn.fee === fee)) return key;
-
-  return algosdk.bytesToBase64(
-    algosdk.computeGroupID(
-      members.map(({txn, fee}) => {
-        const clone = algosdk.Transaction.fromEncodingData(txn.toEncodingData());
-
-        clone.fee = fee;
-        clone.group = undefined;
-
-        return clone;
-      })
-    )
-  );
-}
-
-/**
- * The wallet's answer is only as trustworthy as the channel it arrived on, and
- * a dApp submits what it gets back. Each signed transaction must be the one
- * that was asked for (same position, same fields apart from a fee at least as
- * high and the group ID that fee implies), so a wallet bug or a forged
- * response cannot hand the dApp a different transaction as the user's, or
- * break a group's atomicity.
- */
-function assertSignedTransactionsMatch(
-  requested: algosdk.Transaction[],
-  signableIndices: number[],
-  signed: Uint8Array[]
-) {
-  if (signed.length !== signableIndices.length) {
-    throw new PeraWalletConnectError(
-      {
-        type: "SIGN_TRANSACTIONS",
-        detail: {expected: signableIndices.length, received: signed.length}
-      },
-      `Expected ${signableIndices.length} signed transaction(s) from the wallet but received ${signed.length}`
-    );
-  }
-
-  const mismatch = (position: number, received?: string) =>
-    new PeraWalletConnectError(
-      {
-        type: "SIGN_TRANSACTIONS",
-        detail: {
-          index: position,
-          expected: requested[signableIndices[position]].txID(),
-          received
-        }
-      },
-      `The wallet returned a different transaction than the one requested at position ${position}`
-    );
-
-  const decoded = signed.map((signedTxn, position) => {
-    const expectedTxn = requested[signableIndices[position]];
-    let txn: algosdk.Transaction;
-
-    try {
-      txn = algosdk.decodeSignedTransaction(signedTxn).txn;
-    } catch (_error) {
-      throw mismatch(position);
-    }
-
-    if (
-      txn.fee < expectedTxn.fee ||
-      txIdIgnoringFeeAndGroup(txn) !== txIdIgnoringFeeAndGroup(expectedTxn)
-    ) {
-      throw mismatch(position, txn.txID());
-    }
-
-    return txn;
-  });
-
-  const returnedFees = requested.map((txn) => txn.fee);
-
-  signableIndices.forEach((index, position) => {
-    returnedFees[index] = decoded[position].fee;
-  });
-
-  decoded.forEach((txn, position) => {
-    if (
-      groupKey(txn) !==
-      expectedGroupKey(requested, returnedFees, signableIndices[position])
-    ) {
-      throw mismatch(position, txn.txID());
-    }
-  });
+    bridge?: string
+    shouldShowSignTxnToast?: boolean
+    chainId?: AlgorandChainIDs
+    compactMode?: boolean
+    singleAccount?: boolean
+    /**
+     * When the Pera browser extension is installed (`window.pera` is present),
+     * the connect modal offers "Connect with Pera Extension" and pre-selects it.
+     * Set to `false` to leave the extension out of the modal and only offer the
+     * QR / Pera Web options. Defaults to `true`.
+     */
+    shouldPreferExtension?: boolean
+    /**
+     * Opts in to experimental features. Nothing is gated behind it at the
+     * moment; kept as the opt-in for whatever is experimental next.
+     */
+    experimental?: boolean
+    /**
+     * Algod clients connect reads account state with — the auth-address lookups
+     * behind `resolveArc60Signer` and `signData` verification. Supply your own to
+     * keep those reads on your infrastructure and off the public nodes' rate
+     * limits; a network left out keeps the public node.
+     *
+     * ```ts
+     * new PeraWalletConnect({
+     *   algod: {
+     *     mainnet: new algosdk.Algodv2(MY_TOKEN, "https://my-node.example.com", "")
+     *   }
+     * })
+     * ```
+     */
+    algod?: AlgodClients
 }
 
 class PeraWalletConnect {
-  bridge: string;
-  connector: WalletConnect | null;
-  shouldShowSignTxnToast: boolean;
-  isInWebview: boolean;
-  chainId?: AlgorandChainIDs;
-  compactMode?: boolean;
-  singleAccount?: boolean;
-  shouldPreferExtension: boolean;
-  experimental: boolean;
-  private extensionTransport: ExtensionTransport | null;
-  /** Connectors the SDK has retired; see `abandonConnector()`. */
-  private abandonedConnectors = new WeakSet<WalletConnect>();
-  private eventHandlers: {
-    [E in PeraWalletConnectEvent]: Set<PeraWalletConnectEventHandler<E>>;
-  } = {
-    disconnect: new Set(),
-    networkChanged: new Set()
-  };
-  private algodClients: Map<NetworkToggle, AlgodManager>;
-  private suppliedAlgodClients?: AlgodClients;
-  private _configPromise: ReturnType<typeof getPeraConnectConfig> | null = null;
-  private _webviewCheckPromise: Promise<boolean> | null = null;
-  private _transactionSigner: TransactionSigner | null = null;
+    bridge: string
+    connector: WalletConnect | null
+    shouldShowSignTxnToast: boolean
+    isInWebview: boolean
+    chainId?: AlgorandChainIDs
+    compactMode?: boolean
+    singleAccount?: boolean
+    shouldPreferExtension: boolean
+    experimental: boolean
+    private extensionTransport: ExtensionTransport | null
+    /** Connectors the SDK has retired; see `abandonConnector()`. */
+    private abandonedConnectors = new WeakSet<WalletConnect>()
+    private events = new SessionEventEmitter()
+    private algodClients: AlgodClientPool
+    private configPromise: ReturnType<typeof getPeraConnectConfig>
+    private webviewCheckPromise: Promise<boolean>
+    private cachedTransactionSigner: TransactionSigner | null = null
 
-  constructor(options?: PeraWalletConnectOptions) {
-    this.bridge = options?.bridge || "";
-
-    this.connector = null;
-    this.shouldShowSignTxnToast =
-      typeof options?.shouldShowSignTxnToast === "undefined"
-        ? true
-        : options.shouldShowSignTxnToast;
-
-    this.chainId = options?.chainId;
-    this.isInWebview = false;
-    this.compactMode = options?.compactMode || false;
-    this.singleAccount = options?.singleAccount || false;
-    this.algodClients = new Map();
-
-    if (options?.algod) {
-      assertValidAlgodClients(options.algod);
-      this.suppliedAlgodClients = options.algod;
-    }
-
-    this.shouldPreferExtension =
-      typeof options?.shouldPreferExtension === "undefined"
-        ? true
-        : options.shouldPreferExtension;
-    this.experimental = options?.experimental || false;
-    this.extensionTransport = this.createExtensionTransport();
-
-    // Earlier versions persisted the WalletConnect session under the shared
-    // WC v1 default key; move it to Pera's namespaced key before any connector
-    // is built so reconnect keeps working across the upgrade.
-    migrateLegacyWalletConnectSession();
-
-    // Eagerly start the two blocking operations so they resolve
-    // before the user taps Connect — avoids delay on iOS Safari.
-    this._configPromise = getPeraConnectConfig();
-    this._webviewCheckPromise = this.checkIsInWebview();
-  }
-
-  get platform() {
-    return getWalletPlatformFromStorage();
-  }
-
-  /**
-   * Whether the Pera browser extension's provider (`window.pera`) is present
-   * on this page. The detection itself is synchronous (the provider is
-   * installed before any page script runs, so there is nothing to poll for or
-   * wait on); the promise is kept for backwards compatibility.
-   */
-  isExtensionAvailable(): Promise<boolean> {
-    return Promise.resolve(this.extensionTransport !== null);
-  }
-
-  /**
-   * Subscribe to session events. Returns the unsubscribe function.
-   *
-   * `disconnect` fires when the wallet ends the session on its side: the user
-   * revoked the site from the extension's Connections screen, or the Pera
-   * mobile wallet killed the WalletConnect session. `networkChanged` fires
-   * when the extension wallet switches network.
-   */
-  on<E extends PeraWalletConnectEvent>(
-    event: E,
-    handler: PeraWalletConnectEventHandler<E>
-  ): () => void {
-    const handlers = this.eventHandlers[event] as Set<PeraWalletConnectEventHandler<E>>;
-
-    handlers.add(handler);
-
-    return () => {
-      handlers.delete(handler);
-    };
-  }
-
-  private emit<E extends PeraWalletConnectEvent>(
-    event: E,
-    payload: PeraWalletConnectEventMap[E]
-  ) {
-    const handlers = this.eventHandlers[event] as Set<PeraWalletConnectEventHandler<E>>;
-
-    handlers.forEach((handler) => {
-      try {
-        handler(payload);
-      } catch {
-        // A faulty listener must not break the others or the SDK.
-      }
-    });
-  }
-
-  private createExtensionTransport(): ExtensionTransport | null {
-    const provider = getPeraProvider();
-
-    if (!provider) {
-      return null;
-    }
-
-    return new ExtensionTransport(provider, {
-      chainId: this.chainId,
-      onDisconnect: () => this.emit("disconnect", undefined),
-      onNetworkChanged: (params) => this.emit("networkChanged", params)
-    });
-  }
-
-  /**
-   * The WalletConnect connector reports a wallet-side session end through its
-   * own `disconnect` event; mirror it on the SDK so dApps can listen in one
-   * place regardless of transport.
-   *
-   * The event is also how WalletConnect v1 reports *our* `killSession()`, so
-   * connectors we have abandoned are filtered out — a dApp must not be told
-   * the wallet ended a session that the SDK itself is tearing down.
-   */
-  private forwardConnectorDisconnect(connector: WalletConnect) {
-    connector.on("disconnect", () => {
-      if (this.abandonedConnectors.has(connector)) {
-        return;
-      }
-
-      if (this.connector === connector) {
-        this.connector = null;
-      }
-
-      // Another transport may own the current session; only a mobile one is
-      // dropped here. Mirrors ExtensionTransport.handleProviderDisconnect(),
-      // so the handler sees cleared state either way.
-      if (getWalletPlatformFromStorage() === "mobile") {
-        resetWalletDetailsFromStorage();
-      }
-
-      this.emit("disconnect", undefined);
-    });
-  }
-
-  /**
-   * Retires a WalletConnect connector the SDK is done with. WalletConnect v1
-   * keeps its listeners for the connector's lifetime and its `off()` drops
-   * every listener for an event, so the connector is marked instead and its
-   * handlers bail.
-   *
-   * Without this a QR pairing left in flight by a connect that finished
-   * through another transport still fires `connect` when the user finally
-   * scans, overwriting the stored session with a mobile one.
-   */
-  private async abandonConnector(connector: WalletConnect | null) {
-    if (!connector) {
-      return;
-    }
-
-    this.abandonedConnectors.add(connector);
-
-    if (this.connector === connector) {
-      this.connector = null;
-    }
-
-    if (connector.connected) {
-      try {
-        await connector.killSession();
-      } catch (_error) {
-        // Best-effort: the connector is already detached either way.
-      }
-    }
-  }
-
-  get isConnected() {
-    if (this.platform === "mobile") {
-      return !!this.connector;
-    } else if (this.platform === "web") {
-      return !!getWalletDetailsFromStorage()?.accounts.length;
-    } else if (this.platform === "extension") {
-      return !!getWalletDetailsFromStorage()?.accounts.length;
-    }
-
-    return false;
-  }
-
-  get isPeraDiscoverBrowser() {
-    return this.checkIsPeraDiscoverBrowser();
-  }
-
-  private async checkIsInWebview(): Promise<boolean> {
-    if (isMobile()) {
-      try {
-        const publicSettings = await getPublicSettings();
-
-        return publicSettings !== null;
-      } catch {
-        return false;
-      }
-    }
-
-    return false;
-  }
-
-  // `selectedAccount` option is only applicable for Pera Wallet products
-  connect(options?: ConnectOptions) {
-    return new Promise<string[]>(async (resolveConnect, rejectConnect) => {
-      // The extension button's listener is scoped to this connect() call and
-      // must go away however the call settles (WalletConnect pairing, Pera
-      // Web, modal closed, failure), or a later click would hit a stale one.
-      let removeExtensionListener = () => {
-        // no listener registered
-      };
-      const resolve = (accounts: string[]) => {
-        removeExtensionListener();
-        resolveConnect(accounts);
-      };
-      const reject = (error: unknown) => {
-        removeExtensionListener();
-        rejectConnect(error);
-      };
-
-      try {
-        // Retire the previous connector before creating a new one, so the user
-        // starts from scratch on every `.connect()` call. Going through
-        // `abandonConnector()` keeps our own `killSession()` from reaching the
-        // dApp as a wallet-side `disconnect` mid-connect.
-        await this.abandonConnector(this.connector);
-
-        const {
-          isWebWalletAvailable,
-          bridgeURL,
-          webWalletURL,
-          shouldDisplayNewBadge,
-          shouldUseSound,
-          promoteMobile
-        } = await (this._configPromise ?? getPeraConnectConfig());
-
-        // Re-prime for next connect() call so it also benefits from prefetching
-        this._configPromise = getPeraConnectConfig();
-
-        this.isInWebview = await (this._webviewCheckPromise ?? this.checkIsInWebview());
-        this._webviewCheckPromise = this.checkIsInWebview();
-
-        const onWebWalletConnect = runWebConnectFlow({
-          resolve,
-          reject,
-          webWalletURL,
-          chainId: this.chainId,
-          isCompactMode: this.compactMode
-        });
-
-        if (isWebWalletAvailable) {
-          // @ts-ignore ts-2339
-          window.onWebWalletConnect = onWebWalletConnect;
+    constructor(options?: PeraWalletConnectOptions) {
+        if (options?.algod) {
+            assertValidAlgodClients(options.algod)
         }
 
-        const extensionTransport = this.shouldPreferExtension
-          ? this.extensionTransport
-          : null;
+        this.bridge = options?.bridge || ''
+        this.connector = null
+        this.shouldShowSignTxnToast = options?.shouldShowSignTxnToast ?? true
+        this.chainId = options?.chainId
+        this.isInWebview = false
+        this.compactMode = options?.compactMode || false
+        this.singleAccount = options?.singleAccount || false
+        this.shouldPreferExtension = options?.shouldPreferExtension ?? true
+        this.experimental = options?.experimental || false
+        this.algodClients = new AlgodClientPool(options?.algod)
+        this.extensionTransport = this.createExtensionTransport()
 
-        if (extensionTransport) {
-          // The modal's extension button dispatches this event synchronously
-          // from its click handler, and `dispatchEvent` runs listeners
-          // synchronously, so `window.pera.connect()` below still runs inside
-          // the user's gesture (a first-time connect needs that activation).
-          const handleExtensionConnect = () => {
-            removeExtensionListener();
+        // Earlier versions persisted the WalletConnect session under the shared
+        // WC v1 default key; move it to Pera's namespaced key before any
+        // connector is built so reconnect keeps working across the upgrade.
+        migrateLegacyWalletConnectSession()
+
+        // Started eagerly so both have resolved before the user taps Connect;
+        // awaiting them inside the tap delays the modal on iOS Safari.
+        this.configPromise = getPeraConnectConfig()
+        this.webviewCheckPromise = this.checkIsInWebview()
+    }
+
+    get platform() {
+        return getWalletPlatformFromStorage()
+    }
+
+    get isConnected() {
+        switch (this.platform) {
+            case 'mobile': {
+                return !!this.connector
+            }
+            case 'web':
+            case 'extension': {
+                return !!getWalletDetailsFromStorage()?.accounts.length
+            }
+            default: {
+                return false
+            }
+        }
+    }
+
+    get isPeraDiscoverBrowser() {
+        return isPeraDiscoverBrowser()
+    }
+
+    /**
+     * Whether the Pera browser extension's provider (`window.pera`) is present
+     * on this page. The detection itself is synchronous (the provider is
+     * installed before any page script runs, so there is nothing to poll for or
+     * wait on); the promise is kept for backwards compatibility.
+     */
+    isExtensionAvailable(): Promise<boolean> {
+        return Promise.resolve(this.extensionTransport !== null)
+    }
+
+    /**
+     * Subscribe to session events. Returns the unsubscribe function.
+     *
+     * `disconnect` fires when the wallet ends the session on its side: the user
+     * revoked the site from the extension's Connections screen, or the Pera
+     * mobile wallet killed the WalletConnect session. `networkChanged` fires
+     * when the extension wallet switches network.
+     */
+    on<E extends PeraWalletConnectEvent>(
+        event: E,
+        handler: PeraWalletConnectEventHandler<E>,
+    ): () => void {
+        return this.events.on(event, handler)
+    }
+
+    /**
+     * Opens the connect modal and resolves with the accounts the user shares.
+     * Rejects with `CONNECT_MODAL_CLOSED` when the user closes the modal.
+     *
+     * `selectedAccount` only applies to Pera Wallet products.
+     */
+    connect(options?: ConnectOptions): Promise<string[]> {
+        return new Promise<string[]>((resolve, reject) => {
+            void this.runConnect(options, resolve, reject)
+        })
+    }
+
+    async reconnectSession(): Promise<string[]> {
+        let walletDetails: ReturnType<typeof getWalletDetailsFromStorage>
+
+        try {
+            walletDetails = getWalletDetailsFromStorage()
+        } catch (error) {
+            throw await this.failReconnect(error)
+        }
+
+        if (!walletDetails) {
+            return []
+        }
+
+        if (walletDetails.type === 'pera-wallet-web') {
+            return this.reconnectWebSession(walletDetails.accounts)
+        }
+
+        if (walletDetails.type === 'pera-wallet-extension') {
+            return this.reconnectExtensionSession()
+        }
+
+        try {
+            return await this.reconnectMobileSession()
+        } catch (error) {
+            throw await this.failReconnect(error)
+        }
+    }
+
+    async disconnect() {
+        if (
+            this.isConnected &&
+            this.platform === 'extension' &&
+            this.extensionTransport
+        ) {
+            await this.extensionTransport.disconnect()
+        }
+
+        if (this.isConnected && this.platform === 'mobile') {
+            // Retiring rather than killing directly: this is the SDK's own
+            // teardown, and WalletConnect reports `killSession()` through the
+            // same `disconnect` event a wallet-side end uses.
+            await this.abandonConnector(this.connector)
+        }
+
+        await resetWalletDetailsFromStorage()
+    }
+
+    /**
+     * Releases everything this instance holds: the `window.pera` subscriptions
+     * (the provider outlives the page's components, so an undisposed instance is
+     * retained for the page's life) and any WalletConnect connector. The wallet
+     * session itself is untouched — call `disconnect()` for that.
+     *
+     * Call it when the component owning the instance unmounts. Under React
+     * StrictMode or hot reload, skipping it leaves the discarded instance
+     * listening and swallowing the events the live one should handle.
+     */
+    dispose() {
+        this.extensionTransport?.dispose()
+        this.extensionTransport = null
+
+        if (this.connector) {
+            this.abandonedConnectors.add(this.connector)
+            this.connector = null
+        }
+
+        this.events.clear()
+    }
+
+    verifySignature(
+        data: Uint8Array,
+        signature: Uint8Array,
+        signerAddress: string,
+    ): boolean {
+        return verifyPeraSignature(data, signature, signerAddress)
+    }
+
+    verifyArc60Signature(
+        data: Uint8Array,
+        authenticatorData: Uint8Array,
+        signature: Uint8Array,
+        signerAddress: string,
+    ): Promise<boolean> {
+        return verifyArc60Signature(
+            data,
+            authenticatorData,
+            signature,
+            signerAddress,
+        )
+    }
+
+    async signTransaction(
+        txGroups: SignerTransaction[][],
+        signerAddress?: string,
+    ): Promise<Uint8Array[]> {
+        const transport = this.getTransport()
+        const txns = txGroups.flat()
+        const signTxnRequestParams = txns.map<PeraWalletTransaction>(
+            txGroupDetail => composeTransaction(txGroupDetail, signerAddress),
+        )
+
+        const result = await transport.signTransaction(signTxnRequestParams)
+
+        // `signers: []` marks a transaction the wallet was told not to sign; it
+        // returns only the others, in group order.
+        const signableIndices = signTxnRequestParams.flatMap((params, index) =>
+            params.signers?.length === 0 ? [] : [index],
+        )
+
+        assertSignedTransactionsMatch(
+            txns.map(({ txn }) => txn),
+            signableIndices,
+            result,
+        )
+
+        return result
+    }
+
+    /**
+     * An algosdk `TransactionSigner` backed by this wallet connection, for use
+     * with `AtomicTransactionComposer` and any API that accepts a signer:
+     *
+     *   atc.addTransaction({txn, signer: peraWallet.transactionSigner});
+     *
+     * The whole group is sent to the wallet in one request; slots not listed in
+     * `indexesToSign` are marked `signers: []` (ARC-0001) so the wallet shows
+     * but does not sign them. The same function instance is returned on every
+     * access: `AtomicTransactionComposer` batches transactions by signer
+     * identity, so a fresh function per access would mean one wallet prompt per
+     * transaction instead of one per group.
+     */
+    get transactionSigner(): TransactionSigner {
+        this.cachedTransactionSigner ??= async (txnGroup, indexesToSign) => {
+            if (indexesToSign.length === 0) {
+                return []
+            }
+
+            const signerGroup = buildSignerGroupForIndexes(
+                txnGroup,
+                indexesToSign,
+            )
+            // Rejects unless exactly the requested slots come back.
+            const signed = await this.signTransaction([signerGroup])
+
+            return orderSignedByIndexes(signed, indexesToSign)
+        }
+
+        return this.cachedTransactionSigner
+    }
+
+    async signData(
+        data: PeraWalletArbitraryData[],
+        signer: string,
+        verifySignature?: boolean,
+    ): Promise<Uint8Array[]> {
+        const chainId = this.chainId || ALGORAND_NODE_CHAIN_ID
+        const transport = this.getTransport()
+        const signatures = await transport.signData(data, signer, chainId)
+
+        if (verifySignature) {
+            const authAddr = await this.getAccountAuthAddr(signer, chainId)
+            const effectiveSigner = authAddr || signer
+
+            signatures.forEach((signature, index) => {
+                if (
+                    !this.verifySignature(
+                        data[index].data,
+                        signature,
+                        effectiveSigner,
+                    )
+                ) {
+                    throw new PeraWalletConnectError(
+                        { type: 'SIGN_DATA_VERIFICATION_FAILED' },
+                        `Signature verification failed for data item at index ${index}`,
+                    )
+                }
+            })
+        }
+
+        return signatures
+    }
+
+    /**
+     * Resolves who has to sign an ARC-60 (SIWA) request for `accountAddress`.
+     * ed25519 only: a Falcon account's key isn't in its address, so its `signer`
+     * comes from its empty signature (`pqsig.pk`) instead.
+     *
+     * An ARC-60 signature verifies against `signer`'s own key and the wallet
+     * never substitutes another key, so a rekeyed account must be signed for by
+     * its on-chain auth address: put the returned `signer` into
+     * `PeraWalletArc60SignData` and keep `accountAddress` as the SIWA
+     * `account_address`. The wallet refuses a rekeyed account signing for itself,
+     * and it can only sign when it holds the auth address as a key-bearing or
+     * Ledger account.
+     *
+     * Rekeys are per network and the wallet checks them on the network it is
+     * connected to, which connect cannot observe. A session pinned to `416001`
+     * or `416002` is only served while the wallet is on that network, so the
+     * lookup uses it and an explicit `network` may only agree with it
+     * (`SIGN_DATA_NETWORK_MISMATCH` otherwise). An all-networks session (`4160`,
+     * the default) needs `network` (`SIGN_DATA_NETWORK_REQUIRED`) and the caller
+     * has to know the wallet's network by other means. Betanet has no algod here
+     * (`SIGN_DATA_NETWORK_UNSUPPORTED`). A failed lookup throws
+     * `SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED` rather than assuming "not rekeyed".
+     */
+    async resolveArc60Signer(
+        accountAddress: string,
+        network?: PeraWalletNetwork,
+    ): Promise<PeraWalletArc60SignerResolution> {
+        assertValidArc60Account(accountAddress)
+
+        const resolvedNetwork = resolveArc60SignerNetwork(this.chainId, network)
+
+        return lookupArc60Signer(
+            this.algodClients.get(resolvedNetwork),
+            accountAddress,
+            resolvedNetwork,
+        )
+    }
+
+    /**
+     * Each connected account's empty signature, for use-wallet's
+     * `WalletAccount.emptySignature` (TxnLab/use-wallet#465): base64 of a
+     * `SignedTransaction` without `txn`, which tells the account type and feeds
+     * fee simulation. Accounts missing from the result are unknown.
+     *
+     * Pera Mobile answers over WalletConnect (`algo_getEmptySignatures`) and the
+     * Pera extension through `window.pera`, both without prompting the user.
+     * Pera Web, and extensions that predate the method, resolve `{}`. Call it
+     * right after a fresh `connect()`; a value must come from the wallet just
+     * now, never be replayed after `reconnectSession()`.
+     *
+     * `network` defaults to the one the `chainId` option pins. On Pera Mobile an
+     * all-networks session (`4160`, the default) needs it
+     * (`EMPTY_SIGNATURES_NETWORK_REQUIRED`); the extension answers for the
+     * network it is on and refuses another (`EMPTY_SIGNATURES_NETWORK_MISMATCH`).
+     * Rejects with `SESSION_DISCONNECTED`, `EMPTY_SIGNATURES_TIMEOUT` after 30 s
+     * (older Pera apps, or iOS suspending Pera), or `EMPTY_SIGNATURES`
+     * (`detail.reason`: `"wallet-error"`, `"session-changed"`, `"invalid-result"`).
+     */
+    async getEmptySignatures(
+        network?: PeraNetwork,
+    ): Promise<Record<string, string>> {
+        assertEmptySignaturesNetwork(network)
+
+        if (this.platform === 'web') {
+            return {}
+        }
+
+        if (this.platform === 'extension') {
+            const extensionTransport = this.requireExtensionTransport()
+            const accounts = getWalletDetailsFromStorage()?.accounts || []
+            const result = await extensionTransport.getEmptySignatures(
+                network || getPeraNetworkFromChainId(this.chainId),
+            )
+
+            return filterEmptySignatures(result, accounts)
+        }
+
+        const { connector } = this
+
+        if (!connector || !connector.connected) {
+            throw new PeraWalletConnectError(
+                { type: 'SESSION_DISCONNECTED' },
+                'Connect Pera before asking for empty signatures.',
+            )
+        }
+
+        const resolvedNetwork = resolveEmptySignaturesNetwork(
+            network,
+            this.chainId,
+        )
+        // reconnectSession() replaces the connector object for the same
+        // session, so a changed session is detected by its peer, not by object
+        // identity.
+        const { peerId } = connector
+        const accounts = [...connector.accounts]
+
+        const result = await requestEmptySignatures(
+            connector,
+            EMPTY_SIGNATURES_CAIP2_CHAIN_IDS[resolvedNetwork],
+        )
+
+        if (!this.connector || this.connector.peerId !== peerId) {
+            throw new PeraWalletConnectError(
+                {
+                    type: 'EMPTY_SIGNATURES',
+                    detail: { reason: 'session-changed' },
+                },
+                'The WalletConnect session changed while waiting for empty signatures.',
+            )
+        }
+
+        return filterEmptySignatures(result, accounts)
+    }
+
+    /**
+     * Sign an ARC-60 payload (e.g. an auth request).
+     *
+     * Sends `algo_signData` with a single object as `params` so the Pera mobile
+     * wallet routes it to the ARC-60 handler instead of the legacy
+     * arbitrary-data handler. The signature returned is
+     * `sign(sha256(data) || sha256(authenticatorData))` per ARC-60, not a raw
+     * signature over `data`, with the key and scheme of `payload`: ed25519 when
+     * `payload.scheme` is omitted. `verifySignature` handles ed25519 only, and
+     * throws `SIGN_DATA_VERIFICATION_UNSUPPORTED` for any other scheme before
+     * the wallet is asked.
+     *
+     * Resolves with the full ARC-60 `SignDataResponse` shape (signed payload,
+     * signer public key, domain, authenticatorData and signature) so responses
+     * are interchangeable with use-wallet / lute-connect.
+     *
+     * Mirrors ARC-60's `signData(signingData, metadata)` signature: `payload`
+     * is the spec's `StdSigData` and `metadata` (scope + encoding) is passed
+     * separately; the two are unified into one object on the wire.
+     *
+     * `payload.domain` MUST match the dApp's page origin (SIWA origin binding)
+     * on every transport. Connect pre-validates this and throws
+     * `SIGN_DATA_DOMAIN_MISMATCH` before contacting the wallet; the extension
+     * additionally enforces the same rule independently.
+     */
+    async signArc60Data(
+        payload: PeraWalletArc60SignData,
+        metadata: SignMetadata,
+        verifySignature?: boolean,
+    ): Promise<PeraWalletArc60SignDataResponse> {
+        if (this.platform !== 'mobile' && this.platform !== 'extension') {
+            throw new Error(
+                'ARC-60 signing is only supported via the Pera mobile wallet or the Pera extension.',
+            )
+        }
+
+        assertArc60DomainMatchesOrigin(payload.domain)
+
+        // Checked before the wallet prompts, since the answer couldn't be verified.
+        if (verifySignature && !isEd25519Scheme(payload.scheme)) {
+            throw new PeraWalletConnectError(
+                { type: 'SIGN_DATA_VERIFICATION_UNSUPPORTED' },
+                `connect can only verify ed25519 signatures, not ${payload.scheme}. Verify the signature in the dApp instead.`,
+            )
+        }
+
+        const transport = this.getTransport()
+        const response = await transport.signArc60Data(payload, metadata)
+
+        if (verifySignature) {
+            const isValid = await this.verifyArc60Signature(
+                decodeArc60SignedData(payload.data, metadata.encoding),
+                payload.authenticatorData,
+                response.signature,
+                algosdk.encodeAddress(payload.signer),
+            )
+
+            if (!isValid) {
+                throw new PeraWalletConnectError(
+                    { type: 'SIGN_DATA_VERIFICATION_FAILED' },
+                    'ARC-60 signature verification failed',
+                )
+            }
+        }
+
+        return buildArc60SignDataResponse(payload, response.signature)
+    }
+
+    // Settles through `resolve`/`reject` rather than its own promise: the
+    // outcome comes from whichever of the QR pairing, Pera Web or the
+    // extension button finishes first, long after this function returns.
+    private async runConnect(
+        options: ConnectOptions | undefined,
+        resolveConnect: (accounts: string[]) => void,
+        rejectConnect: (error: unknown) => void,
+    ) {
+        // The extension button's listener is scoped to this connect() call and
+        // must go away however the call settles (WalletConnect pairing, Pera
+        // Web, modal closed, failure), or a later click would hit a stale one.
+        let removeExtensionListener = () => {}
+        const resolve = (accounts: string[]) => {
+            removeExtensionListener()
+            resolveConnect(accounts)
+        }
+        const reject = (error: unknown) => {
+            removeExtensionListener()
+            rejectConnect(error)
+        }
+
+        try {
+            // Retire the previous connector so every connect() starts from
+            // scratch, without our own killSession() reaching the dApp as a
+            // wallet-side `disconnect` mid-connect.
+            await this.abandonConnector(this.connector)
+
+            const config = await this.configPromise
+
+            // Re-primed so the next connect() also skips the fetch.
+            this.configPromise = getPeraConnectConfig()
+
+            this.isInWebview = await this.webviewCheckPromise
+            this.webviewCheckPromise = this.checkIsInWebview()
+
+            if (config.isWebWalletAvailable) {
+                window.onWebWalletConnect = runWebConnectFlow({
+                    resolve,
+                    reject,
+                    webWalletURL: config.webWalletURL,
+                    chainId: this.chainId,
+                })
+            }
+
+            const extensionTransport = this.shouldPreferExtension
+                ? this.extensionTransport
+                : null
+
+            if (extensionTransport) {
+                removeExtensionListener = this.listenForExtensionConnect(
+                    extensionTransport,
+                    options,
+                    resolve,
+                    reject,
+                )
+            }
+
+            // Bridge precedence: dApp option, then config.json, then a
+            // Pera-hosted fallback for when the config is unreachable or lists
+            // no servers. `storageId` namespaces the persisted session so Pera
+            // never shares the WalletConnect v1 default key with other wallets
+            // on the same origin.
+            const connector = new WalletConnect({
+                bridge:
+                    this.bridge ||
+                    config.bridgeURL ||
+                    PERA_WALLET_CONNECT_FALLBACK_BRIDGE,
+                storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
+                qrcodeModal: createPeraWalletConnectQrcodeModal({
+                    isWebWalletAvailable: config.isWebWalletAvailable,
+                    shouldDisplayNewBadge: config.shouldDisplayNewBadge,
+                    shouldUseSound: config.shouldUseSound,
+                    compactMode: this.compactMode,
+                    promoteMobile: config.promoteMobile,
+                    singleAccount: this.singleAccount,
+                    selectedAccount: options?.selectedAccount,
+                    isInWebview: this.isInWebview,
+                    isExtensionEnabled: extensionTransport !== null,
+                }),
+            })
+
+            this.connector = connector
+            this.forwardConnectorDisconnect(connector)
+
+            await connector.createSession({
+                chainId: this.chainId || ALGORAND_NODE_CHAIN_ID,
+            })
+
+            setupPeraWalletConnectModalCloseListener(
+                PERA_WALLET_CONNECT_MODAL_ID,
+                () =>
+                    reject(
+                        new PeraWalletConnectError(
+                            { type: 'CONNECT_MODAL_CLOSED' },
+                            'Connect modal is closed by user',
+                        ),
+                    ),
+            )
+
+            connector.on('connect', error => {
+                if (this.abandonedConnectors.has(connector)) {
+                    return
+                }
+
+                if (error) {
+                    reject(error)
+
+                    return
+                }
+
+                resolve(connector.accounts || [])
+                saveWalletDetailsToStorage(connector.accounts || [])
+            })
+        } catch (error) {
+            reject(
+                new PeraWalletConnectError(
+                    { type: 'SESSION_CONNECT', detail: error },
+                    getErrorMessage(
+                        error,
+                        'There was an error while connecting to Pera Wallet',
+                    ),
+                ),
+            )
+        }
+    }
+
+    // The modal's extension button dispatches this event synchronously from
+    // its click handler, and `dispatchEvent` runs listeners synchronously, so
+    // `window.pera.connect()` still runs inside the user's gesture (a
+    // first-time connect needs that activation). Returns the unsubscribe.
+    private listenForExtensionConnect(
+        extensionTransport: ExtensionTransport,
+        options: ConnectOptions | undefined,
+        resolve: (accounts: string[]) => void,
+        reject: (error: unknown) => void,
+    ) {
+        const removeListener = () => {
+            document.removeEventListener(
+                PERA_WALLET_EXTENSION_CONNECT_EVENT,
+                handleExtensionConnect,
+            )
+        }
+        const handleExtensionConnect = () => {
+            removeListener()
 
             // Take the modal down before awaiting the provider. The extension's
             // own approval window owns the flow from here, and leaving our close
@@ -561,734 +749,249 @@ class PeraWalletConnect {
             // in flight: `connect()` would reject while the later approval still
             // stored the session, so the dApp shows "not connected" and the next
             // page load silently reconnects.
-            removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
+            removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
 
             extensionTransport
-              .connect({selectedAccount: options?.selectedAccount})
-              .then((accounts) => {
-                // The QR pairing may still be waiting for a scan; retire it so
-                // it cannot overwrite the extension session with a mobile one.
-                this.abandonConnector(this.connector);
-                resolve(accounts);
-              })
-              .catch(reject);
-          };
+                .connect({ selectedAccount: options?.selectedAccount })
+                .then(accounts => {
+                    // The QR pairing may still be waiting for a scan; retire it
+                    // so it cannot overwrite the extension session with a
+                    // mobile one.
+                    void this.abandonConnector(this.connector)
+                    resolve(accounts)
+                })
+                .catch(reject)
+        }
 
-          document.addEventListener(
+        document.addEventListener(
             PERA_WALLET_EXTENSION_CONNECT_EVENT,
-            handleExtensionConnect
-          );
-          removeExtensionListener = () => {
-            document.removeEventListener(
-              PERA_WALLET_EXTENSION_CONNECT_EVENT,
-              handleExtensionConnect
-            );
-          };
-        }
+            handleExtensionConnect,
+        )
 
-        // Create Connector instance.
-        // Bridge precedence: dApp option, then config.json, then a Pera-hosted
-        // fallback for when the config is unreachable or lists no servers.
-        // `storageId` namespaces the persisted session so Pera never shares the
-        // WalletConnect v1 default key with other wallets on the same origin.
-        this.connector = new WalletConnect({
-          bridge: this.bridge || bridgeURL || PERA_WALLET_CONNECT_FALLBACK_BRIDGE,
-          storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
-          qrcodeModal: generatePeraWalletConnectModalActions({
-            isWebWalletAvailable,
-            shouldDisplayNewBadge,
-            shouldUseSound,
-            compactMode: this.compactMode,
-            promoteMobile,
-            singleAccount: this.singleAccount,
-            selectedAccount: options?.selectedAccount,
-            isInWebview: this.isInWebview,
-            isExtensionEnabled: extensionTransport !== null
-          })
-        });
+        return removeListener
+    }
 
-        this.forwardConnectorDisconnect(this.connector);
+    private async reconnectWebSession(accounts: string[]) {
+        const { isWebWalletAvailable } = await getPeraConnectConfig()
 
-        await this.connector.createSession({
-          // eslint-disable-next-line no-magic-numbers
-          chainId: this.chainId || 4160
-        });
-
-        setupPeraWalletConnectModalCloseListener(PERA_WALLET_CONNECT_MODAL_ID, () =>
-          reject(
-            new PeraWalletConnectError(
-              {
-                type: "CONNECT_MODAL_CLOSED"
-              },
-              "Connect modal is closed by user"
-            )
-          )
-        );
-
-        const {connector} = this;
-
-        connector.on("connect", (error, _payload) => {
-          if (this.abandonedConnectors.has(connector)) {
-            return;
-          }
-
-          if (error) {
-            reject(error);
-          }
-
-          resolve(connector.accounts || []);
-
-          saveWalletDetailsToStorage(connector.accounts || []);
-        });
-      } catch (error: any) {
-        reject(
-          new PeraWalletConnectError(
-            {
-              type: "SESSION_CONNECT",
-              detail: error
-            },
-            error.message || `There was an error while connecting to Pera Wallet`
-          )
-        );
-      }
-    });
-  }
-
-  reconnectSession() {
-    return new Promise<string[]>(async (resolve, reject) => {
-      try {
-        const walletDetails = getWalletDetailsFromStorage();
-
-        if (!walletDetails) {
-          resolve([]);
-
-          return;
-        }
-
-        // ================================================= //
-        // Pera Wallet Web flow
-        if (walletDetails?.type === "pera-wallet-web") {
-          const {isWebWalletAvailable} = await getPeraConnectConfig();
-
-          if (isWebWalletAvailable) {
-            resolve(walletDetails.accounts || []);
-          } else {
-            reject(
-              new PeraWalletConnectError(
+        if (!isWebWalletAvailable) {
+            throw new PeraWalletConnectError(
                 {
-                  type: "SESSION_RECONNECT",
-                  detail: "Pera Web is not available"
+                    type: 'SESSION_RECONNECT',
+                    detail: 'Pera Web is not available',
                 },
-                "Pera Web is not available"
-              )
-            );
-          }
+                'Pera Web is not available',
+            )
         }
 
-        if (walletDetails?.type === "pera-wallet-extension") {
-          if (!this.extensionTransport) {
+        return accounts || []
+    }
+
+    // A gesture-less connect(): the wallet answers at once with the approved
+    // accounts, or with "unauthorized", which reconnect() turns into [] after
+    // clearing the stale details.
+    //
+    // Failures pass through instead of going to failReconnect(): that
+    // disconnects, which for an extension session means revoking this origin
+    // in the wallet. A transient failure (the service worker restarting mid
+    // page-load, the wallet on another network) must leave the user's approval
+    // and the stored details alone, and the caller gets the transport's own
+    // error at `error.data.type`.
+    private async reconnectExtensionSession() {
+        if (!this.extensionTransport) {
             // The extension was removed (or this is another browser); the
             // wallet owns the connection, so there is nothing to resume.
-            await resetWalletDetailsFromStorage();
-            resolve([]);
+            await resetWalletDetailsFromStorage()
 
-            return;
-          }
-
-          // A gesture-less connect(): the wallet answers at once with the
-          // approved accounts, or with "unauthorized", which reconnect()
-          // turns into [] after clearing the stale details.
-          //
-          // Anything else (the service worker restarting mid page-load, the
-          // wallet sitting on another network) is settled here rather than in
-          // the catch-all below: that catch disconnects, which for an
-          // extension session means revoking this origin in the wallet. The
-          // approval is the user's to give and take, so a transient failure
-          // must leave it — and the stored details — alone. Rejecting with the
-          // transport's own error also keeps the cause at `error.data.type`
-          // instead of burying it under a second SESSION_RECONNECT wrapper.
-          try {
-            resolve(await this.extensionTransport.reconnect());
-          } catch (error) {
-            reject(error);
-          }
-
-          return;
+            return []
         }
 
-        // Pera Mobile Wallet flow
-        this.isInWebview = await this.checkIsInWebview();
+        return this.extensionTransport.reconnect()
+    }
 
-        if (this.connector) {
-          resolve(this.connector.accounts || []);
-        }
+    // Rebuilds the connector from the persisted WalletConnect session, but
+    // answers with the accounts of a connector this instance already held.
+    private async reconnectMobileSession() {
+        this.isInWebview = await this.checkIsInWebview()
 
-        this.bridge = getWalletConnectObjectFromStorage()?.bridge || "";
+        const previousConnector = this.connector
+
+        this.bridge = getWalletConnectObjectFromStorage()?.bridge || ''
 
         if (this.bridge) {
-          this.connector = new WalletConnect({
-            bridge: this.bridge,
-            storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT
-          });
-
-          this.forwardConnectorDisconnect(this.connector);
-
-          resolve(this.connector?.accounts || []);
+            this.connector = new WalletConnect({
+                bridge: this.bridge,
+                storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
+            })
+            this.forwardConnectorDisconnect(this.connector)
         }
 
-        // If there is no wallet details in storage, resolve the promise with empty array
-        if (!this.isConnected) {
-          resolve([]);
+        return (previousConnector ?? this.connector)?.accounts || []
+    }
+
+    // A session that cannot be restored is torn down so the next connect()
+    // starts clean. disconnect() reads the same storage, so when that storage
+    // is what failed, clearing it directly is the only way out.
+    private async failReconnect(error: unknown) {
+        try {
+            await this.disconnect()
+        } catch {
+            await resetWalletDetailsFromStorage()
         }
-      } catch (error: any) {
-        // If the bridge is not active, then disconnect
-        await this.disconnect();
 
-        reject(
-          new PeraWalletConnectError(
-            {
-              type: "SESSION_RECONNECT",
-              detail: error
-            },
-            error.message || `There was an error while reconnecting to Pera Wallet`
-          )
-        );
-      }
-    });
-  }
-
-  async disconnect() {
-    if (this.isConnected && this.platform === "extension" && this.extensionTransport) {
-      await this.extensionTransport.disconnect();
+        return new PeraWalletConnectError(
+            { type: 'SESSION_RECONNECT', detail: error },
+            getErrorMessage(
+                error,
+                'There was an error while reconnecting to Pera Wallet',
+            ),
+        )
     }
 
-    if (this.isConnected && this.platform === "mobile") {
-      // Retiring rather than killing directly: this is the SDK's own teardown,
-      // and WalletConnect reports `killSession()` through the same `disconnect`
-      // event a wallet-side end uses.
-      await this.abandonConnector(this.connector);
-    }
+    private createExtensionTransport(): ExtensionTransport | null {
+        const provider = getPeraProvider()
 
-    await resetWalletDetailsFromStorage();
-  }
-
-  /**
-   * Releases everything this instance holds: the `window.pera` subscriptions
-   * (the provider outlives the page's components, so an undisposed instance is
-   * retained for the page's life) and any WalletConnect connector. The wallet
-   * session itself is untouched — call `disconnect()` for that.
-   *
-   * Call it when the component owning the instance unmounts. Under React
-   * StrictMode or hot reload, skipping it leaves the discarded instance
-   * listening and swallowing the events the live one should handle.
-   */
-  dispose() {
-    this.extensionTransport?.dispose();
-    this.extensionTransport = null;
-
-    if (this.connector) {
-      this.abandonedConnectors.add(this.connector);
-      this.connector = null;
-    }
-
-    this.eventHandlers.disconnect.clear();
-    this.eventHandlers.networkChanged.clear();
-  }
-
-  verifySignature(
-    data: Uint8Array,
-    signature: Uint8Array,
-    signerAddress: string
-  ): boolean {
-    try {
-      const {publicKey} = algosdk.decodeAddress(signerAddress);
-      const toBeVerified = concatArrays(PERA_WALLET_SIGNATURE_PREFIX, data);
-
-      return sign_detached_verify(toBeVerified, signature, publicKey);
-    } catch (error) {
-      return false;
-    }
-  }
-
-  async verifyArc60Signature(
-    data: Uint8Array,
-    authenticatorData: Uint8Array,
-    signature: Uint8Array,
-    signerAddress: string
-  ): Promise<boolean> {
-    try {
-      const {publicKey} = algosdk.decodeAddress(signerAddress);
-      const dataHash = new Uint8Array(
-        await crypto.subtle.digest("SHA-256", Buffer.from(data))
-      );
-      const authHash = new Uint8Array(
-        await crypto.subtle.digest("SHA-256", Buffer.from(authenticatorData))
-      );
-      const toBeVerified = concatArrays(dataHash, authHash);
-
-      return sign_detached_verify(toBeVerified, signature, publicKey);
-    } catch (error) {
-      return false;
-    }
-  }
-
-  private checkIsPeraDiscoverBrowser() {
-    const userAget = window.navigator.userAgent;
-
-    return userAget.includes("pera");
-  }
-
-  private getAlgodClient(network: NetworkToggle): AlgodManager {
-    if (!this.algodClients.has(network)) {
-      const algodClient = new AlgodManager({
-        network,
-        providerType: DEFAULT_ALGORAND_NODE_PROVIDER_TYPE,
-        client: this.suppliedAlgodClients?.[network]
-      });
-
-      this.algodClients.set(network, algodClient);
-    }
-
-    return this.algodClients.get(network)!;
-  }
-
-  private async getAccountAuthAddr(
-    signer: string,
-    chainId: AlgorandChainIDs
-  ): Promise<string | null> {
-    try {
-      // Legacy signData verification predates per-network sessions and has
-      // always read mainnet for an all-networks session; kept for compatibility.
-      const network = getNetworkFromChainId(chainId) ?? "mainnet";
-      const algodClient = this.getAlgodClient(network);
-      const accountInfo = await algodClient.client.accountInformation(signer).do();
-
-      return accountInfo.authAddr ? String(accountInfo.authAddr) : null;
-    } catch (error) {
-      // If account fetch fails, return null to fall back to using the original signer
-      // This ensures signing can proceed even if there's a network issue
-      return null;
-    }
-  }
-
-  private getTransport() {
-    if (this.platform === "extension") {
-      if (!this.extensionTransport) {
-        throw new PeraWalletConnectError(
-          {type: "EXTENSION_NOT_AVAILABLE"},
-          "The session was created with the Pera extension, but window.pera is not present on this page. Reconnect with another option."
-        );
-      }
-
-      return this.extensionTransport;
-    }
-
-    if (this.platform === "web") {
-      return new WebTransport({
-        getWebWalletURL: async () => {
-          const config = await getPeraConnectConfig();
-
-          return config.webWalletURL;
+        if (!provider) {
+            return null
         }
-      });
+
+        return new ExtensionTransport(provider, {
+            chainId: this.chainId,
+            onDisconnect: () => this.events.emit('disconnect', undefined),
+            onNetworkChanged: params =>
+                this.events.emit('networkChanged', params),
+        })
     }
 
-    if (!this.connector || !this.connector.sendCustomRequest) {
-      throw new Error("PeraWalletConnect was not initialized correctly.");
+    /**
+     * The WalletConnect connector reports a wallet-side session end through its
+     * own `disconnect` event; mirror it on the SDK so dApps can listen in one
+     * place regardless of transport.
+     *
+     * The event is also how WalletConnect v1 reports *our* `killSession()`, so
+     * connectors we have abandoned are filtered out — a dApp must not be told
+     * the wallet ended a session that the SDK itself is tearing down.
+     */
+    private forwardConnectorDisconnect(connector: WalletConnect) {
+        connector.on('disconnect', () => {
+            if (this.abandonedConnectors.has(connector)) {
+                return
+            }
+
+            if (this.connector === connector) {
+                this.connector = null
+            }
+
+            // Another transport may own the current session; only a mobile one
+            // is dropped here. Mirrors ExtensionTransport's provider-disconnect
+            // handling, so the handler sees cleared state either way.
+            if (getWalletPlatformFromStorage() === 'mobile') {
+                void resetWalletDetailsFromStorage()
+            }
+
+            this.events.emit('disconnect', undefined)
+        })
     }
 
-    return new MobileTransport({
-      connector: this.connector as any,
-      shouldShowSignTxnToast: this.shouldShowSignTxnToast,
-      isInWebview: this.isInWebview,
-      getSilent: async () => {
-        const {silent} = await getPeraConnectConfig();
-
-        return silent;
-      }
-    });
-  }
-
-  async signTransaction(
-    txGroups: SignerTransaction[][],
-    signerAddress?: string
-  ): Promise<Uint8Array[]> {
-    const transport = this.getTransport();
-    const txns = txGroups.flat();
-
-    // Prepare transactions to be sent to wallet
-    const signTxnRequestParams = txns.map<PeraWalletTransaction>((txGroupDetail) =>
-      composeTransaction(txGroupDetail, signerAddress)
-    );
-
-    const result = await transport.signTransaction(signTxnRequestParams);
-
-    // `signers: []` marks a transaction the wallet was told not to sign; it
-    // returns only the others, in group order.
-    const signableIndices = signTxnRequestParams.flatMap((params, index) =>
-      params.signers?.length === 0 ? [] : [index]
-    );
-
-    assertSignedTransactionsMatch(
-      txns.map(({txn}) => txn),
-      signableIndices,
-      result
-    );
-
-    return result;
-  }
-
-  /**
-   * An algosdk `TransactionSigner` backed by this wallet connection, for use
-   * with `AtomicTransactionComposer` and any API that accepts a signer:
-   *
-   *   atc.addTransaction({txn, signer: peraWallet.transactionSigner});
-   *
-   * The whole group is sent to the wallet in one request; slots not listed in
-   * `indexesToSign` are marked `signers: []` (ARC-0001) so the wallet shows
-   * but does not sign them. The same function instance is returned on every
-   * access: `AtomicTransactionComposer` batches transactions by signer
-   * identity, so a fresh function per access would mean one wallet prompt per
-   * transaction instead of one per group.
-   */
-  get transactionSigner(): TransactionSigner {
-    if (!this._transactionSigner) {
-      this._transactionSigner = (txnGroup, indexesToSign) =>
-        this.signTransactionGroupForIndexes(txnGroup, indexesToSign);
-    }
-
-    return this._transactionSigner;
-  }
-
-  private async signTransactionGroupForIndexes(
-    txnGroup: algosdk.Transaction[],
-    indexesToSign: number[]
-  ): Promise<Uint8Array[]> {
-    if (indexesToSign.length === 0) {
-      return [];
-    }
-
-    // Validate before the round-trip so a bad caller never triggers a wallet
-    // prompt for the wrong slots and then fails on the count check.
-    const hasInvalidIndex = indexesToSign.some(
-      (index, position) =>
-        !Number.isInteger(index) ||
-        index < 0 ||
-        index >= txnGroup.length ||
-        indexesToSign.indexOf(index) !== position
-    );
-
-    if (hasInvalidIndex) {
-      const received = JSON.stringify(indexesToSign);
-
-      throw new PeraWalletConnectError(
-        {
-          type: "SIGN_TRANSACTIONS",
-          detail: {indexesToSign, groupLength: txnGroup.length}
-        },
-        `Invalid indexesToSign ${received}: expected unique integers below ${txnGroup.length}`
-      );
-    }
-
-    const txGroup: SignerTransaction[] = txnGroup.map((txn, index) =>
-      indexesToSign.includes(index) ? {txn} : {txn, signers: []}
-    );
-
-    // signTransaction rejects unless exactly the requested slots come back.
-    const signed = await this.signTransaction([txGroup]);
-
-    // The wallet returns signed transactions in group order; TransactionSigner
-    // requires result[i] to correspond to txnGroup[indexesToSign[i]].
-    const ascending = [...indexesToSign].sort((a, b) => a - b);
-
-    return indexesToSign.map((index) => signed[ascending.indexOf(index)]);
-  }
-
-  async signData(
-    data: PeraWalletArbitraryData[],
-    signer: string,
-    verifySignature?: boolean
-  ): Promise<Uint8Array[]> {
-    // eslint-disable-next-line no-magic-numbers
-    const chainId = this.chainId || 4160;
-
-    const transport = this.getTransport();
-
-    const signatures: Uint8Array[] = await transport.signData(data, signer, chainId);
-
-    // Verify signatures if validateSignature is true
-    if (verifySignature) {
-      const authAddr = await this.getAccountAuthAddr(signer, chainId);
-      const effectiveSigner = authAddr || signer;
-
-      for (let i = 0; i < signatures.length; i++) {
-        const signature = signatures[i];
-        const originalData = data[i].data;
-
-        if (!this.verifySignature(originalData, signature, effectiveSigner)) {
-          throw new PeraWalletConnectError(
-            {
-              type: "SIGN_DATA_VERIFICATION_FAILED"
-            },
-            `Signature verification failed for data item at index ${i}`
-          );
+    /**
+     * Retires a WalletConnect connector the SDK is done with. WalletConnect v1
+     * keeps its listeners for the connector's lifetime and its `off()` drops
+     * every listener for an event, so the connector is marked instead and its
+     * handlers bail.
+     *
+     * Without this a QR pairing left in flight by a connect that finished
+     * through another transport still fires `connect` when the user finally
+     * scans, overwriting the stored session with a mobile one.
+     */
+    private async abandonConnector(connector: WalletConnect | null) {
+        if (!connector) {
+            return
         }
-      }
+
+        this.abandonedConnectors.add(connector)
+
+        if (this.connector === connector) {
+            this.connector = null
+        }
+
+        if (connector.connected) {
+            try {
+                await connector.killSession()
+            } catch {
+                // Best-effort: the connector is already detached either way.
+            }
+        }
     }
 
-    return signatures;
-  }
+    private async checkIsInWebview(): Promise<boolean> {
+        if (!isMobile()) {
+            return false
+        }
 
-  /**
-   * Resolves who has to sign an ARC-60 (SIWA) request for `accountAddress`.
-   * ed25519 only: a Falcon account's key isn't in its address, so its `signer`
-   * comes from its empty signature (`pqsig.pk`) instead.
-   *
-   * An ARC-60 signature verifies against `signer`'s own key and the wallet
-   * never substitutes another key, so a rekeyed account must be signed for by
-   * its on-chain auth address: put the returned `signer` into
-   * `PeraWalletArc60SignData` and keep `accountAddress` as the SIWA
-   * `account_address`. The wallet refuses a rekeyed account signing for itself,
-   * and it can only sign when it holds the auth address as a key-bearing or
-   * Ledger account.
-   *
-   * Rekeys are per network and the wallet checks them on the network it is
-   * connected to, which connect cannot observe. A session pinned to `416001`
-   * or `416002` is only served while the wallet is on that network, so the
-   * lookup uses it and an explicit `network` may only agree with it
-   * (`SIGN_DATA_NETWORK_MISMATCH` otherwise). An all-networks session (`4160`,
-   * the default) needs `network` (`SIGN_DATA_NETWORK_REQUIRED`) and the caller
-   * has to know the wallet's network by other means. Betanet has no algod here
-   * (`SIGN_DATA_NETWORK_UNSUPPORTED`). A failed lookup throws
-   * `SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED` rather than assuming "not rekeyed".
-   */
-  async resolveArc60Signer(
-    accountAddress: string,
-    network?: PeraWalletNetwork
-  ): Promise<PeraWalletArc60SignerResolution> {
-    if (!algosdk.isValidAddress(accountAddress)) {
-      throw new PeraWalletConnectError(
-        {type: "SIGN_DATA_INVALID_ADDRESS"},
-        `"${accountAddress}" is not a valid Algorand address.`
-      );
+        try {
+            return (await getPublicSettings()) !== null
+        } catch {
+            return false
+        }
     }
 
-    // Plain-JS callers bypass the type, and the credential picker treats
-    // anything but "mainnet" as testnet, so the value is checked here.
-    if (network !== undefined && network !== "mainnet" && network !== "testnet") {
-      throw new PeraWalletConnectError(
-        {type: "SIGN_DATA_NETWORK_UNSUPPORTED", detail: network},
-        `Unsupported network "${String(network)}": use "mainnet" or "testnet".`
-      );
+    // Legacy signData verification predates per-network sessions and has
+    // always read mainnet for an all-networks session; kept for compatibility.
+    // A failed lookup falls back to the original signer, so a network hiccup
+    // does not fail verification on its own.
+    private async getAccountAuthAddr(
+        signer: string,
+        chainId: AlgorandChainIDs,
+    ): Promise<string | null> {
+        try {
+            const network = getNetworkFromChainId(chainId) ?? 'mainnet'
+            const accountInfo = await this.algodClients
+                .get(network)
+                .accountInformation(signer)
+                .do()
+
+            return accountInfo.authAddr ? String(accountInfo.authAddr) : null
+        } catch {
+            return null
+        }
     }
 
-    const isAllNetworksSession =
-      this.chainId === undefined || this.chainId === ALGORAND_NODE_CHAIN_ID;
-    const sessionNetwork = getNetworkFromChainId(this.chainId);
+    private requireExtensionTransport() {
+        if (!this.extensionTransport) {
+            throw new PeraWalletConnectError(
+                { type: 'EXTENSION_NOT_AVAILABLE' },
+                'The session was created with the Pera extension, but window.pera is not present on this page. Reconnect with another option.',
+            )
+        }
 
-    if (!isAllNetworksSession && !sessionNetwork) {
-      throw new PeraWalletConnectError(
-        {type: "SIGN_DATA_NETWORK_UNSUPPORTED", detail: this.chainId},
-        `This session is pinned to chainId ${this.chainId}, but connect can only read accounts on mainnet and testnet.`
-      );
+        return this.extensionTransport
     }
 
-    if (network && sessionNetwork && network !== sessionNetwork) {
-      throw new PeraWalletConnectError(
-        {type: "SIGN_DATA_NETWORK_MISMATCH", detail: {network, chainId: this.chainId}},
-        `This session is pinned to ${sessionNetwork} (chainId ${this.chainId}); the wallet only serves it there, so the signer cannot be resolved on ${network}.`
-      );
+    private getTransport(): WalletTransport {
+        if (this.platform === 'extension') {
+            return this.requireExtensionTransport()
+        }
+
+        if (this.platform === 'web') {
+            return new WebTransport({
+                getWebWalletURL: async () =>
+                    (await getPeraConnectConfig()).webWalletURL,
+            })
+        }
+
+        // `connector` is a public field, so it holds whatever a dApp assigned;
+        // fail here rather than mid-signing.
+        if (!this.connector?.sendCustomRequest) {
+            throw new Error('PeraWalletConnect was not initialized correctly.')
+        }
+
+        return new MobileTransport({
+            connector: this.connector,
+            shouldShowSignTxnToast: this.shouldShowSignTxnToast,
+            isInWebview: this.isInWebview,
+            getSilent: async () => (await getPeraConnectConfig()).silent,
+        })
     }
-
-    const resolvedNetwork = network ?? sessionNetwork;
-
-    if (!resolvedNetwork) {
-      throw new PeraWalletConnectError(
-        {type: "SIGN_DATA_NETWORK_REQUIRED"},
-        "resolveArc60Signer needs a network: this session accepts all networks, so pass the network the user's wallet is on."
-      );
-    }
-
-    let authAddr: string | null;
-
-    try {
-      // Header only: the full record fails with "Result limit exceeded" for
-      // accounts holding more resources than algod's per-account cap, and
-      // auth-addr is part of the header.
-      const accountInfo = await this.getAlgodClient(resolvedNetwork)
-        .client.accountInformation(accountAddress)
-        .exclude("all")
-        .do();
-
-      authAddr = accountInfo.authAddr ? String(accountInfo.authAddr) : null;
-    } catch (error) {
-      throw new PeraWalletConnectError(
-        {type: "SIGN_DATA_AUTH_ADDR_LOOKUP_FAILED", detail: error},
-        `Could not read the auth address of ${accountAddress} on ${resolvedNetwork}.`
-      );
-    }
-
-    const signerAddress = authAddr ?? accountAddress;
-
-    return {
-      accountAddress,
-      signerAddress,
-      signer: algosdk.decodeAddress(signerAddress).publicKey,
-      isRekeyed: authAddr !== null,
-      network: resolvedNetwork
-    };
-  }
-
-  /**
-   * Each connected account's empty signature, for use-wallet's
-   * `WalletAccount.emptySignature` (TxnLab/use-wallet#465): base64 of a
-   * `SignedTransaction` without `txn`, which tells the account type and feeds
-   * fee simulation. Accounts missing from the result are unknown.
-   *
-   * Pera Mobile answers over WalletConnect (`algo_getEmptySignatures`) and the
-   * Pera extension through `window.pera`, both without prompting the user.
-   * Pera Web, and extensions that predate the method, resolve `{}`. Call it
-   * right after a fresh `connect()`; a value must come from the wallet just
-   * now, never be replayed after `reconnectSession()`.
-   *
-   * `network` defaults to the one the `chainId` option pins. On Pera Mobile an
-   * all-networks session (`4160`, the default) needs it
-   * (`EMPTY_SIGNATURES_NETWORK_REQUIRED`); the extension answers for the
-   * network it is on and refuses another (`EMPTY_SIGNATURES_NETWORK_MISMATCH`).
-   * Rejects with `SESSION_DISCONNECTED`, `EMPTY_SIGNATURES_TIMEOUT` after 30 s
-   * (older Pera apps, or iOS suspending Pera), or `EMPTY_SIGNATURES`
-   * (`detail.reason`: `"wallet-error"`, `"session-changed"`, `"invalid-result"`).
-   */
-  async getEmptySignatures(network?: PeraNetwork): Promise<Record<string, string>> {
-    assertEmptySignaturesNetwork(network);
-
-    if (this.platform === "web") {
-      return {};
-    }
-
-    if (this.platform === "extension") {
-      // Throws EXTENSION_NOT_AVAILABLE when window.pera is gone from the page.
-      const transport = this.getTransport() as ExtensionTransport;
-      const accounts = getWalletDetailsFromStorage()?.accounts || [];
-      const result = await transport.getEmptySignatures(
-        network || getPeraNetworkFromChainId(this.chainId)
-      );
-
-      return filterEmptySignatures(result, accounts);
-    }
-
-    const {connector} = this;
-
-    if (!connector || !connector.connected) {
-      throw new PeraWalletConnectError(
-        {type: "SESSION_DISCONNECTED"},
-        "Connect Pera before asking for empty signatures."
-      );
-    }
-
-    const resolvedNetwork = resolveEmptySignaturesNetwork(network, this.chainId);
-    // reconnectSession() replaces the connector object for the same session, so
-    // a changed session is detected by its peer, not by object identity.
-    const {peerId} = connector;
-    const accounts = [...connector.accounts];
-
-    const result = await requestEmptySignatures(
-      connector,
-      EMPTY_SIGNATURES_CAIP2_CHAIN_IDS[resolvedNetwork]
-    );
-
-    if (!this.connector || this.connector.peerId !== peerId) {
-      throw new PeraWalletConnectError(
-        {type: "EMPTY_SIGNATURES", detail: {reason: "session-changed"}},
-        "The WalletConnect session changed while waiting for empty signatures."
-      );
-    }
-
-    return filterEmptySignatures(result, accounts);
-  }
-
-  /**
-   * Sign an ARC-60 payload (e.g. an auth request).
-   *
-   * Sends `algo_signData` with a single object as `params` so the Pera mobile
-   * wallet routes it to the ARC-60 handler instead of the legacy
-   * arbitrary-data handler. The signature returned is
-   * `sign(sha256(data) || sha256(authenticatorData))` per ARC-60, not a raw
-   * signature over `data`, with the key and scheme of `payload`: ed25519 when
-   * `payload.scheme` is omitted. `verifySignature` handles ed25519 only, and
-   * throws `SIGN_DATA_VERIFICATION_UNSUPPORTED` for any other scheme before
-   * the wallet is asked.
-   *
-   * Resolves with the full ARC-60 `SignDataResponse` shape (signed payload,
-   * signer public key, domain, authenticatorData and signature) so responses
-   * are interchangeable with use-wallet / lute-connect.
-   *
-   * Mirrors ARC-60's `signData(signingData, metadata)` signature: `payload`
-   * is the spec's `StdSigData` and `metadata` (scope + encoding) is passed
-   * separately; the two are unified into one object on the wire.
-   *
-   * `payload.domain` MUST match the dApp's page origin (SIWA origin binding)
-   * on every transport. Connect pre-validates this and throws
-   * `SIGN_DATA_DOMAIN_MISMATCH` before contacting the wallet; the extension
-   * additionally enforces the same rule independently.
-   */
-  /**
-   * SIWA origin binding: reject early on every transport when the requested
-   * domain does not match the page origin. This is a client-side guard for
-   * honest integrations — the extension enforces the rule independently.
-   */
-  private assertArc60DomainMatchesOrigin(domain: string) {
-    if (isArc60OriginMismatch(domain, window.location.origin)) {
-      throw new PeraWalletConnectError(
-        {type: "SIGN_DATA_DOMAIN_MISMATCH"},
-        `ARC-60 domain "${domain}" does not match the page origin "${window.location.origin}"`
-      );
-    }
-  }
-
-  async signArc60Data(
-    payload: PeraWalletArc60SignData,
-    metadata: SignMetadata,
-    verifySignature?: boolean
-  ): Promise<PeraWalletArc60SignDataResponse> {
-    if (this.platform !== "mobile" && this.platform !== "extension") {
-      throw new Error(
-        "ARC-60 signing is only supported via the Pera mobile wallet or the Pera extension."
-      );
-    }
-
-    this.assertArc60DomainMatchesOrigin(payload.domain);
-
-    // Checked before the wallet prompts, since the answer couldn't be verified.
-    if (verifySignature && !isEd25519Scheme(payload.scheme)) {
-      throw new PeraWalletConnectError(
-        {type: "SIGN_DATA_VERIFICATION_UNSUPPORTED"},
-        `connect can only verify ed25519 signatures, not ${payload.scheme}. Verify the signature in the dApp instead.`
-      );
-    }
-
-    const transport = this.getTransport();
-    const response = await transport.signArc60Data(payload, metadata);
-
-    if (verifySignature) {
-      const ok = await this.verifyArc60Signature(
-        decodeArc60SignedData(payload.data, metadata.encoding),
-        payload.authenticatorData,
-        response.signature,
-        algosdk.encodeAddress(payload.signer)
-      );
-
-      if (!ok) {
-        throw new PeraWalletConnectError(
-          {type: "SIGN_DATA_VERIFICATION_FAILED"},
-          "ARC-60 signature verification failed"
-        );
-      }
-    }
-
-    return buildArc60SignDataResponse(payload, response.signature);
-  }
 }
 
-export default PeraWalletConnect;
-/* eslint-enable max-lines */
+export { PeraWalletConnect, type PeraWalletConnectOptions }
