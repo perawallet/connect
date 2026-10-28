@@ -152,4 +152,20 @@ function waitForTabOpening(url: string): Promise<Window | null> {
     })
 }
 
-export { getMetaInfo, getFavicons, openDeepLinkInCurrentTab, waitForTabOpening }
+// For values interpolated into an HTML attribute inside a template string.
+function escapeHtmlAttribute(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+}
+
+export {
+    escapeHtmlAttribute,
+    getMetaInfo,
+    getFavicons,
+    openDeepLinkInCurrentTab,
+    waitForTabOpening,
+}

@@ -1,4 +1,5 @@
 import { isMobile } from '../util/device/deviceUtils.js'
+import { escapeHtmlAttribute } from '../util/dom/domUtils.js'
 import {
     PERA_WALLET_CONNECT_MODAL_ID,
     PERA_WALLET_MODAL_CLASSNAME,
@@ -51,7 +52,9 @@ export class PeraWalletConnectModal extends HTMLElement {
                   'uri',
               )}" should-use-sound="${this.getAttribute(
                   'should-use-sound',
-              )}" single-account="${singleAccount}" selected-account="${selectedAccount}"></pera-wallet-modal-touch-screen-mode>
+              )}" single-account="${singleAccount}" selected-account="${escapeHtmlAttribute(
+                  String(selectedAccount),
+              )}"></pera-wallet-modal-touch-screen-mode>
             </div>
           </div>
         `

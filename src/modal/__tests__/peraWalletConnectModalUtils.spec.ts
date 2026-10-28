@@ -82,6 +82,19 @@ describe('peraWalletConnectModalUtils', () => {
             expect(windowOpenSpy).not.toHaveBeenCalled()
         })
 
+        it('keeps a dApp-supplied account as text, not markup', () => {
+            const selectedAccount = '"><img src=x onerror="window.__xss=1">'
+
+            openPeraWalletConnectModal({ ...BASE_CONFIG, selectedAccount })(
+                'wc:abc@1',
+            )
+
+            expect(
+                getConnectModalElement()?.getAttribute('selected-account'),
+            ).toBe(selectedAccount)
+            expect(document.querySelector('img')).toBeNull()
+        })
+
         it('leaves the selected account empty when none is requested', () => {
             openPeraWalletConnectModal(BASE_CONFIG)('wc:abc@1')
 

@@ -66,6 +66,21 @@ describe('PeraWalletConnectModal on mobile', () => {
         ).toBeNull()
     })
 
+    it('keeps a dApp-supplied account as text inside its template', () => {
+        const selectedAccount = '"><img src=x onerror="window.__xss=1">'
+        const shadowRoot = renderConnectModal({
+            uri: 'wc:abc@1',
+            'selected-account': selectedAccount,
+        })
+
+        expect(
+            shadowRoot
+                .querySelector('pera-wallet-modal-touch-screen-mode')
+                ?.getAttribute('selected-account'),
+        ).toBe(selectedAccount)
+        expect(shadowRoot.querySelector('img')).toBeNull()
+    })
+
     it('passes the URI and account options on to the touch screen mode', () => {
         const shadowRoot = renderConnectModal({
             uri: 'wc:abc@1',

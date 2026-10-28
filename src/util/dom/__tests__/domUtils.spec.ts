@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { appTellerManager } from '../../network/teller/appTellerManager.js'
 import { PeraWalletConnectError } from '../../PeraWalletConnectError.js'
 import {
+    escapeHtmlAttribute,
     getMetaInfo,
     getFavicons,
     openDeepLinkInCurrentTab,
@@ -294,5 +295,13 @@ describe('domUtils', () => {
 
             await expect(waitForTabOpening(CONNECT_URL)).rejects.toBe(error)
         })
+    })
+})
+
+describe('escapeHtmlAttribute', () => {
+    it('escapes everything that could end an attribute or open a tag', () => {
+        expect(escapeHtmlAttribute(`a"b'c<d>e&f`)).toBe(
+            'a&quot;b&#39;c&lt;d&gt;e&amp;f',
+        )
     })
 })

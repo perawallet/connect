@@ -73,11 +73,27 @@ function openPeraWalletConnectModal(modalConfig: PeraWalletModalConfig) {
             // it under that name.)
             root.setAttribute('is-extension-enabled', extensionEnabled)
 
-            root.innerHTML = `<pera-wallet-connect-modal uri="${newURI}" is-web-wallet-avaliable="${isWebWalletAvailable}" should-display-new-badge="${shouldDisplayNewBadge}" should-use-sound="${shouldUseSound}" compact-mode="${compactMode}" promote-mobile="${promoteMobile}" single-account="${singleAccount}" selected-account="${
-                selectedAccount || ''
-            }" is-in-webview="${
-                isInWebview || false
-            }" is-extension-enabled="${extensionEnabled}"></pera-wallet-connect-modal>`
+            // Built with setAttribute, not innerHTML: `selectedAccount` comes
+            // from the dApp and must not be parsed as markup.
+            const modal = document.createElement('pera-wallet-connect-modal')
+            const attributes = {
+                uri: newURI,
+                'is-web-wallet-avaliable': String(isWebWalletAvailable),
+                'should-display-new-badge': String(shouldDisplayNewBadge),
+                'should-use-sound': String(shouldUseSound),
+                'compact-mode': String(compactMode),
+                'promote-mobile': String(promoteMobile),
+                'single-account': String(singleAccount),
+                'selected-account': selectedAccount || '',
+                'is-in-webview': String(isInWebview || false),
+                'is-extension-enabled': extensionEnabled,
+            }
+
+            for (const [name, value] of Object.entries(attributes)) {
+                modal.setAttribute(name, value)
+            }
+
+            root.appendChild(modal)
         }
     }
 }
