@@ -153,12 +153,19 @@ class PeraWalletConnect {
 
         this.bridge = options?.bridge || ''
         this.connector = null
-        this.shouldShowSignTxnToast = options?.shouldShowSignTxnToast ?? true
+        // Only a missing option defaults to on; an explicit null stays off.
+        this.shouldShowSignTxnToast =
+            options?.shouldShowSignTxnToast === undefined
+                ? true
+                : options.shouldShowSignTxnToast
         this.chainId = options?.chainId
         this.isInWebview = false
         this.compactMode = options?.compactMode || false
         this.singleAccount = options?.singleAccount || false
-        this.shouldPreferExtension = options?.shouldPreferExtension ?? true
+        this.shouldPreferExtension =
+            options?.shouldPreferExtension === undefined
+                ? true
+                : options.shouldPreferExtension
         this.experimental = options?.experimental || false
         this.algodClients = new AlgodClientPool(options?.algod)
         this.extensionTransport = this.createExtensionTransport()

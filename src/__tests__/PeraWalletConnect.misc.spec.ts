@@ -77,6 +77,17 @@ describe('PeraWalletConnect constructor', () => {
         expect(pera.shouldPreferExtension).toBe(false)
         expect(pera.experimental).toBe(true)
     })
+
+    it('treats an explicit null as off, not as the default', () => {
+        // Plain-JS dApps can pass null, e.g. from a JSON config.
+        const pera = new PeraWalletConnect({
+            shouldShowSignTxnToast: null as unknown as boolean,
+            shouldPreferExtension: null as unknown as boolean,
+        })
+
+        expect(pera.shouldShowSignTxnToast).toBeFalsy()
+        expect(pera.shouldPreferExtension).toBeFalsy()
+    })
 })
 
 describe('PeraWalletConnect.isConnected', () => {
