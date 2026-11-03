@@ -47,6 +47,14 @@ class PeraWalletConnectError extends Error {
 
         this.name = 'PeraWalletConnectError'
         this.data = data
+        // Enumerable, so `JSON.stringify(error)` and spreads keep the message;
+        // `super` defines it as non-enumerable.
+        Object.defineProperty(this, 'message', {
+            value: message,
+            enumerable: true,
+            writable: true,
+            configurable: true,
+        })
     }
 }
 
