@@ -50,6 +50,13 @@ updates:
         update-types:
           - minor
           - patch
+        # Without this, a vite-vitest package can still land here and split
+        # from its siblings (e.g. @vitest/coverage-v8 ahead of vitest).
+        exclude-patterns:
+          - vite
+          - vitest
+          - "@vitest/*"
+          - jsdom
     ignore:
       # @types/node tracks the Node runtime pinned in .tool-versions; a major
       # ahead of it only types APIs CI does not have.
