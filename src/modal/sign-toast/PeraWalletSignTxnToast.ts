@@ -1,15 +1,16 @@
-import CloseIcon from "../../asset/icon/Close--small.svg";
+import CloseIcon from '../../asset/icon/Close--small.svg'
 
-import Lottie from "@evanhahn/lottie-web-light";
+import Lottie from '@evanhahn/lottie-web-light'
 
-import styles from "./_pera-wallet-sign-txn-toast.scss";
+import styles from './_pera-wallet-sign-txn-toast.scss?inline'
 import {
-  PERA_WALLET_SIGN_TXN_TOAST_ID,
-  removeModalWrapperFromDOM
-} from "../peraWalletConnectModalUtils";
-import {SIGN_TXN_ANIMATION_URL} from "./util/peraWalletSignTxnToastContants";
+    PERA_WALLET_SIGN_TXN_TOAST_ID,
+    removeModalWrapperFromDOM,
+} from '../peraWalletConnectModalUtils.js'
+import { SIGN_TXN_ANIMATION_URL } from './util/peraWalletSignTxnToastConstants.js'
+import { appendTemplateWithStyles } from '../shadowDomUtils.js'
 
-const peraWalletSignTxnToastTemplate = document.createElement("template");
+const peraWalletSignTxnToastTemplate = document.createElement('template')
 
 peraWalletSignTxnToastTemplate.innerHTML = `
   <div class="pera-wallet-sign-txn-toast">
@@ -27,48 +28,45 @@ peraWalletSignTxnToastTemplate.innerHTML = `
       </p>
     </div>
   </div>
-`;
+`
 
 export class PeraWalletSignTxnToast extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({mode: "open"});
+    constructor() {
+        super()
+        this.attachShadow({ mode: 'open' })
 
-    if (this.shadowRoot) {
-      const styleSheet = document.createElement("style");
+        if (this.shadowRoot) {
+            appendTemplateWithStyles(
+                this.shadowRoot,
+                peraWalletSignTxnToastTemplate,
+                styles,
+            )
 
-      styleSheet.textContent = styles;
+            const closeButton = this.shadowRoot.getElementById(
+                'pera-wallet-sign-txn-toast-close-button',
+            )
 
-      this.shadowRoot.append(
-        peraWalletSignTxnToastTemplate.content.cloneNode(true),
-        styleSheet
-      );
+            closeButton?.addEventListener('click', () => {
+                removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID)
+            })
 
-      const closeButton = this.shadowRoot.getElementById(
-        "pera-wallet-sign-txn-toast-close-button"
-      );
-
-      closeButton?.addEventListener("click", () => {
-        removeModalWrapperFromDOM(PERA_WALLET_SIGN_TXN_TOAST_ID);
-      });
-
-      this.renderLottieAnimation();
+            this.renderLottieAnimation()
+        }
     }
-  }
 
-  renderLottieAnimation() {
-    const lottieWrapper = this.shadowRoot?.getElementById(
-      "pera-wallet-sign-txn-toast-lottie-animation"
-    );
+    renderLottieAnimation() {
+        const lottieWrapper = this.shadowRoot?.getElementById(
+            'pera-wallet-sign-txn-toast-lottie-animation',
+        )
 
-    if (lottieWrapper) {
-      Lottie.loadAnimation({
-        container: lottieWrapper,
-        renderer: "svg",
-        loop: true,
-        autoplay: true,
-        path: SIGN_TXN_ANIMATION_URL
-      });
+        if (lottieWrapper) {
+            Lottie.loadAnimation({
+                container: lottieWrapper,
+                renderer: 'svg',
+                loop: true,
+                autoplay: true,
+                path: SIGN_TXN_ANIMATION_URL,
+            })
+        }
     }
-  }
 }
