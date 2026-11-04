@@ -1,3 +1,5 @@
+# npm trusted publishing is bound to this file name; renaming it breaks publish
+# until the package's trusted publisher settings on npmjs.com are updated.
 name: Release / Publish
 
 on:

@@ -63,7 +63,7 @@ gitleaks keys off context (a long random string next to `token`, `key` or `secre
 
 ## Releasing
 
-Releases are published from `main` by pushing a tag; the [release workflow](.github/workflows/release-publish.yml) runs the pre-merge checks again, scans the bundle and publishes with npm provenance. A version containing `-` goes to the `beta` dist-tag, anything else to `latest`.
+Releases are published from `main` by pushing a tag; the [release workflow](.github/workflows/release.yml) runs the pre-merge checks again, scans the bundle and publishes with npm provenance. A version containing `-` goes to the `beta` dist-tag, anything else to `latest`.
 
 - **Beta:** `npm version prerelease --preid beta` (`1.9.0-beta.0` → `1.9.0-beta.1` → …), then `git push --follow-tags`.
 - **Stable:** `npm version 1.9.0`, then `git push --follow-tags`.
