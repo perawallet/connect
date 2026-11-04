@@ -1,22 +1,23 @@
-import PeraWalletLogo from "../../../asset/icon/PeraWallet.svg";
-import HelpIcon from "../../../asset/icon/Help.svg";
-import SendIcon from "../../../asset/icon/Send.svg";
+import PeraWalletLogo from '../../../asset/icon/PeraWallet.svg'
+import HelpIcon from '../../../asset/icon/Help.svg'
+import SendIcon from '../../../asset/icon/Send.svg'
 
-import Lottie from "@evanhahn/lottie-web-light";
+import Lottie from '@evanhahn/lottie-web-light'
 
 import {
-  PERA_WALLET_CONNECT_MODAL_ID,
-  removeModalWrapperFromDOM
-} from "../../peraWalletConnectModalUtils";
-import styles from "./_pera-wallet-connect-modal-pending-message.scss";
-import {isIOS} from "../../../util/device/deviceUtils";
+    PERA_WALLET_CONNECT_MODAL_ID,
+    removeModalWrapperFromDOM,
+} from '../../peraWalletConnectModalUtils.js'
+import styles from './_pera-wallet-connect-modal-pending-message.scss?inline'
+import { isIOS } from '../../../util/device/deviceUtils.js'
 import {
-  CONNECT_AUDIO_URL,
-  CONNECT_TIMEOUT_INTERVAL,
-  PERA_LOADER_ANIMATION_URL
-} from "./util/peraWalletConnectModalPendingMessageConstants";
+    CONNECT_AUDIO_URL,
+    CONNECT_TIMEOUT_INTERVAL,
+    PERA_LOADER_ANIMATION_URL,
+} from './util/peraWalletConnectModalPendingMessageConstants.js'
 
-const peraWalletConnectModalPendingMessageTemplate = document.createElement("template");
+const peraWalletConnectModalPendingMessageTemplate =
+    document.createElement('template')
 
 peraWalletConnectModalPendingMessageTemplate.innerHTML = `
   <div class="pera-wallet-connect-modal-pending-message-section">
@@ -36,7 +37,7 @@ peraWalletConnectModalPendingMessageTemplate.innerHTML = `
   </div>
 
   <div id="pera-wallet-connect-modal-pending-message-audio-wrapper"></div>
-`;
+`
 
 const peraWalletConnectTryAgainView = `
   <div class="pera-wallet-connect-modal-pending-message--try-again-view">
@@ -87,99 +88,103 @@ const peraWalletConnectTryAgainView = `
       </button>
     </div>
   </div>
-  `;
+  `
 
 export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({mode: "open"});
+    constructor() {
+        super()
+        this.attachShadow({ mode: 'open' })
 
-    if (this.shadowRoot) {
-      const styleSheet = document.createElement("style");
+        if (this.shadowRoot) {
+            const styleSheet = document.createElement('style')
 
-      styleSheet.textContent = styles;
+            styleSheet.textContent = styles
 
-      this.shadowRoot.append(
-        peraWalletConnectModalPendingMessageTemplate.content.cloneNode(true),
-        styleSheet
-      );
+            this.shadowRoot.append(
+                peraWalletConnectModalPendingMessageTemplate.content.cloneNode(
+                    true,
+                ),
+                styleSheet,
+            )
+        }
     }
-  }
 
-  connectedCallback() {
-    const cancelButton = this.shadowRoot?.getElementById(
-      "pera-wallet-connect-modal-pending-message-cancel-button"
-    );
+    connectedCallback() {
+        const cancelButton = this.shadowRoot?.getElementById(
+            'pera-wallet-connect-modal-pending-message-cancel-button',
+        )
 
-    cancelButton?.addEventListener("click", () => {
-      this.onClose();
-    });
+        cancelButton?.addEventListener('click', () => {
+            this.onClose()
+        })
 
-    this.addAudioForConnection();
-    this.renderLottieAnimation();
+        this.addAudioForConnection()
+        this.renderLottieAnimation()
 
-    setTimeout(() => {
-      peraWalletConnectModalPendingMessageTemplate.innerHTML =
-        peraWalletConnectTryAgainView;
+        setTimeout(() => {
+            peraWalletConnectModalPendingMessageTemplate.innerHTML =
+                peraWalletConnectTryAgainView
 
-      if (this.shadowRoot) {
-        const styleSheet = document.createElement("style");
+            if (this.shadowRoot) {
+                const styleSheet = document.createElement('style')
 
-        styleSheet.textContent = styles;
+                styleSheet.textContent = styles
 
-        this.shadowRoot.innerHTML = "";
+                this.shadowRoot.innerHTML = ''
 
-        this.shadowRoot.append(
-          peraWalletConnectModalPendingMessageTemplate.content.cloneNode(true),
-          styleSheet
-        );
+                this.shadowRoot.append(
+                    peraWalletConnectModalPendingMessageTemplate.content.cloneNode(
+                        true,
+                    ),
+                    styleSheet,
+                )
 
-        const tryAgainButton = this.shadowRoot?.getElementById(
-          "pera-wallet-connect-modal-pending-message-try-again-button"
-        );
+                const tryAgainButton = this.shadowRoot?.getElementById(
+                    'pera-wallet-connect-modal-pending-message-try-again-button',
+                )
 
-        tryAgainButton?.addEventListener("click", () => {
-          this.onClose();
-        });
-      }
-    }, CONNECT_TIMEOUT_INTERVAL);
-  }
-
-  onClose() {
-    removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID);
-  }
-
-  addAudioForConnection() {
-    const shouldUseSound = this.getAttribute("should-use-sound");
-
-    if (shouldUseSound === "true" && isIOS()) {
-      const connectAudioWrapper = this.shadowRoot?.getElementById(
-        "pera-wallet-connect-modal-pending-message-audio-wrapper"
-      );
-
-      const audio = document.createElement("audio");
-
-      audio.src = CONNECT_AUDIO_URL;
-      audio.autoplay = true;
-      audio.loop = true;
-
-      connectAudioWrapper?.appendChild(audio);
+                tryAgainButton?.addEventListener('click', () => {
+                    this.onClose()
+                })
+            }
+        }, CONNECT_TIMEOUT_INTERVAL)
     }
-  }
 
-  renderLottieAnimation() {
-    const lottieWrapper = this.shadowRoot?.getElementById(
-      "pera-wallet-connect-modal-pending-message-animation-wrapper"
-    );
-
-    if (lottieWrapper) {
-      Lottie.loadAnimation({
-        container: lottieWrapper,
-        renderer: "svg",
-        loop: true,
-        autoplay: true,
-        path: PERA_LOADER_ANIMATION_URL
-      });
+    onClose() {
+        removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
     }
-  }
+
+    addAudioForConnection() {
+        const shouldUseSound = this.getAttribute('should-use-sound')
+
+        if (shouldUseSound === 'true' && isIOS()) {
+            const connectAudioWrapper = this.shadowRoot?.getElementById(
+                'pera-wallet-connect-modal-pending-message-audio-wrapper',
+            )
+
+            const audio = document.createElement('audio')
+
+            audio.src = CONNECT_AUDIO_URL
+            audio.autoplay = true
+            audio.loop = true
+
+            connectAudioWrapper?.appendChild(audio)
+        }
+    }
+
+    renderLottieAnimation() {
+        const lottieWrapper = this.shadowRoot?.getElementById(
+            'pera-wallet-connect-modal-pending-message-animation-wrapper',
+        )
+
+        if (lottieWrapper) {
+            Lottie.loadAnimation({
+                container: lottieWrapper,
+                renderer: 'svg',
+                loop: true,
+                autoplay: true,
+                path: PERA_LOADER_ANIMATION_URL,
+            })
+        }
+    }
 }

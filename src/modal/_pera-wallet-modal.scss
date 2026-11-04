@@ -1,204 +1,206 @@
-@use "../ui/styles/media-queries";
-
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@use '../ui/styles/media-queries';
 
 .pera-wallet-modal {
-  --pera-wallet-modal-font-family: "Inter", sans-serif;
-  --pera-wallet-modal-compact-width: 380px;
-  --pera-wallet-modal-compact-height: 396px;
+    --pera-wallet-modal-font-family: 'Inter', sans-serif;
+    --pera-wallet-modal-compact-width: 380px;
+    --pera-wallet-modal-compact-height: 396px;
 
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 999999;
-
-  width: 100vw;
-  height: 100vh;
-
-  background-color: rgba(0, 0, 0, 0.7);
-
-  &--select-account {
-    .pera-wallet-modal__body {
-      width: 480px;
-      height: 578px;
-
-      background-color: #ffffff;
-    }
-  }
-
-  &--mobile {
-    .pera-wallet-modal__body {
-      position: absolute;
-      top: unset;
-      bottom: 0;
-      left: 0;
-
-      width: 100%;
-      max-width: unset;
-
-      padding: 20px;
-
-      background-color: #ffffff;
-
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
-
-      border-radius: 20px 20px 0px 0px;
-
-      animation: 0.3s PeraWalletConnectMobileSlideIn ease-out;
-
-      overflow-y: auto;
-
-      transform: unset;
-
-      &::before {
-        background-image: unset;
-      }
-    }
-  }
-
-  &--compact:not(.pera-wallet-modal--mobile) {
-    .pera-wallet-modal__body {
-      width: var(--pera-wallet-modal-compact-width);
-      height: var(--pera-wallet-modal-compact-height);
-      
-      padding: 0;
-    }
-  }
-
-  * {
-    box-sizing: border-box;
-
-    margin: 0;
-    padding: 0;
-
-    font-family: var(--pera-wallet-modal-font-family);
-
-    // Although this is not a standard, Design team suggest that we use it so supported browsers will use it
-    // stylelint-disable-next-line property-no-unknown
-    font-smooth: antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
 
-  ul,
-  ol,
-  li {
-    list-style-type: none;
-  }
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 999999;
+
+    width: 100vw;
+    height: 100vh;
+
+    background-color: rgba(0, 0, 0, 0.7);
+
+    &--select-account {
+        .pera-wallet-modal__body {
+            width: 480px;
+            height: 578px;
+
+            background-color: #ffffff;
+        }
+    }
+
+    &--mobile {
+        .pera-wallet-modal__body {
+            position: absolute;
+            top: unset;
+            bottom: 0;
+            left: 0;
+
+            width: 100%;
+            max-width: unset;
+
+            padding: 20px;
+
+            background-color: #ffffff;
+
+            box-shadow:
+                0 1px 4px rgba(0, 0, 0, 0.02),
+                0 4px 12px rgba(0, 0, 0, 0.03);
+
+            border-radius: 20px 20px 0px 0px;
+
+            animation: 0.3s PeraWalletConnectMobileSlideIn ease-out;
+
+            overflow-y: auto;
+
+            transform: unset;
+
+            &::before {
+                background-image: unset;
+            }
+        }
+    }
+
+    &--compact:not(.pera-wallet-modal--mobile) {
+        .pera-wallet-modal__body {
+            width: var(--pera-wallet-modal-compact-width);
+            height: var(--pera-wallet-modal-compact-height);
+
+            padding: 0;
+        }
+    }
+
+    * {
+        box-sizing: border-box;
+
+        margin: 0;
+        padding: 0;
+
+        font-family: var(--pera-wallet-modal-font-family);
+
+        // Although this is not a standard, Design team suggest that we use it so supported browsers will use it
+        // stylelint-disable-next-line property-no-unknown
+        font-smooth: antialiased;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    ul,
+    ol,
+    li {
+        list-style-type: none;
+    }
 }
 
 .pera-wallet-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  width: auto;
-  height: 48px;
+    width: auto;
+    height: 48px;
 
-  padding: 14px;
+    padding: 14px;
 
-  border: none;
-  border-radius: 12px;
-  outline: none;
+    border: none;
+    border-radius: 12px;
+    outline: none;
 
-  cursor: pointer;
+    cursor: pointer;
 
-  font-family: var(--pera-wallet-modal-font-family);
-  font-size: 14px;
+    font-family: var(--pera-wallet-modal-font-family);
+    font-size: 14px;
 }
 
 .pera-wallet-modal__logo img {
-  display: block;
+    display: block;
 
-  width: 32px;
+    width: 32px;
 }
 
 .pera-wallet-modal__body {
-  position: relative;
-  top: 50%;
-  left: 50%;
+    position: relative;
+    top: 50%;
+    left: 50%;
 
-  width: 700px;
-  max-width: calc(100vw - 80px);
+    width: 700px;
+    max-width: calc(100vw - 80px);
 
-  padding: 28px;
+    padding: 28px;
 
-  background-color: #f3f3f7;
+    background-color: #f3f3f7;
 
-  box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.08);
-
-  border-radius: 24px;
-
-  animation: 0.3s PeraWalletConnectSlideIn ease-out;
-
-  transform: translate(-50%, -50%);
-
-  &::before {
-    --background-line: #1e0972 0 1.2px, transparent 0 calc(100% - 1.2px), #1e0972;
-
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: -1;
-
-    content: "";
-
-    background-image: linear-gradient(var(--background-line)),
-      linear-gradient(90deg, var(--background-line));
-    background-size: 116px 116px;
-
-    mix-blend-mode: overlay;
+    box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.08);
 
     border-radius: 24px;
 
-    opacity: 0.8;
+    animation: 0.3s PeraWalletConnectSlideIn ease-out;
 
-    pointer-events: none;
-  }
+    transform: translate(-50%, -50%);
+
+    &::before {
+        --background-line:
+            #1e0972 0 1.2px, transparent 0 calc(100% - 1.2px), #1e0972;
+
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: -1;
+
+        content: '';
+
+        background-image:
+            linear-gradient(var(--background-line)),
+            linear-gradient(90deg, var(--background-line));
+        background-size: 116px 116px;
+
+        mix-blend-mode: overlay;
+
+        border-radius: 24px;
+
+        opacity: 0.8;
+
+        pointer-events: none;
+    }
 }
 
 @include media-queries.for-small-screens {
-  .pera-wallet-modal--desktop {
-    .pera-wallet-modal__body {
-      width: 100%;
-      max-width: calc(100vw - 32px);
+    .pera-wallet-modal--desktop {
+        .pera-wallet-modal__body {
+            width: 100%;
+            max-width: calc(100vw - 32px);
 
-      padding: 24px;
+            padding: 24px;
+        }
     }
-  }
 }
 
 @keyframes PeraWalletConnectSlideIn {
-  0% {
-    opacity: 0;
+    0% {
+        opacity: 0;
 
-    transform: translate(-50%, calc(-50% + 24px));
-  }
+        transform: translate(-50%, calc(-50% + 24px));
+    }
 
-  100% {
-    opacity: 1;
+    100% {
+        opacity: 1;
 
-    transform: translate(-50%, -50%);
-  }
+        transform: translate(-50%, -50%);
+    }
 }
 
 @keyframes PeraWalletConnectMobileSlideIn {
-  0% {
-    bottom: -30%;
+    0% {
+        bottom: -30%;
 
-    opacity: 0;
-  }
+        opacity: 0;
+    }
 
-  100% {
-    bottom: 0;
+    100% {
+        bottom: 0;
 
-    opacity: 1;
-  }
+        opacity: 1;
+    }
 }
