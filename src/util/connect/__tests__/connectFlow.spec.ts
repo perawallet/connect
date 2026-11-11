@@ -149,6 +149,49 @@ describe('runWebConnectFlow', () => {
         )
     })
 
+    it('leaves the modal alone when the tab closes after the connect call settled', async () => {
+        const tab = openTab()
+        let isSettled = false
+        const { run, reject } = invoke({ isSettled: () => isSettled })
+
+        await run()
+        isSettled = true
+        tab.closed = true
+        await vi.advanceTimersByTimeAsync(2000)
+
+        expect(reject).not.toHaveBeenCalled()
+        expect(removeModalMock).not.toHaveBeenCalled()
+        expect(vi.getTimerCount()).toBe(0)
+    })
+
+    it('leaves the modal alone when the tab fails to open after the connect call settled', async () => {
+        const error = new Error('tab blocked')
+
+        waitForTabOpeningMock.mockRejectedValue(error)
+
+        const { run, reject } = invoke({ isSettled: () => true })
+
+        await run()
+
+        expect(removeModalMock).not.toHaveBeenCalled()
+        expect(reject).not.toHaveBeenCalled()
+    })
+
+    it("hands the connect call's settled state to the teller reducer", async () => {
+        const tab = openTab()
+        const address = algosdk.generateAccount().addr.toString()
+        const { run, resolve } = invoke({ isSettled: () => true })
+
+        await run()
+        replyFromPeraWeb({
+            type: 'CONNECT_CALLBACK',
+            data: { addresses: [address] },
+        })
+
+        expect(resolve).not.toHaveBeenCalled()
+        expect(tab.close).toHaveBeenCalled()
+    })
+
     it('keeps waiting while the tab stays open', async () => {
         openTab()
         const { run, reject, resolve } = invoke()

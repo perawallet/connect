@@ -62,6 +62,17 @@ export class FakePeraMobile {
         })
     }
 
+    /**
+     * The user approved just before the dApp closed the pairing; the bridge
+     * still delivers the answer that was already on its way.
+     */
+    approveInFlight(uri: string, accounts = this.addresses) {
+        this.requireConnector(uri).approveSession(
+            { accounts, peerId: this.peerId },
+            { wasSentBeforeClose: true },
+        )
+    }
+
     declinePairing(uri: string) {
         this.requireConnector(uri).rejectSession()
     }

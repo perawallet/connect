@@ -13,7 +13,22 @@ function newTabConnectFlowTellerReducer({
     newPeraWalletTab,
     resolve,
     reject,
+    isSettled,
 }: NewTabConnectFlowTellerReducerParams) {
+    const { type } = event.data.message
+
+    // The call settled another way first: storing this answer would bring back
+    // a session the dApp was told it doesn't have, and the modal on screen, if
+    // any, belongs to a later call.
+    if (
+        isSettled?.() &&
+        (type === 'CONNECT_CALLBACK' || type === 'CONNECT_NETWORK_MISMATCH')
+    ) {
+        newPeraWalletTab?.close()
+
+        return
+    }
+
     if (resolve && event.data.message.type === 'CONNECT_CALLBACK') {
         const accounts = event.data.message.data.addresses
 

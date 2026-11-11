@@ -15,7 +15,10 @@ import {
     CONNECT_TIMEOUT_INTERVAL,
     PERA_LOADER_ANIMATION_URL,
 } from '../util/peraWalletConnectModalPendingMessageConstants.js'
-import { PERA_WALLET_CONNECT_MODAL_ID } from '../../../peraWalletConnectModalUtils.js'
+import {
+    PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+    PERA_WALLET_CONNECT_MODAL_ID,
+} from '../../../peraWalletConnectModalUtils.js'
 
 vi.mock('@evanhahn/lottie-web-light', () => ({
     default: { loadAnimation: vi.fn() },
@@ -25,6 +28,10 @@ const IPHONE_USER_AGENT =
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
 const AUDIO_WRAPPER_ID =
     'pera-wallet-connect-modal-pending-message-audio-wrapper'
+const CANCEL_BUTTON_ID =
+    'pera-wallet-connect-modal-pending-message-cancel-button'
+const TRY_AGAIN_BUTTON_ID =
+    'pera-wallet-connect-modal-pending-message-try-again-button'
 
 beforeAll(() => {
     if (
@@ -101,6 +108,33 @@ describe('PeraWalletConnectModalPendingMessageSection', () => {
         expect(document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)).toBeNull()
     })
 
+    it.each([
+        ['cancel', CANCEL_BUTTON_ID, 0],
+        ['close & try again', TRY_AGAIN_BUTTON_ID, CONNECT_TIMEOUT_INTERVAL],
+    ])(
+        'tells connect() the user closed the modal when %s is clicked',
+        (_name, buttonId, waitMs) => {
+            const shadowRoot = renderPendingMessage()
+            const onClosed = vi.fn()
+
+            document.addEventListener(
+                PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+                onClosed,
+            )
+            vi.advanceTimersByTime(waitMs)
+            shadowRoot.getElementById(buttonId)!.click()
+            document.removeEventListener(
+                PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+                onClosed,
+            )
+
+            expect(onClosed).toHaveBeenCalledTimes(1)
+            expect(
+                document.getElementById(PERA_WALLET_CONNECT_MODAL_ID),
+            ).toBeNull()
+        },
+    )
+
     it('plays the connection sound on iOS when sound is enabled', () => {
         setUserAgent(IPHONE_USER_AGENT)
 
@@ -129,26 +163,61 @@ describe('PeraWalletConnectModalPendingMessageSection', () => {
         expect(shadowRoot.querySelector('audio')).toBeNull()
     })
 
-    // Kept last: the timeout rewrites the module-level template, so instances
-    // created after it start in the try-again view.
     it('offers to close and try again once the connection times out', () => {
         const shadowRoot = renderPendingMessage()
 
         vi.advanceTimersByTime(CONNECT_TIMEOUT_INTERVAL)
 
-        const tryAgainButton = shadowRoot.getElementById(
-            'pera-wallet-connect-modal-pending-message-try-again-button',
-        )
+        const tryAgainButton = shadowRoot.getElementById(TRY_AGAIN_BUTTON_ID)
 
-        expect(
-            shadowRoot.getElementById(
-                'pera-wallet-connect-modal-pending-message-cancel-button',
-            ),
-        ).toBeNull()
+        expect(shadowRoot.getElementById(CANCEL_BUTTON_ID)).toBeNull()
         expect(tryAgainButton).not.toBeNull()
 
         tryAgainButton!.click()
 
         expect(document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)).toBeNull()
+    })
+
+    it('starts a later pending view on the waiting screen after an earlier one timed out', () => {
+        renderPendingMessage()
+        vi.advanceTimersByTime(CONNECT_TIMEOUT_INTERVAL)
+        document.body.innerHTML = ''
+
+        const shadowRoot = renderPendingMessage()
+
+        expect(shadowRoot.getElementById(CANCEL_BUTTON_ID)).not.toBeNull()
+        expect(shadowRoot.getElementById(TRY_AGAIN_BUTTON_ID)).toBeNull()
+    })
+
+    it('starts a later pending view on the waiting screen after an earlier one was removed before timing out', () => {
+        const removedRoot = renderPendingMessage()
+
+        // A quick pairing removes the modal well before the timeout.
+        document.body.innerHTML = ''
+        vi.advanceTimersByTime(CONNECT_TIMEOUT_INTERVAL)
+
+        expect(removedRoot.getElementById(TRY_AGAIN_BUTTON_ID)).toBeNull()
+
+        const shadowRoot = renderPendingMessage()
+
+        expect(shadowRoot.getElementById(CANCEL_BUTTON_ID)).not.toBeNull()
+        expect(shadowRoot.getElementById(TRY_AGAIN_BUTTON_ID)).toBeNull()
+    })
+
+    it('switches to the try-again view only once when mounted again', () => {
+        const shadowRoot = renderPendingMessage()
+        const element = shadowRoot.host
+        const wrapper = element.parentElement!
+
+        element.remove()
+        wrapper.append(element)
+
+        expect(vi.getTimerCount()).toBe(1)
+
+        vi.advanceTimersByTime(CONNECT_TIMEOUT_INTERVAL)
+
+        expect(
+            shadowRoot.querySelectorAll(`#${TRY_AGAIN_BUTTON_ID}`),
+        ).toHaveLength(1)
     })
 })

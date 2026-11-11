@@ -51,6 +51,15 @@ function getWalletConnectObjectFromStorage(): IWalletConnectSession | null {
     return null
 }
 
+// Written as WalletConnect itself writes it, so the session it restores from
+// is indistinguishable from one it saved.
+function saveWalletConnectObjectToStorage(session: IWalletConnectSession) {
+    getLocalStorage()?.setItem(
+        PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
+        JSON.stringify(session),
+    )
+}
+
 // Async so a storage failure surfaces as a rejection, as callers expect.
 async function resetWalletDetailsFromStorage() {
     getLocalStorage()?.removeItem(PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT)
@@ -155,6 +164,7 @@ export {
     resetWalletDetailsFromStorage,
     getWalletDetailsFromStorage,
     getWalletConnectObjectFromStorage,
+    saveWalletConnectObjectToStorage,
     getWalletPlatformFromStorage,
     migrateLegacyWalletConnectSession,
 }

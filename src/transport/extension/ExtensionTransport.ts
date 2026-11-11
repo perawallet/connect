@@ -226,12 +226,21 @@ export class ExtensionTransport implements WalletTransport {
      * Must run synchronously inside the user's click: a first-time connect needs
      * transient user activation, which the extension checks on the page's behalf.
      * There is deliberately no `await` before `provider.connect()`.
+     *
+     * The approval window can stay open long after the caller has moved on;
+     * `isStillWanted` is asked once the wallet answers, and an approval nobody
+     * wants any more is not stored.
      */
-    connect(_opts?: ConnectOptions): Promise<string[]> {
+    connect(
+        _opts?: ConnectOptions,
+        isStillWanted: () => boolean = () => true,
+    ): Promise<string[]> {
         return this.provider
             .connect(buildProviderConnectOptions(this.deps.chainId))
             .then(result =>
-                this.storeConnection(result.accounts, result.network),
+                isStillWanted()
+                    ? this.storeConnection(result.accounts, result.network)
+                    : result.accounts.map(account => account.address),
             )
             .catch(error => {
                 throw mapProviderError(error, 'connect')

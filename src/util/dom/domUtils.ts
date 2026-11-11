@@ -90,6 +90,19 @@ function waitForTabOpening(url: string): Promise<Window | null> {
         try {
             const newWindow = window.open(url, '_blank')
 
+            // Without a window there is nothing to ping and no source to accept
+            // a reply from, so waiting out the retries could only end the same way.
+            if (!newWindow) {
+                reject(
+                    new PeraWalletConnectError(
+                        { type: 'MESSAGE_NOT_RECEIVED' },
+                        'The browser did not open the Pera Web tab (pop-ups may be blocked). Allow pop-ups for this site and try again.',
+                    ),
+                )
+
+                return
+            }
+
             let count = 0
 
             const checkTabIsOpened = setInterval(() => {
@@ -109,29 +122,27 @@ function waitForTabOpening(url: string): Promise<Window | null> {
                     return
                 }
 
-                if (newWindow) {
-                    if (newWindow.closed === true) {
-                        clearInterval(checkTabIsOpened)
-                        reject(
-                            new PeraWalletConnectError(
-                                {
-                                    type: 'OPERATION_CANCELLED',
-                                },
+                if (newWindow.closed === true) {
+                    clearInterval(checkTabIsOpened)
+                    reject(
+                        new PeraWalletConnectError(
+                            {
+                                type: 'OPERATION_CANCELLED',
+                            },
 
-                                'Operation cancelled by user',
-                            ),
-                        )
-                    }
-
-                    appTellerManager.sendMessage({
-                        message: {
-                            type: 'TAB_OPEN',
-                        },
-
-                        origin: url,
-                        targetWindow: newWindow,
-                    })
+                            'Operation cancelled by user',
+                        ),
+                    )
                 }
+
+                appTellerManager.sendMessage({
+                    message: {
+                        type: 'TAB_OPEN',
+                    },
+
+                    origin: url,
+                    targetWindow: newWindow,
+                })
             }, WAIT_FOR_TAB_TRY_INTERVAL)
 
             appTellerManager.setupListener({

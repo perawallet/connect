@@ -7,7 +7,12 @@ import {
 } from '../util/storage/storageUtils.js'
 import { PERA_WALLET_LOCAL_STORAGE_KEYS } from '../util/storage/storageConstants.js'
 import { PERA_WALLET_CONNECT_FALLBACK_BRIDGE } from '../util/peraWalletConstants.js'
-import { PERA_WALLET_EXTENSION_CONNECT_EVENT } from '../modal/peraWalletConnectModalUtils.js'
+import {
+    PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+    PERA_WALLET_CONNECT_MODAL_ID,
+    PERA_WALLET_EXTENSION_CONNECT_EVENT,
+} from '../modal/peraWalletConnectModalUtils.js'
+import { PeraWalletModalHeader } from '../modal/header/PeraWalletModalHeader.js'
 import { PERA_PROVIDER_ERROR_CODES } from '../transport/extension/peraProviderTypes.js'
 import {
     installPeraProvider,
@@ -32,6 +37,11 @@ const { FakeConnector, createSessionBehavior } = vi.hoisted(() => {
             return Promise.resolve(undefined)
         })
         sendCustomRequest = vi.fn()
+        transportClose = vi.fn()
+
+        get session() {
+            return { connected: this.connected, accounts: this.accounts }
+        }
 
         constructor(opts: any) {
             this.opts = opts
@@ -257,6 +267,206 @@ describe('PeraWalletConnect.connect()', () => {
         expect((window as any).onWebWalletConnect).toBeUndefined()
     })
 
+    describe('settling once', () => {
+        function closeModalFromInside() {
+            document.dispatchEvent(
+                new CustomEvent(PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT, {
+                    bubbles: true,
+                    composed: true,
+                }),
+            )
+        }
+
+        it('rejects with CONNECT_MODAL_CLOSED when the modal is dismissed from inside', async () => {
+            const pera = new PeraWalletConnect()
+            const connectPromise = pera.connect()
+
+            await flush()
+            closeModalFromInside()
+
+            await expect(connectPromise).rejects.toMatchObject({
+                data: { type: 'CONNECT_MODAL_CLOSED' },
+                message: 'Connect modal is closed by user',
+            })
+            expect(FakeConnector.instances[0].transportClose).toHaveBeenCalled()
+            expect(pera.connector).toBeNull()
+        })
+
+        it("rejects with CONNECT_MODAL_CLOSED from the header's close button, however late the modal rendered", async () => {
+            if (!customElements.get('pera-wallet-modal-header')) {
+                customElements.define(
+                    'pera-wallet-modal-header',
+                    PeraWalletModalHeader,
+                )
+            }
+
+            const pera = new PeraWalletConnect()
+            const connectPromise = pera.connect()
+
+            await flush()
+
+            // The modal's elements upgrade once the lazily loaded App.js has
+            // run, which can be after connect() has set itself up.
+            const wrapper = document.createElement('div')
+
+            wrapper.id = PERA_WALLET_CONNECT_MODAL_ID
+            wrapper.innerHTML = `<pera-wallet-modal-header modal-id="${PERA_WALLET_CONNECT_MODAL_ID}"></pera-wallet-modal-header>`
+            document.body.append(wrapper)
+            wrapper
+                .querySelector('pera-wallet-modal-header')!
+                .shadowRoot!.getElementById(
+                    'pera-wallet-modal-header-close-button',
+                )!
+                .click()
+
+            await expect(connectPromise).rejects.toMatchObject({
+                data: { type: 'CONNECT_MODAL_CLOSED' },
+            })
+            expect(
+                document.getElementById(PERA_WALLET_CONNECT_MODAL_ID),
+            ).toBeNull()
+        })
+
+        it('stops listening for the modal being dismissed once the call settles', async () => {
+            const pera = new PeraWalletConnect()
+            const connectPromise = pera.connect()
+
+            await flush()
+            FakeConnector.instances[0].emitConnect(null, ['ADDR1'])
+            await connectPromise
+            closeModalFromInside()
+
+            expect(pera.connector).toBe(FakeConnector.instances[0])
+            expect(
+                FakeConnector.instances[0].transportClose,
+            ).not.toHaveBeenCalled()
+        })
+
+        it('ends a session the wallet approved after the call was cancelled, so the next connect starts clean', async () => {
+            const pera = new PeraWalletConnect()
+            const connectPromise = pera.connect()
+            const onDisconnect = vi.fn()
+
+            pera.on('disconnect', onDisconnect)
+            await flush()
+            closeModalFromInside()
+            await connectPromise.catch(() => undefined)
+
+            // An approval already in flight still reaches the connector.
+            FakeConnector.instances[0].emitConnect(null, ['ADDR1'])
+
+            expect(FakeConnector.instances[0].killSession).toHaveBeenCalled()
+            expect(getWalletDetailsFromStorage()).toBeNull()
+            expect(pera.isConnected).toBe(false)
+            expect(onDisconnect).not.toHaveBeenCalled()
+        })
+
+        it('leaves a newer live session in place when the wallet approves a cancelled call late', async () => {
+            const pera = new PeraWalletConnect()
+            const cancelled = pera.connect()
+            const onDisconnect = vi.fn()
+
+            pera.on('disconnect', onDisconnect)
+            await flush()
+            closeModalFromInside()
+            await cancelled.catch(() => undefined)
+
+            const live = pera.connect()
+
+            await flush()
+            FakeConnector.instances[1].emitConnect(null, ['LIVE_ADDR'])
+            await live
+
+            const [stale, current] = FakeConnector.instances
+
+            stale.emitConnect(null, ['STALE_ADDR'])
+            // What WalletConnect does right after the `connect` handlers ran.
+            localStorage.setItem(
+                PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
+                JSON.stringify(stale.session),
+            )
+            await flush()
+
+            expect(stale.killSession).not.toHaveBeenCalled()
+            expect(stale.transportClose).toHaveBeenCalled()
+            expect(pera.connector).toBe(current)
+            expect(
+                JSON.parse(
+                    localStorage.getItem(
+                        PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
+                    )!,
+                ),
+            ).toEqual(current.session)
+            expect(getWalletDetailsFromStorage()?.accounts).toEqual([
+                'LIVE_ADDR',
+            ])
+            expect(onDisconnect).not.toHaveBeenCalled()
+        })
+
+        it('retires the QR pairing once Pera Web connects', async () => {
+            configState.isWebWalletAvailable = true
+
+            const pera = new PeraWalletConnect()
+            const connectPromise = pera.connect()
+
+            await flush()
+
+            const webFlow = runWebConnectFlowMock.mock.calls[0][0]
+
+            expect(webFlow.isSettled()).toBe(false)
+
+            // What Pera Web's reducer does on CONNECT_CALLBACK.
+            saveWalletDetailsToStorage(['WEB_ADDR'], 'pera-wallet-web')
+            webFlow.resolve(['WEB_ADDR'])
+
+            await expect(connectPromise).resolves.toEqual(['WEB_ADDR'])
+            expect(webFlow.isSettled()).toBe(true)
+            expect(FakeConnector.instances[0].transportClose).toHaveBeenCalled()
+
+            FakeConnector.instances[0].emitConnect(null, ['MOBILE_ADDR'])
+
+            expect(getWalletDetailsFromStorage()).toMatchObject({
+                type: 'pera-wallet-web',
+                accounts: ['WEB_ADDR'],
+            })
+        })
+
+        it('tells Pera Web the call settled once the modal is closed', async () => {
+            configState.isWebWalletAvailable = true
+
+            const pera = new PeraWalletConnect()
+            const connectPromise = pera.connect()
+
+            await flush()
+            closeModalFromInside()
+            await connectPromise.catch(() => undefined)
+
+            expect(runWebConnectFlowMock.mock.calls[0][0].isSettled()).toBe(
+                true,
+            )
+        })
+
+        it('closes the socket of a connector whose killSession fails', async () => {
+            const pera = new PeraWalletConnect()
+            const first = pera.connect()
+
+            await flush()
+            FakeConnector.instances[0].emitConnect(null, ['ADDR1'])
+            await first
+            FakeConnector.instances[0].killSession.mockRejectedValueOnce(
+                new Error('bridge down'),
+            )
+
+            const second = pera.connect()
+
+            await flush()
+            expect(FakeConnector.instances[0].transportClose).toHaveBeenCalled()
+
+            FakeConnector.instances[1].emitConnect(null, ['ADDR2'])
+            await second
+        })
+    })
+
     describe('disconnect event', () => {
         it('clears the session before the handler runs when the wallet ends it', async () => {
             const pera = new PeraWalletConnect()
@@ -347,6 +557,49 @@ describe('PeraWalletConnect.connect()', () => {
 
             expect(onDiscarded).not.toHaveBeenCalled()
             expect(onLive).toHaveBeenCalledTimes(1)
+        })
+
+        it("closes the connector's socket without ending the session", async () => {
+            const pera = new PeraWalletConnect()
+            const connectPromise = pera.connect()
+
+            await flush()
+            FakeConnector.instances[0].emitConnect(null, ['ADDR1'])
+            await connectPromise
+
+            pera.dispose()
+
+            expect(FakeConnector.instances[0].transportClose).toHaveBeenCalled()
+            expect(
+                FakeConnector.instances[0].killSession,
+            ).not.toHaveBeenCalled()
+            expect(getWalletDetailsFromStorage()?.accounts).toEqual(['ADDR1'])
+        })
+
+        it('does not throw for a connector a dApp assigned without a transport', () => {
+            const pera = new PeraWalletConnect()
+
+            pera.connector = { connected: true } as never
+
+            expect(() => pera.dispose()).not.toThrow()
+            expect(pera.connector).toBeNull()
+        })
+
+        it('clears the session on a later disconnect() even when the provider fails to revoke it', async () => {
+            saveWalletDetailsToStorage(['ADDR'], 'pera-wallet-extension')
+            const provider = installPeraProvider()
+
+            provider.disconnect.mockRejectedValue(
+                new Error('worker restarting'),
+            )
+            const pera = new PeraWalletConnect()
+
+            pera.dispose()
+            await pera.disconnect()
+
+            expect(provider.disconnect).toHaveBeenCalledTimes(1)
+            expect(provider.on).toHaveBeenCalledTimes(2)
+            expect(getWalletDetailsFromStorage()).toBeNull()
         })
 
         it('leaves the wallet session alone', () => {

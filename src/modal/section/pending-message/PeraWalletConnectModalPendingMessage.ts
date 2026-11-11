@@ -5,6 +5,7 @@ import SendIcon from '../../../asset/icon/Send.svg'
 import Lottie from '@evanhahn/lottie-web-light'
 
 import {
+    PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
     PERA_WALLET_CONNECT_MODAL_ID,
     removeModalWrapperFromDOM,
 } from '../../peraWalletConnectModalUtils.js'
@@ -39,7 +40,9 @@ peraWalletConnectModalPendingMessageTemplate.innerHTML = `
   <div id="pera-wallet-connect-modal-pending-message-audio-wrapper"></div>
 `
 
-const peraWalletConnectTryAgainView = `
+const peraWalletConnectTryAgainTemplate = document.createElement('template')
+
+peraWalletConnectTryAgainTemplate.innerHTML = `
   <div class="pera-wallet-connect-modal-pending-message--try-again-view">
     <div>
       <img src="${PeraWalletLogo}" alt="Pera Wallet Logo" />
@@ -90,68 +93,82 @@ const peraWalletConnectTryAgainView = `
   </div>
   `
 
+const CANCEL_BUTTON_ID =
+    'pera-wallet-connect-modal-pending-message-cancel-button'
+const TRY_AGAIN_BUTTON_ID =
+    'pera-wallet-connect-modal-pending-message-try-again-button'
+
 export class PeraWalletConnectModalPendingMessageSection extends HTMLElement {
+    private tryAgainTimeout: ReturnType<typeof setTimeout> | undefined
+
     constructor() {
         super()
         this.attachShadow({ mode: 'open' })
 
         if (this.shadowRoot) {
-            const styleSheet = document.createElement('style')
+            this.render(peraWalletConnectModalPendingMessageTemplate)
 
-            styleSheet.textContent = styles
+            // Delegated from the root, so both views' buttons work without
+            // rebinding after the timeout swaps the markup.
+            this.shadowRoot.addEventListener('click', event => {
+                const { target } = event
 
-            this.shadowRoot.append(
-                peraWalletConnectModalPendingMessageTemplate.content.cloneNode(
-                    true,
-                ),
-                styleSheet,
-            )
+                if (
+                    target instanceof Element &&
+                    target.closest(
+                        `#${CANCEL_BUTTON_ID}, #${TRY_AGAIN_BUTTON_ID}`,
+                    )
+                ) {
+                    this.onClose()
+                }
+            })
         }
     }
 
     connectedCallback() {
-        const cancelButton = this.shadowRoot?.getElementById(
-            'pera-wallet-connect-modal-pending-message-cancel-button',
-        )
-
-        cancelButton?.addEventListener('click', () => {
-            this.onClose()
-        })
-
         this.addAudioForConnection()
         this.renderLottieAnimation()
 
-        setTimeout(() => {
-            peraWalletConnectModalPendingMessageTemplate.innerHTML =
-                peraWalletConnectTryAgainView
-
-            if (this.shadowRoot) {
-                const styleSheet = document.createElement('style')
-
-                styleSheet.textContent = styles
-
-                this.shadowRoot.innerHTML = ''
-
-                this.shadowRoot.append(
-                    peraWalletConnectModalPendingMessageTemplate.content.cloneNode(
-                        true,
-                    ),
-                    styleSheet,
-                )
-
-                const tryAgainButton = this.shadowRoot?.getElementById(
-                    'pera-wallet-connect-modal-pending-message-try-again-button',
-                )
-
-                tryAgainButton?.addEventListener('click', () => {
-                    this.onClose()
-                })
-            }
+        clearTimeout(this.tryAgainTimeout)
+        this.tryAgainTimeout = setTimeout(() => {
+            this.tryAgainTimeout = undefined
+            // Replacing the whole root also stops the iOS looping audio and
+            // drops the animation.
+            this.render(peraWalletConnectTryAgainTemplate)
         }, CONNECT_TIMEOUT_INTERVAL)
     }
 
+    disconnectedCallback() {
+        clearTimeout(this.tryAgainTimeout)
+        this.tryAgainTimeout = undefined
+    }
+
     onClose() {
+        // Dispatched while still in the document, or it never reaches the
+        // listener connect() keeps there.
+        this.dispatchEvent(
+            new CustomEvent(PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT, {
+                bubbles: true,
+                composed: true,
+            }),
+        )
+
         removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
+    }
+
+    private render(template: HTMLTemplateElement) {
+        if (!this.shadowRoot) {
+            return
+        }
+
+        const styleSheet = document.createElement('style')
+
+        styleSheet.textContent = styles
+
+        this.shadowRoot.replaceChildren(
+            template.content.cloneNode(true),
+            styleSheet,
+        )
     }
 
     addAudioForConnection() {

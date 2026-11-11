@@ -128,6 +128,22 @@ function getLaunchPeraWalletLink() {
     )
 }
 
+/** A button of the pending view the touch-screen modal shows after Launch. */
+function getPendingMessageButton(id: 'cancel-button' | 'try-again-button') {
+    const pendingSection = getTouchScreenModeRoot().querySelector(
+        'pera-wallet-connect-modal-pending-message-section',
+    )
+
+    if (!pendingSection?.shadowRoot) {
+        throw new Error('The connect modal is not in the pending view')
+    }
+
+    return requireButton(
+        pendingSection.shadowRoot,
+        `pera-wallet-connect-modal-pending-message-${id}`,
+    )
+}
+
 function getSignTxnToast() {
     return (
         document
@@ -152,6 +168,7 @@ export {
     getConnectOptionIds,
     getExtensionConnectButton,
     getLaunchPeraWalletLink,
+    getPendingMessageButton,
     getRedirectModal,
     getRenderedQrCodeData,
     getSelectedConnectOptionId,

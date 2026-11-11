@@ -2,11 +2,13 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { PeraWalletConnect } from '../index.js'
 import { useIntegrationEnvironment } from './harness/environment.js'
-import { openConnectModal } from './harness/flows.js'
+import { connectWithPeraMobile, openConnectModal } from './harness/flows.js'
 import { FAKE_BRIDGE_URL } from './harness/fakeNetwork.js'
 import { FakePeraMobile } from './harness/fakePeraMobile.js'
 import { walletConnectRelay } from './harness/fakeWalletConnect.js'
+import { waitFor } from './harness/flush.js'
 import {
+    getConnectModal,
     getConnectModalUri,
     getConnectModalWrapper,
     getConnectOptionIds,
@@ -16,6 +18,8 @@ import {
     readStoredWallet,
     readStoredWalletConnectSession,
 } from './harness/storage.js'
+import { makePayment } from './harness/transactions.js'
+import { hasValidSignatureBy } from './harness/walletCrypto.js'
 
 vi.mock('@perawallet/walletconnect', () =>
     import('./harness/fakeWalletConnect.js').then(m => ({
@@ -106,13 +110,80 @@ describe('Connect with Pera Mobile via QR', () => {
         expect(readStoredWallet()).toBeNull()
     })
 
-    // BUG: a declined pairing reaches the SDK as WalletConnect `disconnect`,
-    // not `connect`: the modal closes, connect() never settles, and the dApp
-    // gets on('disconnect') for a session it never had.
-    it.todo('rejects connect() when the user declines the pairing in Pera')
+    it('rejects with CONNECT_CANCELLED when the user declines the pairing in Pera', async () => {
+        const mobile = new FakePeraMobile()
+        const pera = new PeraWalletConnect()
+        const onDisconnect = vi.fn()
 
-    // BUG: a second connect() while the first modal is open abandons the
-    // first pairing but keeps its modal (the new URI is never shown), so a
-    // scan pairs the phone and neither call ever settles.
-    it.todo('shows the new pairing when connect() is called with a modal open')
+        pera.on('disconnect', onDisconnect)
+        const { connecting } = await openConnectModal(pera)
+
+        mobile.declinePairing(getConnectModalUri())
+
+        await expect(connecting).rejects.toMatchObject({
+            name: 'PeraWalletConnectError',
+            data: { type: 'CONNECT_CANCELLED', detail: 'Session Rejected' },
+        })
+        expect(getConnectModalWrapper()).toBeNull()
+        expect(onDisconnect).not.toHaveBeenCalled()
+        expect(pera.isConnected).toBe(false)
+        expect(readStoredWallet()).toBeNull()
+    })
+
+    it('connects again after the user declined a pairing', async () => {
+        const mobile = new FakePeraMobile()
+        const pera = new PeraWalletConnect()
+        const { connecting: declined } = await openConnectModal(pera)
+
+        mobile.declinePairing(getConnectModalUri())
+        await declined.catch(() => undefined)
+
+        await expect(connectWithPeraMobile(pera, mobile)).resolves.toEqual(
+            mobile.addresses,
+        )
+        expect(pera.platform).toBe('mobile')
+    })
+
+    it('shows the new pairing when connect() is called with a modal open, and settles both calls with it', async () => {
+        const mobile = new FakePeraMobile()
+        const pera = new PeraWalletConnect()
+        const { connecting: first } = await openConnectModal(pera)
+        const firstUri = getConnectModalUri()
+
+        const second = pera.connect()
+
+        await waitFor(
+            () => getConnectModal() && getConnectModalUri() !== firstUri,
+        )
+        mobile.scanQrCode(getConnectModalUri())
+
+        await expect(second).resolves.toEqual(mobile.addresses)
+        await expect(first).resolves.toEqual(mobile.addresses)
+        expect(getConnectModalWrapper()).toBeNull()
+    })
+
+    it('pairs once when connect() is called twice before the modal opens', async () => {
+        const mobile = new FakePeraMobile()
+        const pera = new PeraWalletConnect()
+
+        const first = pera.connect()
+        const second = pera.connect()
+
+        await waitFor(getConnectModal)
+        mobile.scanQrCode(getConnectModalUri())
+
+        await expect(first).resolves.toEqual(mobile.addresses)
+        await expect(second).resolves.toEqual(mobile.addresses)
+        expect(walletConnectRelay.connectors).toHaveLength(1)
+
+        const [sender] = mobile.addresses
+        const signing = pera.signTransaction([
+            [{ txn: makePayment(sender, sender) }],
+        ])
+
+        await mobile.approveNextRequest()
+        const [signed] = await signing
+
+        expect(hasValidSignatureBy(signed, sender)).toBe(true)
+    })
 })

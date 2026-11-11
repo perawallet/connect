@@ -169,6 +169,21 @@ describe('ExtensionTransport', () => {
             expect(transport.network).toBe('testnet')
         })
 
+        it('stores nothing for an approval the caller no longer wants', async () => {
+            saveWalletDetailsToStorage(['MOBILE_ADDR'], 'pera-wallet')
+            const transport = new ExtensionTransport(provider, {})
+
+            await expect(transport.connect({}, () => false)).resolves.toEqual([
+                ADDRESS,
+            ])
+
+            expect(getWalletDetailsFromStorage()).toMatchObject({
+                type: 'pera-wallet',
+                accounts: ['MOBILE_ADDR'],
+            })
+            expect(transport.network).toBeNull()
+        })
+
         it('maps user rejection to CONNECT_CANCELLED', async () => {
             provider.connect.mockRejectedValue(
                 providerError(PERA_PROVIDER_ERROR_CODES.USER_REJECTED),

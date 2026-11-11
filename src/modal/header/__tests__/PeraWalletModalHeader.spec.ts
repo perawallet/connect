@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeAll, afterEach } from 'vitest'
+import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest'
 
 import { PeraWalletModalHeader } from '../PeraWalletModalHeader.js'
 import {
+    PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
     PERA_WALLET_CONNECT_MODAL_ID,
     PERA_WALLET_REDIRECT_MODAL_ID,
 } from '../../peraWalletConnectModalUtils.js'
@@ -58,16 +59,38 @@ describe('PeraWalletModalHeader on desktop', () => {
         ).toBeNull()
     })
 
-    // The connect modal's close button is wired by
-    // setupPeraWalletConnectModalCloseListener, which also runs the onClose
-    // callback, so the header must not remove it on its own.
-    it('leaves closing the connect modal to its close listener', () => {
+    it('closes the connect modal and tells the pending connect() so', () => {
+        const onClosed = vi.fn()
+
+        document.addEventListener(
+            PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+            onClosed,
+        )
         const shadowRoot = renderHeaderInWrapper(PERA_WALLET_CONNECT_MODAL_ID)
 
         clickClose(shadowRoot)
+        document.removeEventListener(
+            PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+            onClosed,
+        )
 
-        expect(
-            document.getElementById(PERA_WALLET_CONNECT_MODAL_ID),
-        ).not.toBeNull()
+        expect(onClosed).toHaveBeenCalledTimes(1)
+        expect(document.getElementById(PERA_WALLET_CONNECT_MODAL_ID)).toBeNull()
+    })
+
+    it('does not report the redirect modal closing as the connect modal', () => {
+        const onClosed = vi.fn()
+
+        document.addEventListener(
+            PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+            onClosed,
+        )
+        clickClose(renderHeaderInWrapper(PERA_WALLET_REDIRECT_MODAL_ID))
+        document.removeEventListener(
+            PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+            onClosed,
+        )
+
+        expect(onClosed).not.toHaveBeenCalled()
     })
 })

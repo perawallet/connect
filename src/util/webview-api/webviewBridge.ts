@@ -281,6 +281,16 @@ class MessageListener {
 
 const messageListener = new MessageListener()
 
+// The same check sendJsonRpcMessage makes before sending, on either OS: the
+// React Native app injects the Android-style interface on iOS too. Without one
+// a request goes nowhere, so no reply can ever arrive.
+export function hasMobileInterface(): boolean {
+    return Boolean(
+        getAndroidInterface()?.handleRequest ||
+        getIosInterface()?.handleRequest?.postMessage,
+    )
+}
+
 function sendJsonRpcMessage(
     message: JsonRpcRequest | JsonRpcNotification | JsonRpcBatchRequest,
 ): void {

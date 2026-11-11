@@ -79,8 +79,13 @@ peraWallet
     })
     .catch(error => {
         // You MUST handle the reject because once the user closes the modal, peraWallet.connect() promise will be rejected.
+        // It also rejects with CONNECT_CANCELLED when the user declines the connection in the wallet.
         // For the async/await syntax you MUST use try/catch
-        if (error?.data?.type !== 'CONNECT_MODAL_CLOSED') {
+        if (
+            !['CONNECT_MODAL_CLOSED', 'CONNECT_CANCELLED'].includes(
+                error?.data?.type,
+            )
+        ) {
             // log the necessary errors
         }
     })
@@ -195,6 +200,10 @@ The client is used as you built it, so anything `algosdk.Algodv2` supports works
 
 Starts the initial connection flow and returns the array of account addresses.
 
+It rejects with `CONNECT_MODAL_CLOSED` when the user closes the modal, from its close button or, on a phone, from the waiting screen's "Cancel" and "Close & Try Again". It rejects with `CONNECT_CANCELLED` when the connection is declined in the wallet: in Pera Mobile (`error.data.detail` carries the wallet's reason), in the Pera Web tab, or in the extension. Pera Mobile also declines on its own a pairing for a network it doesn't serve, which arrives the same way. When the browser does not open the Pera Web tab (pop-ups blocked), it rejects with `MESSAGE_NOT_RECEIVED` straight away.
+
+Only the first outcome counts. A wallet approval that arrives after the call settled (for example the user approves on the phone after closing the modal, after connecting with the extension, or in the extension's approval window after `connect()` was called again) is not stored, and the pairings the call no longer needs are closed. Calling `connect()` again before the previous call settles starts over with a new pairing in the modal, and the previous call settles the way the new one does.
+
 #### `PeraWalletConnect.reconnectSession(): Promise<string[]>`
 
 Reconnects to the wallet if there is any active connection and returns the array of account addresses.
@@ -215,7 +224,7 @@ Resolves with whether the Pera browser extension's provider (`window.pera`) is p
 
 Subscribes to session events and returns the unsubscribe function.
 
-- `"disconnect"`: the wallet ended the session on its side. With the extension this happens when the user revokes your site from the extension's Connections screen; with Pera mobile when the WalletConnect session is killed from the app. The SDK has already cleared its session state when the handler runs. It does not fire for teardown the SDK itself starts — your own `disconnect()` call, or the session `connect()` replaces.
+- `"disconnect"`: the wallet ended the session on its side. With the extension this happens when the user revokes your site from the extension's Connections screen; with Pera mobile when the WalletConnect session is killed from the app. The SDK has already cleared its session state when the handler runs. It does not fire for teardown the SDK itself starts — your own `disconnect()` call, or the session `connect()` replaces — nor for a pairing the wallet declined, which rejects `connect()` instead. It fires once per session, however often `reconnectSession()` is called.
 - `"networkChanged"`: the extension wallet switched network, on a session owned by the extension. The handler receives `{network: "mainnet" | "testnet" | "betanet"}`.
 
 Handlers stay subscribed until you call the returned function, so register them once per instance rather than on every connect. The event names and payloads are exported as the `PeraWalletConnectEvent`, `PeraWalletConnectEventHandler` and `PeraWalletConnectEventMap` types.
@@ -226,7 +235,9 @@ const unsubscribe = peraWallet.on('disconnect', () => setAccountAddress(null))
 
 #### `PeraWalletConnect.dispose(): void`
 
-Releases everything the instance holds — the `window.pera` subscriptions and any WalletConnect connector — without touching the wallet session. Call it when the component owning the instance unmounts; under React StrictMode or hot reload, an undisposed instance keeps listening and swallows events the live one should handle. Use `disconnect()` to end the session itself.
+Releases everything the instance holds — the `window.pera` subscriptions and any WalletConnect connector and its bridge connection — without touching the wallet session. Call it when the component owning the instance unmounts; under React StrictMode or hot reload, an undisposed instance keeps listening and swallows events the live one should handle. Use `disconnect()` to end the session itself.
+
+An instance can be used again after `dispose()`, as with a module-level instance whose component mounts again: `reconnectSession()`, `connect()` and signing subscribe to `window.pera` again (call `dispose()` again on the next unmount). `disconnect()` revokes the extension session without subscribing again, so it can follow `dispose()` in an unmount cleanup.
 
 #### `PeraWalletConnect.isConnected: boolean`
 
