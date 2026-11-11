@@ -47,8 +47,11 @@ export class FakePeraExtension implements PeraProvider {
     readonly accounts: algosdk.Account[]
     network: PeraNetwork
     isOriginApproved = false
-    /** What the user does in the extension's approval window. */
-    connectDecision: 'approve' | 'reject' = 'approve'
+    /**
+     * What the user does in the extension's approval window; `'later'` keeps
+     * it open until `approvePendingConnect()`.
+     */
+    connectDecision: 'approve' | 'reject' | 'later' = 'approve'
 
     readonly connect = vi.fn(
         (
@@ -85,6 +88,7 @@ export class FakePeraExtension implements PeraProvider {
     }) => Promise<Record<string, string>>
 
     private handlers = new Map<PeraProviderEvent, Set<Handler>>()
+    private pendingApprovals: VoidFunction[] = []
 
     constructor({
         accountCount = 1,
@@ -152,6 +156,17 @@ export class FakePeraExtension implements PeraProvider {
         this.emit('networkChanged', { network })
     }
 
+    /** The user approves in the window `connectDecision = 'later'` left open. */
+    approvePendingConnect() {
+        const approve = this.pendingApprovals.shift()
+
+        if (!approve) {
+            throw new Error('No connect() is waiting for the user')
+        }
+
+        approve()
+    }
+
     listenerCount(event: PeraProviderEvent) {
         return this.handlers.get(event)?.size ?? 0
     }
@@ -180,6 +195,18 @@ export class FakePeraExtension implements PeraProvider {
                         'The user rejected the request',
                     ),
                 )
+            }
+
+            if (this.connectDecision === 'later') {
+                return new Promise(resolve => {
+                    this.pendingApprovals.push(() => {
+                        this.isOriginApproved = true
+                        resolve({
+                            accounts: this.peraAccounts(),
+                            network: this.network,
+                        })
+                    })
+                })
             }
         }
 

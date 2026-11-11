@@ -254,10 +254,16 @@ describe('PeraWalletConnect.verifyArc60Signature', () => {
 })
 
 describe('PeraWalletConnect webview detection (checkIsInWebview, via reconnectSession)', () => {
+    // What Pera's in-app browsers inject before any page script runs.
+    function injectAppInterface() {
+        window.peraMobileInterface = { handleRequest: vi.fn() }
+    }
+
     afterEach(() => {
         setUserAgent(DESKTOP_UA)
         getPublicSettingsMock.mockReset()
         resetWalletDetailsFromStorage()
+        delete window.peraMobileInterface
     })
 
     it('stays false on a non-mobile user agent without probing the bridge', async () => {
@@ -272,8 +278,21 @@ describe('PeraWalletConnect webview detection (checkIsInWebview, via reconnectSe
         expect(getPublicSettingsMock).not.toHaveBeenCalled()
     })
 
+    it('stays false on a mobile user agent without probing when no app interface is injected', async () => {
+        setUserAgent(IPHONE_UA)
+        saveWalletDetailsToStorage(['ADDR'], 'pera-wallet')
+
+        const pera = new PeraWalletConnect()
+
+        await pera.reconnectSession()
+
+        expect(pera.isInWebview).toBe(false)
+        expect(getPublicSettingsMock).not.toHaveBeenCalled()
+    })
+
     it('becomes true on a mobile user agent when the native bridge answers', async () => {
         setUserAgent(IPHONE_UA)
+        injectAppInterface()
         getPublicSettingsMock.mockResolvedValue({})
         saveWalletDetailsToStorage(['ADDR'], 'pera-wallet')
 
@@ -286,6 +305,7 @@ describe('PeraWalletConnect webview detection (checkIsInWebview, via reconnectSe
 
     it('falls back to false when the native bridge check throws', async () => {
         setUserAgent(IPHONE_UA)
+        injectAppInterface()
         getPublicSettingsMock.mockRejectedValue(new Error('no bridge'))
         saveWalletDetailsToStorage(['ADDR'], 'pera-wallet')
 

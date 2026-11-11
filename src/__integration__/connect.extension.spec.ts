@@ -2,18 +2,27 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { PeraWalletConnect } from '../index.js'
 import { useIntegrationEnvironment } from './harness/environment.js'
-import { openConnectModal } from './harness/flows.js'
-import { FakePeraExtension } from './harness/fakePeraExtension.js'
-import { FakePeraMobile } from './harness/fakePeraMobile.js'
-import { tick } from './harness/flush.js'
+import { connectWithPeraExtension, openConnectModal } from './harness/flows.js'
 import {
+    FakePeraExtension,
+    uninstallPeraExtension,
+} from './harness/fakePeraExtension.js'
+import { FakePeraMobile } from './harness/fakePeraMobile.js'
+import { walletConnectRelay } from './harness/fakeWalletConnect.js'
+import { tick, waitFor } from './harness/flush.js'
+import {
+    getConnectModal,
+    getConnectModalCloseButton,
     getConnectModalUri,
     getConnectModalWrapper,
     getConnectOptionIds,
     getExtensionConnectButton,
     getSelectedConnectOptionId,
 } from './harness/modalDom.js'
-import { readStoredWallet } from './harness/storage.js'
+import {
+    readStoredWallet,
+    readStoredWalletConnectSession,
+} from './harness/storage.js'
 import { clickAsUser } from './harness/userActivation.js'
 
 vi.mock('@perawallet/walletconnect', () =>
@@ -102,6 +111,66 @@ describe('Connect with the Pera extension', () => {
         expect(onDisconnect).not.toHaveBeenCalled()
     })
 
+    it("closes the abandoned QR pairing's bridge connection, so a late approval stores no WalletConnect session", async () => {
+        new FakePeraExtension().install()
+        const mobile = new FakePeraMobile()
+        const pera = new PeraWalletConnect()
+        const { connecting } = await openConnectModal(pera)
+        const uri = getConnectModalUri()
+
+        clickAsUser(getExtensionConnectButton())
+        await connecting
+
+        expect(
+            walletConnectRelay.findByUri(uri)?.transportClose,
+        ).toHaveBeenCalled()
+
+        mobile.scanQrCode(uri)
+
+        expect(readStoredWalletConnectSession()).toBeNull()
+        expect(pera.platform).toBe('extension')
+    })
+
+    it('answers the extension button once when connect() was called twice', async () => {
+        const extension = new FakePeraExtension().install()
+        const pera = new PeraWalletConnect()
+
+        const first = pera.connect()
+        const second = pera.connect()
+
+        await waitFor(getConnectModal)
+        clickAsUser(getExtensionConnectButton())
+
+        expect(extension.connect).toHaveBeenCalledTimes(1)
+        await expect(second).resolves.toEqual(extension.addresses)
+        await expect(first).resolves.toEqual(extension.addresses)
+    })
+
+    it('stores no approval given in the extension after connect() was called again', async () => {
+        const extension = new FakePeraExtension().install()
+
+        extension.connectDecision = 'later'
+        const pera = new PeraWalletConnect()
+        const { connecting: first } = await openConnectModal(pera)
+
+        clickAsUser(getExtensionConnectButton())
+        const { connecting: second } = await openConnectModal(pera)
+
+        extension.approvePendingConnect()
+        await tick()
+        getConnectModalCloseButton().click()
+
+        await expect(second).rejects.toMatchObject({
+            data: { type: 'CONNECT_MODAL_CLOSED' },
+        })
+        await expect(first).rejects.toMatchObject({
+            data: { type: 'CONNECT_MODAL_CLOSED' },
+        })
+        expect(pera.isConnected).toBe(false)
+        expect(pera.platform).toBeNull()
+        expect(readStoredWallet()).toBeNull()
+    })
+
     it('rejects with CONNECT_CANCELLED when the user rejects in the extension', async () => {
         const extension = new FakePeraExtension().install()
 
@@ -152,5 +221,106 @@ describe('Connect with the Pera extension', () => {
         expect(
             getConnectModalWrapper()?.getAttribute('is-extension-enabled'),
         ).toBe('false')
+    })
+
+    describe('with an instance used again after dispose()', () => {
+        it('reconnects the extension session and keeps offering the extension', async () => {
+            const extension = new FakePeraExtension({
+                accountCount: 2,
+            }).install()
+            const pera = new PeraWalletConnect()
+
+            await connectWithPeraExtension(pera)
+            pera.dispose()
+
+            await expect(pera.reconnectSession()).resolves.toEqual(
+                extension.addresses,
+            )
+            expect(readStoredWallet()).toMatchObject({
+                type: 'pera-wallet-extension',
+                accounts: extension.addresses,
+            })
+            await expect(pera.isExtensionAvailable()).resolves.toBe(true)
+
+            await openConnectModal(pera)
+
+            expect(getConnectOptionIds()).toContain('extension-wallet-option')
+        })
+
+        it('listens to the provider again, until it is disposed again', async () => {
+            const extension = new FakePeraExtension().install()
+            const pera = new PeraWalletConnect()
+
+            await connectWithPeraExtension(pera)
+            pera.dispose()
+            await pera.reconnectSession()
+            const onDisconnect = vi.fn()
+
+            pera.on('disconnect', onDisconnect)
+            extension.revokeOrigin()
+
+            expect(onDisconnect).toHaveBeenCalledTimes(1)
+
+            pera.dispose()
+
+            expect(extension.listenerCount('disconnect')).toBe(0)
+            expect(extension.listenerCount('networkChanged')).toBe(0)
+        })
+
+        it('stays unsubscribed when only isExtensionAvailable() is asked', async () => {
+            const extension = new FakePeraExtension().install()
+            const pera = new PeraWalletConnect()
+
+            pera.dispose()
+
+            await expect(pera.isExtensionAvailable()).resolves.toBe(true)
+            expect(extension.listenerCount('disconnect')).toBe(0)
+            expect(extension.listenerCount('networkChanged')).toBe(0)
+        })
+
+        it('revokes the site in the extension on disconnect()', async () => {
+            const extension = new FakePeraExtension().install()
+            const pera = new PeraWalletConnect()
+
+            await connectWithPeraExtension(pera)
+            pera.dispose()
+            await pera.disconnect()
+
+            expect(extension.disconnect).toHaveBeenCalledTimes(1)
+            expect(readStoredWallet()).toBeNull()
+        })
+
+        it('stays unsubscribed when the session is ended with disconnect()', async () => {
+            const extension = new FakePeraExtension().install()
+            const pera = new PeraWalletConnect()
+
+            await connectWithPeraExtension(pera)
+            pera.dispose()
+            await pera.disconnect()
+
+            expect(extension.listenerCount('disconnect')).toBe(0)
+            expect(extension.listenerCount('networkChanged')).toBe(0)
+        })
+
+        it('clears the session when the extension is gone', async () => {
+            new FakePeraExtension().install()
+            const pera = new PeraWalletConnect()
+
+            await connectWithPeraExtension(pera)
+            pera.dispose()
+            uninstallPeraExtension()
+
+            await expect(pera.reconnectSession()).resolves.toEqual([])
+            expect(readStoredWallet()).toBeNull()
+            await expect(pera.isExtensionAvailable()).resolves.toBe(false)
+        })
+    })
+
+    it('does not pick up an extension installed after an instance that was never disposed', async () => {
+        const pera = new PeraWalletConnect()
+
+        new FakePeraExtension().install()
+
+        await expect(pera.isExtensionAvailable()).resolves.toBe(false)
     })
 })

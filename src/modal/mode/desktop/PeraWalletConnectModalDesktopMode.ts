@@ -14,6 +14,7 @@ import QRCodeStyling from 'qr-code-styling'
 import styles from './_pera-wallet-connect-modal-desktop-mode.scss?inline'
 import accordionStyles from './accordion/_pera-wallet-accordion.scss?inline'
 import { PERA_WALLET_EXTENSION_CONNECT_EVENT } from '../../peraWalletConnectModalUtils.js'
+import { PERA_DOWNLOAD_URL } from '../../../util/peraWalletConstants.js'
 
 const peraWalletConnectModalDesktopMode = document.createElement('template')
 const styleSheet = document.createElement('style')
@@ -210,12 +211,12 @@ const peraWalletConnectModalDesktopModeDefaultView = `
 
             <a
               class="pera-wallet-connect-modal-download-pera-view__footer__button"
-              href="https://perawallet.s3-eu-west-3.amazonaws.com/android-releases/app-pera-prod-release-bitrise-signed.apk"
+              href="${PERA_DOWNLOAD_URL}"
               target="_blank"
               rel="noopener noreferrer">
               <img src="${DownloadIcon}" alt="Download icon" />
 
-              Download APK File
+              Other download options
             </a>
           </div>
         </div>

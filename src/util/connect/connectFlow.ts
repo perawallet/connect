@@ -17,6 +17,7 @@ function runWebConnectFlow({
     chainId,
     resolve,
     reject,
+    isSettled = () => false,
 }: RunWebConnectFlowTypes) {
     const webWalletURLs = getPeraWebWalletURL(webWalletURL)
 
@@ -45,6 +46,14 @@ function runWebConnectFlow({
 
             const checkTabIsAliveInterval = setInterval(() => {
                 if (newPeraWalletTab?.closed === true) {
+                    // Settled another way: the modal on screen, if any, is a
+                    // later call's.
+                    if (isSettled()) {
+                        clearInterval(checkTabIsAliveInterval)
+
+                        return
+                    }
+
                     reject(
                         new PeraWalletConnectError(
                             {
@@ -70,9 +79,14 @@ function runWebConnectFlow({
                         newPeraWalletTab,
                         resolve,
                         reject,
+                        isSettled,
                     }),
             })
         } catch (error) {
+            if (isSettled()) {
+                return
+            }
+
             closeWebConnectFlow()
 
             reject(error)

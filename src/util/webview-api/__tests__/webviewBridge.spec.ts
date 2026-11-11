@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
-import { callMobileMethodWithResponse } from '../webviewBridge.js'
+import {
+    callMobileMethodWithResponse,
+    hasMobileInterface,
+} from '../webviewBridge.js'
 
 type MutableWindow = typeof window & {
     peraMobileInterface?: { handleRequest?: (message: string) => void }
@@ -198,6 +201,31 @@ describe('webviewBridge', () => {
 
             await vi.advanceTimersByTimeAsync(1000)
             await assertion
+        })
+    })
+
+    describe('hasMobileInterface', () => {
+        it('is false when no app interface is injected', () => {
+            expect(hasMobileInterface()).toBe(false)
+        })
+
+        it('is true when the Android interface is injected', () => {
+            setAndroidInterface()
+
+            expect(hasMobileInterface()).toBe(true)
+        })
+
+        it('is true when the iOS message handler is injected', () => {
+            setIosInterface()
+
+            expect(hasMobileInterface()).toBe(true)
+        })
+
+        it('is false for interfaces without a request handler', () => {
+            testWindow.peraMobileInterface = {}
+            testWindow.webkit = { messageHandlers: {} }
+
+            expect(hasMobileInterface()).toBe(false)
         })
     })
 

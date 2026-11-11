@@ -6,7 +6,11 @@ import { vi } from 'vitest'
 // session is persisted under `storageId` and restored from it by a connector
 // built later, and a rejected pairing, a `killSession()` and a wallet-side end
 // all surface as `disconnect`. Requests travel through `walletConnectRelay`
-// (the bridge server) to whichever fake wallet answers them.
+// (the bridge server) to whichever fake wallet answers them; once the
+// connector's transport is closed (`transportClose()`, or the end of its
+// session), nothing the wallet sends afterwards reaches it any more. As in v1,
+// a session is persisted after the `connect` handlers ran and `killSession()`
+// ends it only after its request went out, a tick later.
 
 type EventHandler = (error: Error | null, payload: unknown) => void
 
@@ -89,7 +93,11 @@ export class FakeWalletConnect {
     readonly storageId: string
     readonly qrcodeModal: QrcodeModal | undefined
     readonly killSession = vi.fn(async () => {
+        await Promise.resolve()
         this.handleSessionDisconnect('Session Disconnected')
+    })
+    readonly transportClose = vi.fn(() => {
+        this.isTransportClosed = true
     })
 
     connected = false
@@ -101,6 +109,7 @@ export class FakeWalletConnect {
     private clientId = ''
     private handshakeTopic = ''
     private handlers = new Map<string, EventHandler[]>()
+    private isTransportClosed = false
 
     constructor(options: ConnectorOptions) {
         if (!options.bridge) {
@@ -122,11 +131,33 @@ export class FakeWalletConnect {
         walletConnectRelay.connectors.push(this)
     }
 
+    get session(): StoredSession {
+        return {
+            connected: this.connected,
+            accounts: this.accounts,
+            chainId: this.chainId,
+            bridge: this.bridge,
+            key: this.key,
+            clientId: this.clientId,
+            peerId: this.peerId,
+            handshakeTopic: this.handshakeTopic,
+        }
+    }
+
     on(event: string, callback: EventHandler) {
         this.handlers.set(event, [
             ...(this.handlers.get(event) || []),
             callback,
         ])
+    }
+
+    listenerCount(event: string) {
+        return this.handlers.get(event)?.length ?? 0
+    }
+
+    /** As in v1: drops every handler for the event, not just one. */
+    off(event: string) {
+        this.handlers.delete(event)
     }
 
     async createSession(options?: { chainId?: number }) {
@@ -168,28 +199,43 @@ export class FakeWalletConnect {
 
     // Wallet side, reached through the bridge.
 
-    approveSession({
-        accounts,
-        peerId,
-    }: {
-        accounts: string[]
-        peerId: string
-    }) {
+    /**
+     * `wasSentBeforeClose`: the wallet answered before the dApp closed the
+     * transport, so the approval still arrives.
+     */
+    approveSession(
+        {
+            accounts,
+            peerId,
+        }: {
+            accounts: string[]
+            peerId: string
+        },
+        { wasSentBeforeClose = false } = {},
+    ) {
+        if (this.isTransportClosed && !wasSentBeforeClose) {
+            return
+        }
+
         this.connected = true
         this.accounts = accounts
         this.peerId = peerId
-        this.persistSession()
         this.trigger('connect', null, {
             params: [{ peerId, chainId: this.chainId, accounts }],
         })
+        this.persistSession()
     }
 
     rejectSession(message = 'Session Rejected') {
-        this.handleSessionDisconnect(message)
+        if (!this.isTransportClosed) {
+            this.handleSessionDisconnect(message)
+        }
     }
 
     endSessionFromWallet() {
-        this.handleSessionDisconnect('Session Disconnected')
+        if (!this.isTransportClosed) {
+            this.handleSessionDisconnect('Session Disconnected')
+        }
     }
 
     private handleSessionDisconnect(message: string) {
@@ -201,6 +247,7 @@ export class FakeWalletConnect {
         this.peerId = ''
         this.trigger('disconnect', null, { params: [{ message }] })
         localStorage.removeItem(this.storageId)
+        this.isTransportClosed = true
     }
 
     private trigger(
@@ -214,18 +261,11 @@ export class FakeWalletConnect {
     }
 
     private persistSession() {
-        const session: StoredSession = {
-            connected: this.connected,
-            accounts: this.accounts,
-            chainId: this.chainId,
-            bridge: this.bridge,
-            key: this.key,
-            clientId: this.clientId,
-            peerId: this.peerId,
-            handshakeTopic: this.handshakeTopic,
+        if (this.connected) {
+            localStorage.setItem(this.storageId, JSON.stringify(this.session))
+        } else {
+            localStorage.removeItem(this.storageId)
         }
-
-        localStorage.setItem(this.storageId, JSON.stringify(session))
     }
 
     private restoreStoredSession() {

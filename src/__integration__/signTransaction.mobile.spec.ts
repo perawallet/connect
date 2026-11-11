@@ -34,10 +34,6 @@ vi.mock('@evanhahn/lottie-web-light', () =>
     })),
 )
 
-// The webview probe waits this long for a Pera in-app browser to answer; a
-// plain mobile browser never does.
-const WEBVIEW_PROBE_TIMEOUT_MS = 2000
-
 const RECEIVER = algosdk.generateAccount().addr.toString()
 
 async function connectedPera(
@@ -236,8 +232,9 @@ describe('Sign transactions with Pera Mobile', () => {
         useMobileUserAgent()
         const mobile = new FakePeraMobile()
         const pera = new PeraWalletConnect()
-        await vi.advanceTimersByTimeAsync(WEBVIEW_PROBE_TIMEOUT_MS)
 
+        // No clock advance: outside Pera's in-app browser there is no app
+        // interface to probe, so nothing holds the modal back.
         const { connecting } = await openConnectModal(pera)
         const uri = getConnectModalUri()
 

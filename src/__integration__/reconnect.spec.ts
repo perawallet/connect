@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { PeraWalletConnect } from '../index.js'
-import { useIntegrationEnvironment } from './harness/environment.js'
+import {
+    useIntegrationEnvironment,
+    useMobileUserAgent,
+} from './harness/environment.js'
 import {
     FakePeraExtension,
     uninstallPeraExtension,
@@ -10,7 +13,9 @@ import { FakePeraMobile } from './harness/fakePeraMobile.js'
 import {
     connectWithPeraExtension,
     connectWithPeraMobile,
+    openConnectModal,
 } from './harness/flows.js'
+import { getConnectModal } from './harness/modalDom.js'
 import {
     readStoredWallet,
     readStoredWalletConnectSession,
@@ -90,6 +95,33 @@ describe('Reload and reconnect', () => {
         await pera.reconnectSession()
 
         expect(pera.bridge).toBe(pairedBridge)
+    })
+
+    it('reconnects at once on a phone browser outside the Pera app', async () => {
+        const mobile = new FakePeraMobile()
+        const first = new PeraWalletConnect()
+
+        await connectWithPeraMobile(first, mobile)
+        vi.useFakeTimers()
+        useMobileUserAgent()
+        const pera = reloadPage(first)
+        const onReconnected = vi.fn()
+
+        void pera.reconnectSession().then(onReconnected)
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(onReconnected).toHaveBeenCalledWith(mobile.addresses)
+        expect(pera.isInWebview).toBe(false)
+    })
+
+    it('opens the connect modal at once on a phone browser outside the Pera app', async () => {
+        vi.useFakeTimers()
+        useMobileUserAgent()
+        const pera = new PeraWalletConnect()
+
+        await openConnectModal(pera)
+
+        expect(getConnectModal()).not.toBeNull()
     })
 
     it('reconnects an extension session through the provider without a gesture', async () => {

@@ -105,6 +105,28 @@ describe('newTabConnectFlowTellerReducer', () => {
             expect(close).toHaveBeenCalled()
         })
 
+        it('only closes the tab when the connect call already settled another way', () => {
+            const { close, resolve, reject } = callReducer({
+                event,
+                isSettled: () => true,
+            })
+
+            expect(saveWalletDetailsToStorage).not.toHaveBeenCalled()
+            expect(resolve).not.toHaveBeenCalled()
+            expect(reject).not.toHaveBeenCalled()
+            expect(removeModalWrapperFromDOM).not.toHaveBeenCalled()
+            expect(close).toHaveBeenCalled()
+        })
+
+        it('stores the session while the connect call is still pending', () => {
+            callReducer({ event, isSettled: () => false })
+
+            expect(saveWalletDetailsToStorage).toHaveBeenCalledWith(
+                [ADDR_1],
+                'pera-wallet-web',
+            )
+        })
+
         it('does nothing when resolve is not provided', () => {
             newTabConnectFlowTellerReducer({
                 event,
@@ -155,6 +177,17 @@ describe('newTabConnectFlowTellerReducer', () => {
 
             expect(error.data.type).toBe('CONNECT_NETWORK_MISMATCH')
             expect(error.message).toMatch(/different network/)
+        })
+
+        it('only closes the tab when the connect call already settled another way', () => {
+            const { close, reject } = callReducer({
+                event,
+                isSettled: () => true,
+            })
+
+            expect(reject).not.toHaveBeenCalled()
+            expect(removeModalWrapperFromDOM).not.toHaveBeenCalled()
+            expect(close).toHaveBeenCalled()
         })
 
         it('tears down the modal and closes the tab', () => {

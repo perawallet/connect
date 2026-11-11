@@ -270,20 +270,18 @@ describe('domUtils', () => {
             await assertion
         })
 
-        it('never pings and eventually gives up when the popup is blocked', async () => {
+        it('rejects with MESSAGE_NOT_RECEIVED at once when the popup is blocked', async () => {
             stubWindowOpen(null)
 
             const promise = waitForTabOpening(CONNECT_URL)
-            const assertion = expect(promise).rejects.toMatchObject({
+
+            await expect(promise).rejects.toMatchObject({
+                name: 'PeraWalletConnectError',
                 data: { type: 'MESSAGE_NOT_RECEIVED' },
             })
-
-            await vi.advanceTimersByTimeAsync(
-                WAIT_FOR_TAB_TRY_INTERVAL * WAIT_FOR_TAB_MAX_TRY_COUNT,
-            )
-
-            await assertion
+            expect(vi.getTimerCount()).toBe(0)
             expect(sendMessageMock).not.toHaveBeenCalled()
+            expect(setupListenerMock).not.toHaveBeenCalled()
         })
 
         it('rejects with the error when opening the tab throws', async () => {

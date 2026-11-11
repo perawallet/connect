@@ -29,6 +29,11 @@ const PERA_WALLET_MODAL_CLASSNAME = 'pera-wallet-modal'
 // PeraWalletConnect can call `window.pera.connect()` inside the same click.
 const PERA_WALLET_EXTENSION_CONNECT_EVENT = 'pera-wallet-extension-connect'
 
+// Dispatched (bubbling, composed) by the buttons inside the connect modal that
+// dismiss it, so the pending connect() settles.
+const PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT =
+    'pera-wallet-connect-modal-closed'
+
 function createModalWrapperOnDOM(modalId: string) {
     const wrapper = document.createElement('div')
 
@@ -109,27 +114,6 @@ function createPeraWalletConnectQrcodeModal(
     }
 }
 
-function setupPeraWalletConnectModalCloseListener(
-    modalId: string,
-    onClose: VoidFunction,
-) {
-    const peraWalletConnectModalWrapper = document.getElementById(modalId)
-
-    const peraWalletConnectModal = peraWalletConnectModalWrapper
-        ?.querySelector(modalId.replace('-wrapper', ''))
-        ?.shadowRoot?.querySelector(`.${PERA_WALLET_MODAL_CLASSNAME}`)
-
-    const closeButton = peraWalletConnectModal
-        ?.querySelector('pera-wallet-modal-header')
-        ?.shadowRoot?.getElementById('pera-wallet-modal-header-close-button')
-
-    closeButton?.addEventListener('click', () => {
-        onClose()
-
-        removeModalWrapperFromDOM(modalId)
-    })
-}
-
 function openPeraWalletRedirectModal() {
     const root = createModalWrapperOnDOM(PERA_WALLET_REDIRECT_MODAL_ID)
 
@@ -156,9 +140,9 @@ export {
     PERA_WALLET_SIGN_TXN_TOAST_ID,
     PERA_WALLET_MODAL_CLASSNAME,
     PERA_WALLET_EXTENSION_CONNECT_EVENT,
+    PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
     openPeraWalletConnectModal,
     createPeraWalletConnectQrcodeModal,
-    setupPeraWalletConnectModalCloseListener,
     openPeraWalletRedirectModal,
     openPeraWalletSignTxnToast,
     closePeraWalletSignTxnToast,

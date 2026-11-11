@@ -5,6 +5,8 @@ import CloseIconDark from '../../asset/icon/Close--dark.svg'
 import styles from './_pera-wallet-modal-header.scss?inline'
 import { isMobile } from '../../util/device/deviceUtils.js'
 import {
+    PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+    PERA_WALLET_CONNECT_MODAL_ID,
     PERA_WALLET_REDIRECT_MODAL_ID,
     removeModalWrapperFromDOM,
 } from '../peraWalletConnectModalUtils.js'
@@ -69,6 +71,22 @@ export class PeraWalletModalHeader extends HTMLElement {
         if (closeButton && modalId === PERA_WALLET_REDIRECT_MODAL_ID) {
             closeButton.addEventListener('click', () => {
                 removeModalWrapperFromDOM(PERA_WALLET_REDIRECT_MODAL_ID)
+            })
+        }
+
+        if (closeButton && modalId === PERA_WALLET_CONNECT_MODAL_ID) {
+            closeButton.addEventListener('click', () => {
+                // Wired here, where the button is created, because the modal
+                // can render after connect() has set itself up. Dispatched
+                // while still in the document, or it never reaches the
+                // listener connect() keeps there.
+                this.dispatchEvent(
+                    new CustomEvent(PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT, {
+                        bubbles: true,
+                        composed: true,
+                    }),
+                )
+                removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
             })
         }
     }

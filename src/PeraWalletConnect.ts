@@ -3,10 +3,10 @@ import algosdk, { type TransactionSigner } from 'algosdk'
 
 import {
     createPeraWalletConnectQrcodeModal,
+    PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
     PERA_WALLET_CONNECT_MODAL_ID,
     PERA_WALLET_EXTENSION_CONNECT_EVENT,
     removeModalWrapperFromDOM,
-    setupPeraWalletConnectModalCloseListener,
 } from './modal/peraWalletConnectModalUtils.js'
 import {
     buildArc60SignDataResponse,
@@ -45,6 +45,10 @@ import {
     resolveArc60SignerNetwork,
 } from './util/arc60/arc60Signer.js'
 import { runWebConnectFlow } from './util/connect/connectFlow.js'
+import {
+    getWalletConnectEventMessage,
+    isConnectorForStoredSession,
+} from './util/connect/walletConnectEvents.js'
 import { isMobile, isPeraDiscoverBrowser } from './util/device/deviceUtils.js'
 import {
     assertEmptySignaturesNetwork,
@@ -82,6 +86,7 @@ import {
     getWalletPlatformFromStorage,
     migrateLegacyWalletConnectSession,
     resetWalletDetailsFromStorage,
+    saveWalletConnectObjectToStorage,
     saveWalletDetailsToStorage,
 } from './util/storage/storageUtils.js'
 import { assertSignedTransactionsMatch } from './util/transaction/signedTransactionMatch.js'
@@ -91,6 +96,13 @@ import {
 } from './util/transaction/transactionSignerUtils.js'
 import { composeTransaction } from './util/transaction/transactionUtils.js'
 import { getPublicSettings } from './util/webview-api/webviewApi.js'
+import { hasMobileInterface } from './util/webview-api/webviewBridge.js'
+
+// A connect() call that has not settled yet, as a newer call sees it.
+interface PendingConnect {
+    /** Settles the call the way `next` settles and retires what it holds. */
+    supersede: (next: Promise<string[]>) => void
+}
 
 interface PeraWalletConnectOptions {
     bridge?: string
@@ -138,8 +150,26 @@ class PeraWalletConnect {
     shouldPreferExtension: boolean
     experimental: boolean
     private extensionTransport: ExtensionTransport | null
+    /** Set by dispose(); see `ensureExtensionTransport()`. */
+    private isDisposed = false
     /** Connectors the SDK has retired; see `abandonConnector()`. */
     private abandonedConnectors = new WeakSet<WalletConnect>()
+    /**
+     * Connectors the SDK has subscribed to `disconnect`, mapped to whether that
+     * listener is still registered; see `forwardConnectorDisconnect()`.
+     */
+    private disconnectForwarders = new WeakMap<WalletConnect, boolean>()
+    /** Connectors whose wallet-side end the SDK has already reported. */
+    private reportedDisconnects = new WeakSet<WalletConnect>()
+    /**
+     * connect() pairings the wallet has not approved yet, each with how its
+     * call settles if the wallet declines; see `forwardConnectorDisconnect()`.
+     */
+    private pendingPairings = new WeakMap<
+        WalletConnect,
+        (reason: string | undefined) => void
+    >()
+    private pendingConnect: PendingConnect | null = null
     private events = new SessionEventEmitter()
     private algodClients: AlgodClientPool
     private configPromise: ReturnType<typeof getPeraConnectConfig>
@@ -211,7 +241,12 @@ class PeraWalletConnect {
      * wait on); the promise is kept for backwards compatibility.
      */
     isExtensionAvailable(): Promise<boolean> {
-        return Promise.resolve(this.extensionTransport !== null)
+        // Read-only on a disposed instance: resubscribing here would bring back
+        // the listeners dispose() exists to release.
+        return Promise.resolve(
+            this.extensionTransport !== null ||
+                (this.isDisposed && getPeraProvider() !== null),
+        )
     }
 
     /**
@@ -231,14 +266,26 @@ class PeraWalletConnect {
 
     /**
      * Opens the connect modal and resolves with the accounts the user shares.
-     * Rejects with `CONNECT_MODAL_CLOSED` when the user closes the modal.
+     * Rejects with `CONNECT_MODAL_CLOSED` when the user closes the modal, and
+     * with `CONNECT_CANCELLED` when the connection is declined in the wallet
+     * (Pera Mobile, Pera Web or the extension).
+     *
+     * Calling it again before the previous call settles starts over with a new
+     * pairing, and the previous call settles the way the new one does.
      *
      * `selectedAccount` only applies to Pera Wallet products.
      */
     connect(options?: ConnectOptions): Promise<string[]> {
-        return new Promise<string[]>((resolve, reject) => {
-            void this.runConnect(options, resolve, reject)
+        let resolveConnect: (accounts: string[]) => void = () => undefined
+        let rejectConnect: (error: unknown) => void = () => undefined
+        const connecting = new Promise<string[]>((resolve, reject) => {
+            resolveConnect = resolve
+            rejectConnect = reject
         })
+
+        void this.runConnect(connecting, options, resolveConnect, rejectConnect)
+
+        return connecting
     }
 
     async reconnectSession(): Promise<string[]> {
@@ -270,12 +317,8 @@ class PeraWalletConnect {
     }
 
     async disconnect() {
-        if (
-            this.isConnected &&
-            this.platform === 'extension' &&
-            this.extensionTransport
-        ) {
-            await this.extensionTransport.disconnect()
+        if (this.isConnected && this.platform === 'extension') {
+            await this.revokeExtensionSession()
         }
 
         if (this.isConnected && this.platform === 'mobile') {
@@ -301,9 +344,11 @@ class PeraWalletConnect {
     dispose() {
         this.extensionTransport?.dispose()
         this.extensionTransport = null
+        this.isDisposed = true
 
         if (this.connector) {
             this.abandonedConnectors.add(this.connector)
+            closeConnectorTransport(this.connector)
             this.connector = null
         }
 
@@ -606,25 +651,71 @@ class PeraWalletConnect {
     }
 
     // Settles through `resolve`/`reject` rather than its own promise: the
-    // outcome comes from whichever of the QR pairing, Pera Web or the
-    // extension button finishes first, long after this function returns.
+    // outcome comes from whichever of the QR pairing, Pera Web, the extension
+    // button, the modal being closed or a newer connect() comes first, long
+    // after this function returns. Only the first one counts; everything else
+    // the call set up is retired then, so a late approval through a path that
+    // lost cannot store or replace a session behind the dApp's back.
     private async runConnect(
+        connecting: Promise<string[]>,
         options: ConnectOptions | undefined,
         resolveConnect: (accounts: string[]) => void,
         rejectConnect: (error: unknown) => void,
     ) {
-        // The extension button's listener is scoped to this connect() call and
-        // must go away however the call settles (WalletConnect pairing, Pera
-        // Web, modal closed, failure), or a later click would hit a stale one.
-        let removeExtensionListener = () => {}
+        let isSettled = false
+        let pairing: WalletConnect | null = null
+        // Listeners scoped to this call; a later click must not hit a stale one.
+        const removeListeners: VoidFunction[] = []
+        const settle = () => {
+            if (isSettled) {
+                return false
+            }
+
+            isSettled = true
+            removeListeners.forEach(removeListener => removeListener())
+
+            if (this.pendingConnect === pendingConnect) {
+                this.pendingConnect = null
+            }
+
+            return true
+        }
+        const retirePairing = () => {
+            if (pairing) {
+                void this.abandonConnector(pairing)
+            }
+        }
         const resolve = (accounts: string[]) => {
-            removeExtensionListener()
-            resolveConnect(accounts)
+            if (settle()) {
+                retirePairing()
+                resolveConnect(accounts)
+            }
         }
         const reject = (error: unknown) => {
-            removeExtensionListener()
-            rejectConnect(error)
+            if (settle()) {
+                retirePairing()
+                rejectConnect(error)
+            }
         }
+        const pendingConnect: PendingConnect = {
+            supersede: next => {
+                if (!settle()) {
+                    return
+                }
+
+                // The newer call opens its own modal, which this one's would
+                // otherwise keep off the screen.
+                if (pairing && !pairing.connected) {
+                    removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
+                }
+
+                retirePairing()
+                next.then(resolveConnect, rejectConnect)
+            },
+        }
+
+        this.pendingConnect?.supersede(connecting)
+        this.pendingConnect = pendingConnect
 
         try {
             // Retire the previous connector so every connect() starts from
@@ -640,27 +731,50 @@ class PeraWalletConnect {
             this.isInWebview = await this.webviewCheckPromise
             this.webviewCheckPromise = this.checkIsInWebview()
 
+            // A newer connect() took over while this one was waiting.
+            if (isSettled) {
+                return
+            }
+
             if (config.isWebWalletAvailable) {
                 window.onWebWalletConnect = runWebConnectFlow({
                     resolve,
                     reject,
+                    isSettled: () => isSettled,
                     webWalletURL: config.webWalletURL,
                     chainId: this.chainId,
                 })
             }
 
             const extensionTransport = this.shouldPreferExtension
-                ? this.extensionTransport
+                ? this.ensureExtensionTransport()
                 : null
 
             if (extensionTransport) {
-                removeExtensionListener = this.listenForExtensionConnect(
-                    extensionTransport,
-                    options,
-                    resolve,
-                    reject,
+                removeListeners.push(
+                    this.listenForExtensionConnect(
+                        extensionTransport,
+                        options,
+                        resolve,
+                        reject,
+                        () => !isSettled,
+                    ),
                 )
             }
+
+            removeListeners.push(this.listenForModalClosed(reject))
+
+            const qrcodeModal = createPeraWalletConnectQrcodeModal({
+                isWebWalletAvailable: config.isWebWalletAvailable,
+                shouldDisplayNewBadge: config.shouldDisplayNewBadge,
+                shouldUseSound: config.shouldUseSound,
+                compactMode: this.compactMode,
+                promoteMobile: config.promoteMobile,
+                singleAccount: this.singleAccount,
+                selectedAccount: options?.selectedAccount,
+                isInWebview: this.isInWebview,
+                isExtensionEnabled: extensionTransport !== null,
+            })
 
             // Bridge precedence: dApp option, then config.json, then a
             // Pera-hosted fallback for when the config is unreachable or lists
@@ -673,39 +787,49 @@ class PeraWalletConnect {
                     config.bridgeURL ||
                     PERA_WALLET_CONNECT_FALLBACK_BRIDGE,
                 storageId: PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
-                qrcodeModal: createPeraWalletConnectQrcodeModal({
-                    isWebWalletAvailable: config.isWebWalletAvailable,
-                    shouldDisplayNewBadge: config.shouldDisplayNewBadge,
-                    shouldUseSound: config.shouldUseSound,
-                    compactMode: this.compactMode,
-                    promoteMobile: config.promoteMobile,
-                    singleAccount: this.singleAccount,
-                    selectedAccount: options?.selectedAccount,
-                    isInWebview: this.isInWebview,
-                    isExtensionEnabled: extensionTransport !== null,
-                }),
+                // Once the call has settled the modal on screen, if any, is
+                // not this pairing's to open or close.
+                qrcodeModal: {
+                    open: uri => {
+                        if (!isSettled) {
+                            qrcodeModal.open(uri)
+                        }
+                    },
+                    close: () => {
+                        if (!isSettled) {
+                            qrcodeModal.close()
+                        }
+                    },
+                },
             })
 
+            pairing = connector
             this.connector = connector
+            this.pendingPairings.set(connector, reason =>
+                reject(
+                    new PeraWalletConnectError(
+                        { type: 'CONNECT_CANCELLED', detail: reason },
+                        // Pera also declines on its own, e.g. for a chain it
+                        // doesn't serve, which looks the same on the wire.
+                        'The connection was declined by Pera Wallet',
+                    ),
+                ),
+            )
             this.forwardConnectorDisconnect(connector)
 
             await connector.createSession({
                 chainId: this.chainId || ALGORAND_NODE_CHAIN_ID,
             })
 
-            setupPeraWalletConnectModalCloseListener(
-                PERA_WALLET_CONNECT_MODAL_ID,
-                () =>
-                    reject(
-                        new PeraWalletConnectError(
-                            { type: 'CONNECT_MODAL_CLOSED' },
-                            'Connect modal is closed by user',
-                        ),
-                    ),
-            )
-
             connector.on('connect', error => {
-                if (this.abandonedConnectors.has(connector)) {
+                // Paired: from here a `disconnect` is the session ending.
+                this.pendingPairings.delete(connector)
+
+                if (isSettled || this.abandonedConnectors.has(connector)) {
+                    if (!error) {
+                        this.retireLateApproval(connector)
+                    }
+
                     return
                 }
 
@@ -715,8 +839,11 @@ class PeraWalletConnect {
                     return
                 }
 
-                resolve(connector.accounts || [])
-                saveWalletDetailsToStorage(connector.accounts || [])
+                // Not `resolve`: this pairing won, so it is the session.
+                if (settle()) {
+                    resolveConnect(connector.accounts || [])
+                    saveWalletDetailsToStorage(connector.accounts || [])
+                }
             })
         } catch (error) {
             reject(
@@ -731,6 +858,51 @@ class PeraWalletConnect {
         }
     }
 
+    // Every button that dismisses the modal (the header's close button, and on
+    // a phone the pending view's Cancel and "Close & Try Again") reports it
+    // with this event. Returns the unsubscribe.
+    private listenForModalClosed(reject: (error: unknown) => void) {
+        const handleModalClosed = () => reject(createModalClosedError())
+
+        document.addEventListener(
+            PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+            handleModalClosed,
+        )
+
+        return () => {
+            document.removeEventListener(
+                PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+                handleModalClosed,
+            )
+        }
+    }
+
+    // An approval already on its way when the pairing was retired still
+    // connects it, and WalletConnect then persists that session under the key
+    // every Pera connector shares: the next connect() would fail with "Session
+    // currently connected" and a reload would bring the session back. Ending it
+    // clears that, except while a newer session is live, whose stored session
+    // the kill would remove too. That one is written back instead, once
+    // WalletConnect has persisted the late approval over it, which it does
+    // synchronously right after the `connect` handlers return.
+    private retireLateApproval(connector: WalletConnect) {
+        const liveConnector = this.connector
+
+        if (!liveConnector?.connected) {
+            void this.abandonConnector(connector)
+
+            return
+        }
+
+        this.abandonedConnectors.add(connector)
+        closeConnectorTransport(connector)
+        queueMicrotask(() => {
+            if (this.connector === liveConnector && liveConnector.connected) {
+                saveWalletConnectObjectToStorage(liveConnector.session)
+            }
+        })
+    }
+
     // The modal's extension button dispatches this event synchronously from
     // its click handler, and `dispatchEvent` runs listeners synchronously, so
     // `window.pera.connect()` still runs inside the user's gesture (a
@@ -740,6 +912,7 @@ class PeraWalletConnect {
         options: ConnectOptions | undefined,
         resolve: (accounts: string[]) => void,
         reject: (error: unknown) => void,
+        isCallPending: () => boolean,
     ) {
         const removeListener = () => {
             document.removeEventListener(
@@ -758,15 +931,18 @@ class PeraWalletConnect {
             // page load silently reconnects.
             removeModalWrapperFromDOM(PERA_WALLET_CONNECT_MODAL_ID)
 
+            // Settling retires the QR pairing still waiting for a scan, so it
+            // cannot overwrite the extension session with a mobile one. The
+            // call can also settle while the approval window is open (a newer
+            // connect() took over); the approval then stores nothing. It is not
+            // revoked either: that could revoke the newer call's own extension
+            // approval, which the wallet keys on the same origin.
             extensionTransport
-                .connect({ selectedAccount: options?.selectedAccount })
-                .then(accounts => {
-                    // The QR pairing may still be waiting for a scan; retire it
-                    // so it cannot overwrite the extension session with a
-                    // mobile one.
-                    void this.abandonConnector(this.connector)
-                    resolve(accounts)
-                })
+                .connect(
+                    { selectedAccount: options?.selectedAccount },
+                    isCallPending,
+                )
+                .then(resolve)
                 .catch(reject)
         }
 
@@ -805,7 +981,9 @@ class PeraWalletConnect {
     // and the stored details alone, and the caller gets the transport's own
     // error at `error.data.type`.
     private async reconnectExtensionSession() {
-        if (!this.extensionTransport) {
+        const extensionTransport = this.ensureExtensionTransport()
+
+        if (!extensionTransport) {
             // The extension was removed (or this is another browser); the
             // wallet owns the connection, so there is nothing to resume.
             await resetWalletDetailsFromStorage()
@@ -813,7 +991,7 @@ class PeraWalletConnect {
             return []
         }
 
-        return this.extensionTransport.reconnect()
+        return extensionTransport.reconnect()
     }
 
     // Rebuilds the connector from the persisted WalletConnect session, but
@@ -822,8 +1000,22 @@ class PeraWalletConnect {
         this.isInWebview = await this.checkIsInWebview()
 
         const previousConnector = this.connector
+        const storedSession = getWalletConnectObjectFromStorage()
 
-        this.bridge = getWalletConnectObjectFromStorage()?.bridge || ''
+        this.bridge = storedSession?.bridge || ''
+
+        // A second connector for the session this instance already holds would
+        // open another bridge socket and report the wallet ending it twice.
+        if (
+            previousConnector &&
+            isConnectorForStoredSession(previousConnector, storedSession)
+        ) {
+            // A dApp's `connector.off('disconnect')` drops the SDK's listener
+            // along with its own; this puts it back.
+            this.forwardConnectorDisconnect(previousConnector)
+
+            return previousConnector.accounts || []
+        }
 
         if (this.bridge) {
             this.connector = new WalletConnect({
@@ -877,13 +1069,43 @@ class PeraWalletConnect {
      *
      * The event is also how WalletConnect v1 reports *our* `killSession()`, so
      * connectors we have abandoned are filtered out — a dApp must not be told
-     * the wallet ended a session that the SDK itself is tearing down.
+     * the wallet ended a session that the SDK itself is tearing down. It is
+     * also how it reports the wallet declining a pairing, before any
+     * `connect`: there was no session to end, so the connect() call settles
+     * instead.
+     *
+     * Calling it again for the same connector registers the listener again
+     * only once a dApp's `off('disconnect')` has dropped it.
      */
     private forwardConnectorDisconnect(connector: WalletConnect) {
-        connector.on('disconnect', () => {
+        if (this.disconnectForwarders.get(connector)) {
+            return
+        }
+
+        if (!this.disconnectForwarders.has(connector)) {
+            this.trackDisconnectListenerRemoval(connector)
+        }
+
+        this.disconnectForwarders.set(connector, true)
+        connector.on('disconnect', (_error, payload: unknown) => {
             if (this.abandonedConnectors.has(connector)) {
                 return
             }
+
+            const declinePairing = this.pendingPairings.get(connector)
+
+            if (declinePairing) {
+                this.pendingPairings.delete(connector)
+                declinePairing(getWalletConnectEventMessage(payload))
+
+                return
+            }
+
+            if (this.reportedDisconnects.has(connector)) {
+                return
+            }
+
+            this.reportedDisconnects.add(connector)
 
             if (this.connector === connector) {
                 this.connector = null
@@ -898,6 +1120,26 @@ class PeraWalletConnect {
 
             this.events.emit('disconnect', undefined)
         })
+    }
+
+    // WalletConnect v1's `off()` drops every listener for the event, the SDK's
+    // included, and cannot be asked which listeners are left, so the SDK
+    // notes the removal as it happens.
+    private trackDisconnectListenerRemoval(connector: WalletConnect) {
+        // `connector` is a public field, so it may hold a stand-in without one.
+        if (typeof connector.off !== 'function') {
+            return
+        }
+
+        const off = connector.off.bind(connector)
+
+        connector.off = event => {
+            off(event)
+
+            if (event === 'disconnect') {
+                this.disconnectForwarders.set(connector, false)
+            }
+        }
     }
 
     /**
@@ -921,17 +1163,30 @@ class PeraWalletConnect {
             this.connector = null
         }
 
-        if (connector.connected) {
-            try {
-                await connector.killSession()
-            } catch {
-                // Best-effort: the connector is already detached either way.
-            }
+        if (!connector.connected) {
+            // Nobody completes this pairing any more: closing its bridge socket
+            // ends WalletConnect's reconnect loop, and an approval can no longer
+            // reach it and be persisted by WalletConnect itself.
+            closeConnectorTransport(connector)
+
+            return
+        }
+
+        try {
+            // Also closes the transport.
+            await connector.killSession()
+        } catch {
+            // Best-effort: the connector is already detached either way, but
+            // its socket would stay open.
+            closeConnectorTransport(connector)
         }
     }
 
+    // Outside Pera's in-app browser the probe could only time out, which would
+    // hold connect() and reconnectSession() for its full timeout on every
+    // phone browser.
     private async checkIsInWebview(): Promise<boolean> {
-        if (!isMobile()) {
+        if (!isMobile() || !hasMobileInterface()) {
             return false
         }
 
@@ -963,15 +1218,54 @@ class PeraWalletConnect {
         }
     }
 
+    // dispose() releases the provider subscriptions, but the README's effect
+    // cleanup disposes a long-lived instance that a remount then uses again, so
+    // it subscribes again on first use. An instance that was never disposed
+    // keeps the provider it found when it was built.
+    private ensureExtensionTransport() {
+        if (!this.extensionTransport && this.isDisposed) {
+            this.extensionTransport = this.createExtensionTransport()
+
+            if (this.extensionTransport) {
+                this.isDisposed = false
+            }
+        }
+
+        return this.extensionTransport
+    }
+
+    // Ending the session is often the last thing an unmounting component does,
+    // after dispose(): revoking must not subscribe to the provider again.
+    private async revokeExtensionSession() {
+        if (this.extensionTransport) {
+            await this.extensionTransport.disconnect()
+
+            return
+        }
+
+        if (!this.isDisposed) {
+            return
+        }
+
+        try {
+            await getPeraProvider()?.disconnect()
+        } catch {
+            // Best-effort, as with a live transport; disconnect() clears the
+            // stored details either way.
+        }
+    }
+
     private requireExtensionTransport() {
-        if (!this.extensionTransport) {
+        const extensionTransport = this.ensureExtensionTransport()
+
+        if (!extensionTransport) {
             throw new PeraWalletConnectError(
                 { type: 'EXTENSION_NOT_AVAILABLE' },
                 'The session was created with the Pera extension, but window.pera is not present on this page. Reconnect with another option.',
             )
         }
 
-        return this.extensionTransport
+        return extensionTransport
     }
 
     private getTransport(): WalletTransport {
@@ -998,6 +1292,23 @@ class PeraWalletConnect {
             isInWebview: this.isInWebview,
             getSilent: async () => (await getPeraConnectConfig()).silent,
         })
+    }
+}
+
+function createModalClosedError() {
+    return new PeraWalletConnectError(
+        { type: 'CONNECT_MODAL_CLOSED' },
+        'Connect modal is closed by user',
+    )
+}
+
+// `connector` is a public field, so it may hold whatever a dApp assigned, and
+// teardown runs in unmount cleanups that must not throw.
+function closeConnectorTransport(connector: WalletConnect) {
+    try {
+        connector.transportClose()
+    } catch {
+        // Nothing left to release.
     }
 }
 

@@ -12,12 +12,12 @@ import {
 import { PeraWalletConnectModal } from '../PeraWalletConnectModal.js'
 import { PeraWalletModalHeader } from '../header/PeraWalletModalHeader.js'
 import {
+    PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
     PERA_WALLET_CONNECT_MODAL_ID,
     type PeraWalletModalConfig,
     createPeraWalletConnectQrcodeModal,
     openPeraWalletConnectModal,
     removeModalWrapperFromDOM,
-    setupPeraWalletConnectModalCloseListener,
 } from '../peraWalletConnectModalUtils.js'
 
 const BASE_CONFIG: PeraWalletModalConfig = {
@@ -185,15 +185,15 @@ describe('peraWalletConnectModalUtils', () => {
         })
     })
 
-    describe('setupPeraWalletConnectModalCloseListener', () => {
-        it('runs the close callback and removes the modal when the header close button is clicked', () => {
-            const onClose = vi.fn()
+    describe("the connect modal's close button", () => {
+        it('reports the modal closed and removes it', () => {
+            const onClosed = vi.fn()
 
-            openPeraWalletConnectModal(BASE_CONFIG)('wc:abc@1')
-            setupPeraWalletConnectModalCloseListener(
-                PERA_WALLET_CONNECT_MODAL_ID,
-                onClose,
+            document.addEventListener(
+                PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+                onClosed,
             )
+            openPeraWalletConnectModal(BASE_CONFIG)('wc:abc@1')
 
             getConnectModalElement()!
                 .shadowRoot!.querySelector('pera-wallet-modal-header')!
@@ -201,8 +201,12 @@ describe('peraWalletConnectModalUtils', () => {
                     'pera-wallet-modal-header-close-button',
                 )!
                 .click()
+            document.removeEventListener(
+                PERA_WALLET_CONNECT_MODAL_CLOSED_EVENT,
+                onClosed,
+            )
 
-            expect(onClose).toHaveBeenCalledTimes(1)
+            expect(onClosed).toHaveBeenCalledTimes(1)
             expect(
                 document.getElementById(PERA_WALLET_CONNECT_MODAL_ID),
             ).toBeNull()

@@ -4,6 +4,7 @@ import {
     saveWalletDetailsToStorage,
     getWalletDetailsFromStorage,
     getWalletConnectObjectFromStorage,
+    saveWalletConnectObjectToStorage,
     resetWalletDetailsFromStorage,
     getWalletPlatformFromStorage,
     migrateLegacyWalletConnectSession,
@@ -83,6 +84,18 @@ describe('storageUtils', () => {
 
         it('returns null when no session is stored', () => {
             expect(getWalletConnectObjectFromStorage()).toBeNull()
+        })
+    })
+
+    describe('saveWalletConnectObjectToStorage', () => {
+        it("stores the session as WalletConnect does, under Pera's key", () => {
+            saveWalletConnectObjectToStorage(LEGACY_SESSION)
+
+            expect(
+                localStorage.getItem(
+                    PERA_WALLET_LOCAL_STORAGE_KEYS.WALLETCONNECT,
+                ),
+            ).toBe(JSON.stringify(LEGACY_SESSION))
         })
     })
 

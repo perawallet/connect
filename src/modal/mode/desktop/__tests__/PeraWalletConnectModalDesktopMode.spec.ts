@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest'
 
 import { PeraWalletModalDesktopMode } from '../PeraWalletConnectModalDesktopMode.js'
 import { PERA_WALLET_EXTENSION_CONNECT_EVENT } from '../../../peraWalletConnectModalUtils.js'
+import { PERA_DOWNLOAD_URL } from '../../../../util/peraWalletConstants.js'
 
 vi.mock('qr-code-styling', () => ({
     default: class {
@@ -251,6 +252,26 @@ describe('PeraWalletModalDesktopMode', () => {
                 classList.contains(
                     'pera-wallet-connect-modal-desktop-mode--default',
                 ),
+            ).toBe(false)
+        })
+
+        it('links only to the app stores and the Pera download page, never to an APK', () => {
+            const { shadowRoot } = renderDesktopMode()
+
+            const footerLinks = Array.from(
+                shadowRoot.querySelectorAll<HTMLAnchorElement>(
+                    '.pera-wallet-connect-modal-download-pera-view__footer a',
+                ),
+                link => link.getAttribute('href'),
+            )
+
+            expect(footerLinks).toEqual([
+                'https://apps.apple.com/us/app/algorand-wallet/id1459898525',
+                'https://play.google.com/store/apps/details?id=com.algorand.android',
+                PERA_DOWNLOAD_URL,
+            ])
+            expect(
+                footerLinks.some(href => href?.toLowerCase().includes('.apk')),
             ).toBe(false)
         })
 
