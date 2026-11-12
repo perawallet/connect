@@ -1,6 +1,6 @@
+import { ed25519 } from '@noble/curves/ed25519.js'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
-import nacl from 'tweetnacl'
 
 import { PeraWalletConnect } from '../PeraWalletConnect.js'
 import { concatArrays } from '../util/array/arrayUtils.js'
@@ -155,9 +155,9 @@ describe('PeraWalletConnect.verifySignature', () => {
     it('verifies a signature produced over the MX-prefixed data', () => {
         const account = algosdk.generateAccount()
         const data = new Uint8Array([1, 2, 3])
-        const signature = nacl.sign.detached(
+        const signature = ed25519.sign(
             concatArrays(new Uint8Array(PERA_WALLET_SIGNATURE_PREFIX), data),
-            account.sk,
+            account.sk.subarray(0, 32),
         )
 
         const pera = new PeraWalletConnect()
@@ -170,12 +170,12 @@ describe('PeraWalletConnect.verifySignature', () => {
     it('rejects a signature over the wrong data', () => {
         const account = algosdk.generateAccount()
         const data = new Uint8Array([1, 2, 3])
-        const signature = nacl.sign.detached(
+        const signature = ed25519.sign(
             concatArrays(
                 new Uint8Array(PERA_WALLET_SIGNATURE_PREFIX),
                 new Uint8Array([9, 9, 9]),
             ),
-            account.sk,
+            account.sk.subarray(0, 32),
         )
 
         const pera = new PeraWalletConnect()
@@ -214,7 +214,10 @@ describe('PeraWalletConnect.verifyArc60Signature', () => {
             ),
         )
 
-        return nacl.sign.detached(concatArrays(dataHash, authHash), account.sk)
+        return ed25519.sign(
+            concatArrays(dataHash, authHash),
+            account.sk.subarray(0, 32),
+        )
     }
 
     it('verifies a valid ARC-60 signature', async () => {

@@ -1,5 +1,5 @@
+import { ed25519 } from '@noble/curves/ed25519.js'
 import algosdk from 'algosdk'
-import nacl from 'tweetnacl'
 
 // What a real wallet does with its keys, so the SDK's checks run against real
 // signatures rather than placeholders.
@@ -33,7 +33,7 @@ async function signArc60(
         await sha256(authenticatorData),
     )
 
-    return nacl.sign.detached(signedBytes, secretKey)
+    return ed25519.sign(signedBytes, secretKey.subarray(0, 32))
 }
 
 /** FIDO-style authenticator data: sha256(domain), flags, a zero counter. */
@@ -75,9 +75,9 @@ function hasValidSignatureBy(signedTxn: Uint8Array, address: string) {
 
     return (
         sig !== undefined &&
-        nacl.sign.detached.verify(
-            txn.bytesToSign(),
+        ed25519.verify(
             sig,
+            txn.bytesToSign(),
             algosdk.decodeAddress(address).publicKey,
         )
     )

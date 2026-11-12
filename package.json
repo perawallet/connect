@@ -48,11 +48,11 @@
   },
   "dependencies": {
     "@evanhahn/lottie-web-light": "5.13.0",
+    "@noble/curves": "^2.4.0",
     "@perawallet/walletconnect": "1.0.3",
     "bowser": "2.14.1",
     "buffer": "^6.0.3",
-    "qr-code-styling": "1.9.2",
-    "tweetnacl": "^1.0.3"
+    "qr-code-styling": "1.9.2"
   },
   "peerDependencies": {
     "algosdk": "^3.5.2"
