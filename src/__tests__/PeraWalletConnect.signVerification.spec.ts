@@ -1,6 +1,6 @@
+import { ed25519 } from '@noble/curves/ed25519.js'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import algosdk from 'algosdk'
-import nacl from 'tweetnacl'
 
 import { PeraWalletConnect } from '../PeraWalletConnect.js'
 import { ScopeType } from '../util/model/peraWalletModels.js'
@@ -378,7 +378,10 @@ describe('PeraWalletConnect.signArc60Data', () => {
                     ...(await digest(new Uint8Array(rawData))),
                     ...(await digest(authenticatorData)),
                 ])
-                const signature = nacl.sign.detached(toBeSigned, account.sk)
+                const signature = ed25519.sign(
+                    toBeSigned,
+                    account.sk.subarray(0, 32),
+                )
 
                 const pera = new PeraWalletConnect()
 

@@ -1,9 +1,14 @@
+import { ed25519 } from '@noble/curves/ed25519.js'
 import algosdk from 'algosdk'
 import { Buffer } from 'buffer'
-import nacl from 'tweetnacl'
 
 import { concatArrays } from '../array/arrayUtils.js'
 import { PERA_WALLET_SIGNATURE_PREFIX } from '../peraWalletConstants.js'
+
+// RFC 8032 strict rather than noble's ZIP 215 default, which accepts
+// non-canonical point encodings. Unlike tweetnacl, both reject malleated
+// signatures (S >= L); honest signatures verify the same.
+const STRICT = { zip215: false }
 
 // Read through Buffer.from like the wire encoding (bytesToBase64), so plain-JS
 // input (a string, an ArrayBuffer, a number array) is checked against the same
@@ -28,10 +33,11 @@ function verifyPeraSignature(
     try {
         const { publicKey } = algosdk.decodeAddress(signerAddress)
 
-        return nacl.sign.detached.verify(
-            concatArrays(PERA_WALLET_SIGNATURE_PREFIX, toSignedBytes(data)),
+        return ed25519.verify(
             signature,
+            concatArrays(PERA_WALLET_SIGNATURE_PREFIX, toSignedBytes(data)),
             publicKey,
+            STRICT,
         )
     } catch {
         return false
@@ -52,7 +58,7 @@ async function verifyArc60Signature(
             await sha256(authenticatorData),
         )
 
-        return nacl.sign.detached.verify(signedBytes, signature, publicKey)
+        return ed25519.verify(signature, signedBytes, publicKey, STRICT)
     } catch {
         return false
     }
