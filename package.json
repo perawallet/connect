@@ -1,6 +1,6 @@
 {
   "name": "@perawallet/connect",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "JavaScript SDK for integrating Pera Wallet to web applications",
   "license": "ISC",
   "author": "Pera Wallet",
@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@evanhahn/lottie-web-light": "5.13.0",
-    "@perawallet/walletconnect": "1.0.3",
+    "@perawallet/walletconnect": "1.0.4",
     "bowser": "2.14.1",
     "buffer": "^6.0.3",
     "qr-code-styling": "1.9.2",
