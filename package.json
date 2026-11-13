@@ -49,7 +49,7 @@
   "dependencies": {
     "@evanhahn/lottie-web-light": "5.13.0",
     "@perawallet/walletconnect": "1.0.4",
-    "bowser": "2.14.1",
+    "bowser": "2.15.0",
     "buffer": "^6.0.3",
     "qr-code-styling": "1.9.2",
     "tweetnacl": "^1.0.3"
